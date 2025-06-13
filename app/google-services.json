@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "509410936609",
+    "project_id": "exampleappforonboarding",
+    "storage_bucket": "exampleappforonboarding.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509410936609:android:559e9e7ac26d45ea1ca060",
+        "android_client_info": {
+          "package_name": "com.foxynest.testappforonboarding"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1K4rDAaWQeBgjjyn-Dsj5-eYu5wPibx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

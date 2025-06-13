@@ -1,0 +1,116 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    // 2. Hilt
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
+}
+
+android {
+    namespace 'com.foxynest.testappforonboarding'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.foxynest.testappforonboarding"
+        minSdk 29
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        // Название файла
+        applicationVariants.all { variant ->
+            variant.outputs.all { output ->
+
+                def APP_TITLE = "TestAppWithOnboarding"
+                def SEPARATOR = "_"
+
+                // какой билд (зависит от того, какой выбрали в Active Build Variant)
+                def buildType = variant.buildType.name
+                // versionName, который мы указали в defaultConfig -> versionName
+                def version = variant.versionName
+                // инициализация объекта даты
+                def date = new Date()
+                // указываем формат даты типа "09.11.21"
+                def formattedDate = date.format('dd.MM.yy')
+
+                // объединяем все в одну строчку
+                def apkName = APP_TITLE + SEPARATOR + version + SEPARATOR + buildType + SEPARATOR + formattedDate + ".apk"
+
+                // создем APK файл с названием $apkName
+                outputFileName = new File(apkName)
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    // Architectural components (ViewModel)
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+
+    // Lifecycle
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.7.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.7.0"
+
+    // For activityViewModels working:
+    // Java language implementation
+    implementation "androidx.fragment:fragment-ktx:1.6.2"
+    // Kotlin
+    implementation "androidx.fragment:fragment-ktx:1.6.2"
+    // Testing Fragments in Isolation
+    debugImplementation "androidx.fragment:fragment-testing:1.6.2"
+
+    // Material design
+    implementation 'com.google.android.material:material:1.12.0'
+
+    // Navigation Component
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.8.9'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.8.9'
+
+//    // DataStore (вместо Shared Preference)
+//    implementation "androidx.datastore:datastore-preferences:1.1.5"
+
+    // Preferences DataStore (SharedPreferences like APIs)
+    implementation "androidx.datastore:datastore-preferences:1.1.7"
+    // optional - RxJava2 support
+    implementation "androidx.datastore:datastore-preferences-rxjava2:1.1.7"
+    // optional - RxJava3 support
+    implementation "androidx.datastore:datastore-preferences-rxjava3:1.1.7"
+
+    // 3. Hilt
+    implementation "com.google.dagger:hilt-android:2.45"
+    kapt "com.google.dagger:hilt-android-compiler:2.45"
+}
+
+kapt {
+    // Дополнит. настройка, чтобы hilt показывал корректные сообщения об ошибке во время компиляции
+    correctErrorTypes = true
+}

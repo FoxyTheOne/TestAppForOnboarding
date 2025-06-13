@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">TestAppForOnboarding</string>
+    <string name="onboarding_tittle">Добро пожаловать!</string>
+    <string name="home_title">Главная</string>
+    <string name="profile_title">Профиль</string>
+    <string name="info_title">Полезное</string>
+    <string name="button_next">Дальше</string>
+    <string name="button_finish">Готово</string>
+    <string name="text_gender_question">Укажите пол вашего ребенка</string>
+    <string name="text_boy">Мальчик</string>
+    <string name="text_girl">Девочка</string>
+    <string name="text_name_question">Как зовут вашего ребенка?</string>
+    <string name="text_name_hint">Введите имя</string>
+    <string name="text_question2fragment">На этот фрагмент вы должны были попасть только если пол вашего ребенка - мальчик. Нажмите, что это так</string>
+    <string name="text_hobby_question">Чем ваш ребенок любит заниматься, когда он развлекается самостоятельно?</string>
+    <string name="text_hobby_hint">Напишите хобби</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="paywall_text_analysing">Анализируем ваши ответы</string>
+    <string name="paywall_title">Результаты опроса проанализированы</string>
+    <string name="paywall_text">Для доступа к полному функционалу приложения вы можете оформить подписку</string>
+    <string name="paywall_button">Оплатить подписку</string>
+    <string name="button_go_to_profile">Перейти в профиль</string>
+    <string name="profile_text_title">Ваш профиль</string>
+    <string name="profile_title_gender">Пол вашего ребенка:</string>
+    <string name="profile_title_gender_question">Проверка: это мальчик?</string>
+    <string name="profile_title_name">Имя вашего ребенка:</string>
+    <string name="profile_title_hobby">Хобби вашего ребенка:</string>
+    <string name="home_title_part1">Чем сегодня</string>
+    <string name="home_title_part2_girl">занималась</string>
+    <string name="home_title_part2_boy">занимался</string>
+    <string name="home_title_part3">ваш замечательный ребенок?</string>
+    <string name="home_text">Ресурсного вам дня!</string>
+    <string name="info_title_empty">Здесь будет разамещена полезная информация для вас</string>
+</resources>

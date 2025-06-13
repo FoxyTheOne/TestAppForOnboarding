@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_question1">
+
+    <fragment
+        android:id="@+id/navigation_question1"
+        android:name="com.foxynest.testappforonboarding.presentation.onboardingAndPaywall.Question1Fragment"
+        android:label="@string/onboarding_tittle"
+        tools:layout="@layout/fragment_question1">
+        <action
+            android:id="@+id/action_navigation_question1_to_question2Fragment"
+            app:destination="@id/navigation_question2"
+            app:popUpTo="@id/navigation_question1"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_navigation_question1_to_navigation_question3"
+            app:destination="@id/navigation_question3"
+            app:popUpTo="@id/navigation_question1"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_question2"
+        android:name="com.foxynest.testappforonboarding.presentation.onboardingAndPaywall.Question2Fragment"
+        android:label="Question2Fragment">
+        <action
+            android:id="@+id/action_navigation_question2_to_navigation_question3"
+            app:destination="@id/navigation_question3"
+            app:popUpTo="@id/navigation_question2"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_navigation_question2_to_navigation_question1"
+            app:destination="@id/navigation_question1"
+            app:popUpTo="@id/navigation_question2"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_question3"
+        android:name="com.foxynest.testappforonboarding.presentation.onboardingAndPaywall.Question3Fragment"
+        android:label="Question3Fragment">
+        <action
+            android:id="@+id/action_navigation_question3_to_paywallFragment"
+            app:destination="@id/navigation_paywall"
+            app:popUpTo="@id/navigation_question3"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_navigation_question3_to_navigation_question2"
+            app:destination="@id/navigation_question2"
+            app:popUpTo="@id/navigation_question3"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_navigation_question3_to_navigation_question1"
+            app:destination="@id/navigation_question1"
+            app:popUpTo="@id/navigation_question3"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_paywall"
+        android:name="com.foxynest.testappforonboarding.presentation.onboardingAndPaywall.PaywallFragment"
+        android:label="PaywallFragment">
+        <action
+            android:id="@+id/action_navigation_paywall_to_navigation_profile"
+            app:destination="@id/navigation_profile"
+            app:popUpTo="@id/navigation_paywall"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.foxynest.testappforonboarding.presentation.home.HomeFragment"
+        android:label="@string/home_title"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="com.foxynest.testappforonboarding.presentation.profile.ProfileFragment"
+        android:label="@string/profile_title"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/navigation_useful_information"
+        android:name="com.foxynest.testappforonboarding.presentation.usefulInfo.UsefulInfoFragment"
+        android:label="@string/info_title"
+        tools:layout="@layout/fragment_useful_info" />
+
+    <!-- Global action -->
+    <action
+        android:id="@+id/action_global_navigation_home"
+        app:destination="@id/navigation_home" />
+</navigation>

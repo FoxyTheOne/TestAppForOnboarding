@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+Разрешения для выхода в интернет:
+ -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+    When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission:
+-->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+     android:windowSoftInputMode="adjustPan|stateAlwaysHidden"
+     adjustPan: Контент не сдвигается, клавиатура перекрывает нижнюю часть экрана
+     stateAlwaysHidden: Клавиатура всегда скрывается при входе в активити
+     -->
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TestAppForOnboarding"
+        tools:targetApi="31">
+        <activity
+            android:name=".presentation.MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan|stateAlwaysHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

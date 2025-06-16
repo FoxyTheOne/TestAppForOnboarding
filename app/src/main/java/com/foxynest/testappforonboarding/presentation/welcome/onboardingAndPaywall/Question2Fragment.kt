@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.presentation.onboardingAndPaywall
+package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,10 +9,11 @@ import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion2Binding
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class Question2Fragment : BaseOnboardingFragmentAbstract() {
+class Question2Fragment : BaseWelcomeFragmentAbstract() {
     companion object {
         private const val TAG = "Question2Fragment"
     }

@@ -1,10 +1,9 @@
-package com.foxynest.testappforonboarding.presentation.onboardingAndPaywall
+package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.Toast
@@ -13,11 +12,12 @@ import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class Question1Fragment : BaseOnboardingFragmentAbstract() {
+class Question1Fragment : BaseWelcomeFragmentAbstract() {
     companion object {
         private const val TAG = "Question1Fragment"
     }

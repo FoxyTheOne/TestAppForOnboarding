@@ -5,11 +5,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
+import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -52,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         // Bottom navigation setup
         val navView: BottomNavigationView = binding!!.navView
 //        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
@@ -65,6 +67,9 @@ class MainActivity : AppCompatActivity() {
         // Let's add a listener to our NavController to hide BottomBar when we are on the onboarding and paywall pages
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
+                R.id.navigation_welcome -> navView.visibility = View.GONE
+                R.id.navigation_login -> navView.visibility = View.GONE
+                R.id.navigation_register -> navView.visibility = View.GONE
                 R.id.navigation_question1 -> navView.visibility = View.GONE
                 R.id.navigation_question2 -> navView.visibility = View.GONE
                 R.id.navigation_question3 -> navView.visibility = View.GONE
@@ -74,6 +79,24 @@ class MainActivity : AppCompatActivity() {
                 else -> navView.visibility = View.VISIBLE
             }
         }
+
+        // Отступ у контента в случае появления bottomNavigationView
+        val bottomNavigationView = binding?.navView
+        val mainContent = binding?.flFragmentContainer
+        bottomNavigationView?.viewTreeObserver?.addOnGlobalLayoutListener(object :
+            ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (mainContent != null) {
+                    val bottomBarHeight = bottomNavigationView.height
+                    // Применить отступ к mainContent
+                    val params = mainContent.layoutParams as ConstraintLayout.LayoutParams
+                    params.bottomMargin = bottomBarHeight
+                    mainContent.layoutParams = params
+
+                    bottomNavigationView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                }
+            }
+        })
 
         // Запрос на разрешение notification
         val requestPermissionLauncherNotification =
@@ -114,7 +137,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         // TODO Всплывающее окно "вы действительно хотите выйти?" перед закрытием приложения вместо запрета слушателя кнопки назад
-        if (navController.currentDestination?.id == R.id.navigation_question1 ||
+        if (navController.currentDestination?.id == R.id.navigation_welcome ||
+            navController.currentDestination?.id == R.id.navigation_login ||
+            navController.currentDestination?.id == R.id.navigation_register ||
+            navController.currentDestination?.id == R.id.navigation_question1 ||
             navController.currentDestination?.id == R.id.navigation_question2 ||
             navController.currentDestination?.id == R.id.navigation_question3 ||
             navController.currentDestination?.id == R.id.navigation_paywall

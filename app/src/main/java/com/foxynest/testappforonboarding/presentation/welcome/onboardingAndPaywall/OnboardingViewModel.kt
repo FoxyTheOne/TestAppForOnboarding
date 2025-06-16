@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.presentation.onboardingAndPaywall
+package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

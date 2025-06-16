@@ -9,4 +9,6 @@ plugins {
     id 'org.jetbrains.kotlin.android' version '1.8.0' apply false
     // 1. Hilt
     id 'com.google.dagger.hilt.android' version '2.45' apply false
+    // Navigation pass data
+    id 'androidx.navigation.safeargs' version '2.9.0' apply false
 }

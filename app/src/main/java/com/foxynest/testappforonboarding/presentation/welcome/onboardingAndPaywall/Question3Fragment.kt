@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.presentation.onboardingAndPaywall
+package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
 import android.util.Log
@@ -13,10 +13,11 @@ import com.foxynest.testappforonboarding.databinding.FragmentQuestion3Binding
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class Question3Fragment : BaseOnboardingFragmentAbstract() {
+class Question3Fragment : BaseWelcomeFragmentAbstract() {
     companion object {
         private const val TAG = "Question3Fragment"
     }

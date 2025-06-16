@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.presentation.onboardingAndPaywall
+package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.content.Intent
 import android.net.Uri
@@ -14,11 +14,12 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
 import com.foxynest.testappforonboarding.other.VisibilityEnum
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class PaywallFragment : BaseOnboardingFragmentAbstract() {
+class PaywallFragment : BaseWelcomeFragmentAbstract() {
     companion object {
         private const val TAG = "PaywallFragment"
     }
@@ -47,7 +48,7 @@ class PaywallFragment : BaseOnboardingFragmentAbstract() {
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
-        paywallViewModel.saveOnboardingState(true)
+        paywallViewModel.saveOnboardingState(false)
         showProgressBarAnimationBeforeShowingContent()
         // Подтягиваем ответы из пройденного только что опросника. В дальнейшем метод будет вызываться в activity при запуске программы
         mainViewModel.getAndUseAnswersFromOnboardind()

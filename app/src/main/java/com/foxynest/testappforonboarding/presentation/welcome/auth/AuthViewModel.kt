@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.presentation.auth
+package com.foxynest.testappforonboarding.presentation.welcome.auth
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

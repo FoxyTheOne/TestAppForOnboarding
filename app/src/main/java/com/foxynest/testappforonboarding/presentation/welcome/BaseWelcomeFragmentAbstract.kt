@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.presentation.onboardingAndPaywall
+package com.foxynest.testappforonboarding.presentation.welcome
 
 import android.os.Bundle
 import android.util.Log
@@ -17,7 +17,7 @@ import javax.inject.Inject
  * Содержит логику перехода сразу на content, если в предыдущий раз пользователь полностью прошёл онбординг
  */
 @AndroidEntryPoint
-abstract class BaseOnboardingFragmentAbstract : Fragment() {
+abstract class BaseWelcomeFragmentAbstract : Fragment() {
     companion object {
         private const val TAG = "BaseOnboardingFragmentAbstract"
     }
@@ -37,9 +37,9 @@ abstract class BaseOnboardingFragmentAbstract : Fragment() {
 //                        // Срабатывает моментально, а нам это нужно для последующих запусков, после первого
 //                        findNavController().navigate(R.id.action_global_navigation_home)
 
-                        if (findNavController().currentDestination?.id == R.id.navigation_question1) {
-                            findNavController().navigate(R.id.action_global_navigation_home)
-                        }
+//                        if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
+//                            findNavController().navigate(R.id.action_global_navigation_home)
+//                        }
                     }
                 }
         }

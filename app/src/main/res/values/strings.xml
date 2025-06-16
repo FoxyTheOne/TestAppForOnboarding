@@ -1,5 +1,13 @@
 <resources>
     <string name="app_name">TestAppForOnboarding</string>
+    <string name="welcome_tittle">Приветствуем!</string>
+    <string name="welcome_text_onboarding">Для полноценного опыта использования нашего приложения, просим вас пройти небольшой опрос перед первым запуском. Ответы помогут нам настроить приложение под вас.</string>
+    <string name="welcome_button_onboarding">Начать опрос</string>
+    <string name="welcome_text_login">Уже зарегистрированы?</string>
+    <string name="welcome_button_login">Войти</string>
+    <string name="auth_text_mail">Почта/логин</string>
+    <string name="auth_text_password">Пароль</string>
+    <string name="register_title">Регистрация</string>
     <string name="onboarding_tittle">Добро пожаловать!</string>
     <string name="home_title">Главная</string>
     <string name="profile_title">Профиль</string>
@@ -26,6 +34,10 @@
     <string name="profile_title_gender_question">Проверка: это мальчик?</string>
     <string name="profile_title_name">Имя вашего ребенка:</string>
     <string name="profile_title_hobby">Хобби вашего ребенка:</string>
+    <string name="profile_text_warning">Вы не зарегистрированы. Ваши данные будут очищены при удалении приложения. Советуем вам зарегистрировать аккаунт, на котором будут храниться ваши данные.</string>
+    <string name="profile_button_register">Зарегистрироваться</string>
+    <string name="profile_button_log_in">У меня уже есть аккаунт *</string>
+    <string name="profile_text_warning_data">* Введенные сейчас данные заменятся на те, которые сохранены на аккаунте.</string>
     <string name="home_title_part1">Чем сегодня</string>
     <string name="home_title_part2_girl">занималась</string>
     <string name="home_title_part2_boy">занимался</string>

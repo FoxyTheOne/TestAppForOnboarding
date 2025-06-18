@@ -11,7 +11,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 /**
  * Базовый фрагмент для расширения фрагментами с онбордингом.
  * Содержит логику перехода сразу на content, если в предыдущий раз пользователь полностью прошёл онбординг

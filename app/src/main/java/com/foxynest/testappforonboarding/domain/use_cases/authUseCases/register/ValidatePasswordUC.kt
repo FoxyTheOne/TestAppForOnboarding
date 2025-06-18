@@ -1,22 +1,24 @@
-package com.foxynest.testappforonboarding.domain.use_cases.authUseCases
+package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
 
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
 import com.foxynest.testappforonboarding.other.constants.AuthConstants.MIN_PASSWORD_LENGTH
 import javax.inject.Inject
 
 /**
- * Domain layer, UseCase. Бизнес-логика, Kotlin. Работает только с Repository.
+ * Domain layer, UseCase. Бизнес-логика, Kotlin.
+ * It's a middle layer between view model and data layer.
+ * Работает только с Repository (maybe some access to a repository that accesses a database or a directly access to some kind of data source).
  *
- * Interactor ответственен за обеспечение данными отдельные экраны (для каждого экрана - отдельный Interactor).
- * При работе с model, здесь происходит преобразование local -> presentation, т.е.
- * преобразование моделей в модели нижнего уровня перед тем, как нижний уровень сможет их использовать.
+ * При работе с model, здесь происходит преобразование local -> presentation,
+ * т.е. преобразование моделей в модели нижнего уровня перед тем, как нижний уровень сможет их использовать.
  *
- * Use case is a very integral part of clean architecture. It's a middle layer between view model and data layer.
- * Maybe some access to a repository that accesses a database or a directly access to some kind of data source.
- * We need use cases because they are an excellent way to follow the single responsibility principle. So we have a class for every single bit of logic we have in our project.
- * So typically each use case consists of just one function which executes that use case (which validates the email in our case here)
+ * We need use cases because they are an excellent way to follow the single responsibility principle.
+ * So we have a class for every single bit of logic we have in our project.
+ * Typically each use case consists of just one function which executes that use case (which validates the email for instance)
  */
 class ValidatePasswordUC @Inject constructor() : IValidatePasswordUC {
 
+    // Data слой здесь не нужен, мы проверяем только те данные, которые вводят в textfield
     override fun execute(password: String): ValidationResult {
         if (password.length < MIN_PASSWORD_LENGTH) {
             // TODO Здесь можно использовать String Resources
@@ -29,6 +31,7 @@ class ValidatePasswordUC @Inject constructor() : IValidatePasswordUC {
         val containsLettersAndDigits =
             password.any { it.isDigit() } && password.any { it.isLetter() }
         if (!containsLettersAndDigits) {
+            // TODO Здесь можно использовать String Resources
             return ValidationResult(
                 false,
                 "Пароль должен содержать хотябы одну цифру и одну букву"

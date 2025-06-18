@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases
 
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidateRepeatedPasswordUC
 import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Test

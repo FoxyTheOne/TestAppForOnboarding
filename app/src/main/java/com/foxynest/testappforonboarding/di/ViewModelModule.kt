@@ -2,12 +2,14 @@ package com.foxynest.testappforonboarding.di
 
 import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IValidateEmailUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IValidatePasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IValidateRepeatedPasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidateEmailUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidatePasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidateRepeatedPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.CheckRegisteredEmailAndPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ICheckRegisteredEmailAndPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateRepeatedPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidateRepeatedPasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.OnboardingUC
 import dagger.Binds
@@ -42,6 +44,11 @@ abstract class ViewModelModule {
 //    abstract fun bindsValidateTermsInteractor(
 //        validateTermsInteractor: ValidateTermsUseCase
 //    ): IValidateTermsUseCase
+
+    @Binds
+    abstract fun bindsCheckRegisteredEmailAndPasswordInteractor(
+        checkRegisteredEmailAndPasswordInteractor: CheckRegisteredEmailAndPasswordUC
+    ): ICheckRegisteredEmailAndPasswordUC
 
     @Binds
     abstract fun bindsOnboardingRepository(

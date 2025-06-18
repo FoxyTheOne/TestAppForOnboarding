@@ -86,7 +86,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
                 registrationViewModel.validationEvents.collect { event ->
                     when (event) {
                         // Успешное заполнение
-                        is RegistrationViewModel.ValidationEvent.Success -> {
+                        is RegistrationViewModel.ValidationEvent.SuccessValidation -> {
                             showRegistrationSuccess()
                         }
                     }
@@ -103,7 +103,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
     }
 
     private fun showRegistrationSuccess() {
-        // Действия после успешной регистрации
+        // TODO Действия после успешной регистрации
         // TODO String resources instead of text
         Toast.makeText(
             requireContext(),

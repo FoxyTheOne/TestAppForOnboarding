@@ -76,17 +76,14 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 
-    // Architectural components (ViewModel)
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
-//    // Architectural components (ViewModel)
-//    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.1'
-
     // Lifecycle
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.7.0"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.7.0"
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
 //    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.9.1"
 //    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.9.1"
+//    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.1'
 
     // For activityViewModels working:
     // Java language implementation

@@ -92,7 +92,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/space_32"
-            android:hint="@string/auth_text_password"
+            android:hint="@string/auth_text_password2"
             app:layout_constraintBottom_toTopOf="@+id/buttons_register_linear_layout"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"

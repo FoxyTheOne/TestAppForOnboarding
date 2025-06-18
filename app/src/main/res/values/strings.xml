@@ -5,8 +5,9 @@
     <string name="welcome_button_onboarding">Начать опрос</string>
     <string name="welcome_text_login">Уже зарегистрированы?</string>
     <string name="welcome_button_login">Войти</string>
-    <string name="auth_text_mail">Почта/логин</string>
+    <string name="auth_text_mail">Почта</string>
     <string name="auth_text_password">Пароль</string>
+    <string name="auth_text_password2">Повторите пароль</string>
     <string name="register_title">Регистрация</string>
     <string name="onboarding_tittle">Добро пожаловать!</string>
     <string name="home_title">Главная</string>

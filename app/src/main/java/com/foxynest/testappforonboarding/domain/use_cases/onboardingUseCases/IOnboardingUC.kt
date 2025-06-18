@@ -1,8 +1,8 @@
-package com.foxynest.testappforonboarding.domain.onboardingAndPaywallUseCase
+package com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases
 
 import kotlinx.coroutines.flow.Flow
 
-interface IOnboardingUseCase {
+interface IOnboardingUC {
     suspend fun saveOnboardingState(isCompleted: Boolean)
     fun isOnboardingCompleted(): Flow<Boolean>
 

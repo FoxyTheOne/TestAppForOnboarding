@@ -108,7 +108,7 @@
 
     <fragment
         android:id="@+id/navigation_register"
-        android:name="com.foxynest.testappforonboarding.presentation.welcome.auth.RegisterFragment"
+        android:name="com.foxynest.testappforonboarding.presentation.welcome.auth.registration.RegistrationFragment"
         android:label="RegisterFragment">
         <action
             android:id="@+id/action_registerFragment_to_navigation_profile"

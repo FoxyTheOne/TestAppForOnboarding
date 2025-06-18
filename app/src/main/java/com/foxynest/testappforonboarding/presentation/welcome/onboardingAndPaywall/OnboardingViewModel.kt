@@ -3,7 +3,7 @@ package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPayw
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.foxynest.testappforonboarding.domain.onboardingAndPaywallUseCase.IOnboardingUseCase
+import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +12,7 @@ import javax.inject.Inject
 // TODO возможно не нужна
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val onboardingInteractor: IOnboardingUseCase
+    private val onboardingInteractor: IOnboardingUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "OnboardingViewModel"

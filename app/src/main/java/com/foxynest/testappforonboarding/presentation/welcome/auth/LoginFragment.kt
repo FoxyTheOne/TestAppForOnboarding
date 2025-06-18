@@ -10,6 +10,7 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentLogInBinding
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
+import com.foxynest.testappforonboarding.presentation.welcome.auth.registration.RegistrationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -21,7 +22,7 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentLogInBinding? = null
 
-    private val authViewModel by viewModels<AuthViewModel>()
+    private val registrationViewModel by viewModels<RegistrationViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

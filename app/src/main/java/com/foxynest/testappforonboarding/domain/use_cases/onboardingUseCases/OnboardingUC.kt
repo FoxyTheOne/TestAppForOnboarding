@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.domain.onboardingAndPaywallUseCase
+package com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases
 
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
 import kotlinx.coroutines.flow.Flow
@@ -11,9 +11,9 @@ import javax.inject.Inject
  * При работе с model, здесь происходит преобразование local -> presentation, т.е.
  * преобразование моделей в модели нижнего уровня перед тем, как нижний уровень сможет их использовать.
  */
-class OnboardingUseCase @Inject constructor(
+class OnboardingUC @Inject constructor(
     private val onboardingRepository: IOnboardingRepository
-) : IOnboardingUseCase {
+) : IOnboardingUC {
     override suspend fun saveOnboardingState(isCompleted: Boolean) =
         onboardingRepository.saveOnboardingState(isCompleted)
 

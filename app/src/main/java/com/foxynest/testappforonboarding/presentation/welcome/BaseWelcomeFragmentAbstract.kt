@@ -37,9 +37,9 @@ abstract class BaseWelcomeFragmentAbstract : Fragment() {
 //                        // Срабатывает моментально, а нам это нужно для последующих запусков, после первого
 //                        findNavController().navigate(R.id.action_global_navigation_home)
 
-//                        if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
-//                            findNavController().navigate(R.id.action_global_navigation_home)
-//                        }
+                        if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
+                            findNavController().navigate(R.id.action_global_navigation_home)
+                        }
                     }
                 }
         }

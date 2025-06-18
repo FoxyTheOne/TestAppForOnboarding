@@ -9,6 +9,7 @@ import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentWelcomeBinding
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
+import com.foxynest.testappforonboarding.presentation.welcome.auth.registration.RegistrationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -20,7 +21,7 @@ class WelcomeFragment : BaseWelcomeFragmentAbstract() {
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentWelcomeBinding? = null
 
-    private val authViewModel by viewModels<AuthViewModel>()
+    private val registrationViewModel by viewModels<RegistrationViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

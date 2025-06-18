@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.foxynest.testappforonboarding.domain.onboardingAndPaywallUseCase.IOnboardingUseCase
+import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val onboardingInteractor: IOnboardingUseCase
+    private val onboardingInteractor: IOnboardingUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "MainViewModel"

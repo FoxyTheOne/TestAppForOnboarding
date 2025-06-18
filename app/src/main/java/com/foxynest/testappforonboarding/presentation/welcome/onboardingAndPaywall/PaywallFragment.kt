@@ -48,7 +48,7 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
-        paywallViewModel.saveOnboardingState(false)
+        paywallViewModel.saveOnboardingState(true)
         showProgressBarAnimationBeforeShowingContent()
         // Подтягиваем ответы из пройденного только что опросника. В дальнейшем метод будет вызываться в activity при запуске программы
         mainViewModel.getAndUseAnswersFromOnboardind()

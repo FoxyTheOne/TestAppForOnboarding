@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
-import com.foxynest.testappforonboarding.other.VisibilityEnum
+import com.foxynest.testappforonboarding.domain.entities.VisibilityEnum
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
@@ -50,6 +50,7 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
         paywallViewModel.saveOnboardingState(true)
         showProgressBarAnimationBeforeShowingContent()
+
         // Подтягиваем ответы из пройденного только что опросника. В дальнейшем метод будет вызываться в activity при запуске программы
         mainViewModel.getAndUseAnswersFromOnboardind()
 

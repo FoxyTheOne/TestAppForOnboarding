@@ -70,7 +70,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
 //            onboardingViewModel.cleanFragment3AnswersBeforeBackButton()
             mainViewModel.cleanFragment3AnswersBeforeBackButton()
 
-            val savedGenderName = mainViewModel.answers[AnswerNames.GENDER_ANSWER.toString()]
+            val savedGenderName = mainViewModel.answers[AnswerNames.CHILD_GENDER_ANSWER.toString()]
 
             if (this.findNavController().currentDestination?.id == R.id.navigation_question3) {
                 if (savedGenderName == Gender.BOY.genderName) {

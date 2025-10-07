@@ -3,12 +3,12 @@ package com.foxynest.testappforonboarding.presentation.welcome.auth.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ICheckRegisteredEmailAndPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginUC
+import com.foxynest.testappforonboarding.other.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,7 +21,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val checkRegisteredEmailAndPasswordUC: ICheckRegisteredEmailAndPasswordUC
+    private val checkRegisteredEmailAndPasswordUC: ICheckRegisteredEmailAndPasswordUC,
+    private val loginUC: ILoginUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "LoginViewModel"
@@ -31,9 +32,14 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableStateFlow(LoginFormState())
     val state: StateFlow<LoginFormState> = _state.asStateFlow()
 
-    // To send events to the channel. UI can collect this changes by collecting from the flow
-    private val checkRegistrationEventChannel = Channel<CheckRegistrationEvent>()
-    val checkRegistrationEvents = checkRegistrationEventChannel.receiveAsFlow()
+//    // To send events to the channel. UI can collect this changes by collecting from the flow
+//    private val checkRegistrationEventChannel = Channel<CheckRegistrationEvent>()
+//    val checkRegistrationEvents = checkRegistrationEventChannel.receiveAsFlow()
+
+    // LOG IN
+    // For a toast of logging in state
+    private val _loginStateFlow = MutableStateFlow<Resource<Unit>>(Resource.init(null))
+    val loginStateFlow: StateFlow<Resource<Unit>> = _loginStateFlow
 
     fun onEvent(event: LoginFormEvent) {
         when (event) {
@@ -75,14 +81,22 @@ class LoginViewModel @Inject constructor(
             return
         }
 
-        // Now we need to send events from view model to our ui (not from ui to view model) so we use a channel
+//        // Now we need to send events from view model to our ui (not from ui to view model) so we use a channel
+//        viewModelScope.launch {
+//            checkRegistrationEventChannel.send(CheckRegistrationEvent.SuccessCheckRegistration)
+//        }
+
+        // Success validation, begin of logging in
         viewModelScope.launch {
-            checkRegistrationEventChannel.send(CheckRegistrationEvent.SuccessCheckRegistration)
+            _loginStateFlow.value = Resource.loading(null)
+
+            _loginStateFlow.value =
+                loginUC.execute(currentState.email, currentState.password)
         }
     }
 
-    sealed class CheckRegistrationEvent {
-        // Here can be others events
-        object SuccessCheckRegistration : CheckRegistrationEvent()
-    }
+//    sealed class CheckRegistrationEvent {
+//        // Here can be others events
+//        object SuccessCheckRegistration : CheckRegistrationEvent()
+//    }
 }

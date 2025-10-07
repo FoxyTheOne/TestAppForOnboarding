@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/navigation_welcome"
-        android:name="com.foxynest.testappforonboarding.presentation.welcome.auth.WelcomeFragment"
+        android:name="com.foxynest.testappforonboarding.presentation.welcome.auth.welcome.WelcomeFragment"
         android:label="WelcomeFragment">
         <action
             android:id="@+id/action_welcomeFragment_to_loginFragment"
@@ -135,7 +135,13 @@
         tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_navigation_profile_to_registerFragment"
-            app:destination="@id/navigation_register" />
+            app:destination="@id/navigation_register">
+            <!-- Передаём UserPresentation на следующий фрагмент для запроса списка станций -->
+            <argument
+                android:name="user_presentation"
+                app:argType="com.foxynest.testappforonboarding.domain.entities.UserPresentation" />
+        </action>
+
         <action
             android:id="@+id/action_navigation_profile_to_loginFragment"
             app:destination="@id/navigation_login">

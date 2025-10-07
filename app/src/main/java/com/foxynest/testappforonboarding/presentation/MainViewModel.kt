@@ -7,34 +7,148 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
+import com.foxynest.testappforonboarding.domain.entities.UserPresentation
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetAuthStateFlowUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IUpdateProfileUC
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val onboardingInteractor: IOnboardingUC
+    private val onboardingUC: IOnboardingUC,
+    private val updateProfileUC: IUpdateProfileUC,
+    private val getCurrentUserUC: GetCurrentUserUC,
+    private val getAuthStateFlowUC: GetAuthStateFlowUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "MainViewModel"
     }
 
+    // ONBOARDING
+    private val _emailLiveData = MutableLiveData<String>() // TODO
+    val emailLiveData: LiveData<String> = _emailLiveData
+    private val _userNameLiveData = MutableLiveData<String>() // TODO
+    val userNameLiveData: LiveData<String> = _userNameLiveData
     private val _genderLiveData = MutableLiveData<String>()
     val genderLiveData: LiveData<String> = _genderLiveData
-
-    private val _nameLiveData = MutableLiveData<String>()
-    val nameLiveData: LiveData<String> = _nameLiveData
-
     private val _isItABoyLiveData = MutableLiveData<String>()
     val isItABoyLiveData: LiveData<String> = _isItABoyLiveData
-
+    private val _childNameLiveData = MutableLiveData<String>()
+    val childNameLiveData: LiveData<String> = _childNameLiveData
     private val _hobbyLiveData = MutableLiveData<String>()
     val hobbyLiveData: LiveData<String> = _hobbyLiveData
+    private val _childAgeLiveData = MutableLiveData<Int>() // TODO
+    val childAgeLiveData: LiveData<Int> = _childAgeLiveData
+    private val _childBirthDateLiveData = MutableLiveData<String>() // TODO
+    val childBirthDateLiveData: LiveData<String> = _childBirthDateLiveData
+
+    // Для временного хранения во время заполнения опроса (нужно при возвращении назад по страницам в онбординге)
+    private val _answers = mutableMapOf<String, String>()
+    val answers: Map<String, String> get() = _answers
+
+    private val _profileUpdatedLiveData = MutableLiveData<Resource<Unit>>()
+    val profileUpdatedLiveData: LiveData<Resource<Unit>> = _profileUpdatedLiveData
+
+//    // REGISTER
+//    // For a toast of registration state
+//    private val _registrationStateFlow = MutableStateFlow<Resource<Unit>>(Resource.init(null))
+//    val registrationStateFlow: StateFlow<Resource<Unit>> = _registrationStateFlow
+
+    // Log in state, returns user
+    // Для такого же метода/лайв даты в фрагменте/viewmodel профиля:
+//    viewModel.userState.onEach { user ->
+//        user?.let {
+//            binding.apply {
+//                etUsername.setText(it.username)
+//                etChildName.setText(it.childName)
+//                etChildAge.setText(it.childAge.toString())
+//                etChildBirthDate.setText(it.childBirthDate)
+//                etEmail.setText(it.email)
+//
+//                if (it.email.isNotEmpty() && !it.isEmailVerified) {
+//                    btnVerifyEmail.visibility = View.VISIBLE
+//                    tvEmailNotVerified.visibility = View.VISIBLE
+//                } else {
+//                    btnVerifyEmail.visibility = View.GONE
+//                    tvEmailNotVerified.visibility = View.GONE
+//                }
+//            }
+//        }
+//    }.launchIn(viewLifecycleOwner.lifecycleScope)
+    // И ИМЕТЬ В ВИДУ:
+    // Status.INIT -> Do nothing,
+    // Status.SUCCESS ->
+    //    if (user == null) {tvLoggedIn.text = "You are not logged in"}
+    //    else {
+    //        tvLoggedIn.text = "You are logged in!"
+    //        etUsername.setText(user.displayName)
+    //        ivProfilePicture.setImageURI(user.photoUrl)
+    //    }
+    //    Status.ERROR, Status.LOADING
+
+    //    binding.btnUpdateProfile.setOnClickListener {
+//        val user = viewModel.userState.value?.copy(
+//            username = binding.etUsername.text.toString(),
+//            childName = binding.etChildName.text.toString(),
+//            childAge = binding.etChildAge.text.toString().toIntOrNull() ?: 0,
+//            childBirthDate = binding.etChildBirthDate.text.toString()
+//        )
+//        user?.let { viewModel.updateProfile(it) }
+//    }
+//
+//    binding.btnVerifyEmail.setOnClickListener {
+//        viewModel.sendVerificationEmail()
+//    }
+//
+//    binding.btnLogout.setOnClickListener {
+//        viewModel.logout()
+//        findNavController().navigate(R.id.action_to_login)
+//    }
+    //
+    // !!!В нашем случае (фрагмент решистрации или логина) после успешной регистрации или авторизации нужно перейти на страницу профиля!!!
+    // In fragment:
+    //         viewModel.registrationState.onEach { resource ->
+    //            when (resource) {
+    //                is Resource.Success -> findNavController().navigate(R.id.action_to_profile)
+    //                is Resource.Error -> showError(resource.message)
+    //                // Обработка других состояний
+    //            }
+    //        }.launchIn(viewLifecycleOwner.lifecycleScope)
+    // Разовая проверка состояния в firebase
+    private val _checkedUserInfo =
+        MutableStateFlow<Resource<UserPresentation?>>(Resource.init(null))
+    val checkedUserInfo: StateFlow<Resource<UserPresentation?>> = _checkedUserInfo
+
+    // Подписка на изменение состояния в firebase
+//    private val _userStateFlow = MutableStateFlow<Resource<User?>>(Resource.init(null))
+//    val userStateFlow: StateFlow<Resource<User?>> = _userStateFlow
+
+    // Использовать только для проверки состояния auth. User мы получаем другим методом
+    private val _authStateFlow = getAuthStateFlowUC.execute()
+        .map { firebaseUser ->
+            firebaseUser?.let {
+                UserPresentation(
+                    uid = firebaseUser.uid,
+                    email = firebaseUser.email ?: "",
+                    isEmailVerified = firebaseUser.isEmailVerified,
+                    userName = firebaseUser.displayName ?: ""
+                )
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
+    val authStateFlow: StateFlow<UserPresentation?> = _authStateFlow
 
     // If smth went wrong
     private val _errorMessageLiveData =
@@ -42,20 +156,17 @@ class MainViewModel @Inject constructor(
     val errorMessageLiveData: LiveData<MyEvent<Resource<Boolean>>> =
         _errorMessageLiveData // And another LiveData, that equals to previous, so that classes can't change it
 
-    // Для временного хранения во время заполнения опроса (нужно при возвращении назад по страницам в онбординге)
-    private val _answers = mutableMapOf<String, String>()
-    val answers: Map<String, String> get() = _answers
-
 //        private val _text = MutableLiveData<String>().apply {
 //        value = "This is Profile Fragment"
 //    }
 //    val text: LiveData<String> = _text
 
+    // ONBOARDING
     fun cleanNotReplaceableAnswers() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // Указываем все ответы, которые находятся на необязательных фрагментах. Которые могут отобразиться, а могут нет, в зависимости от ответов. Нужно сохранить дефолтное состояние
-                onboardingInteractor.saveIsItABoy("Нет")
+                onboardingUC.saveIsItABoy("Нет")
                 saveAnswer(AnswerNames.IS_IT_A_BOY_ANSWER.toString(), "Нет")
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -75,7 +186,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // Указываем все ответы, которые находятся на втором фрагменте
-                onboardingInteractor.saveIsItABoy("Нет")
+                onboardingUC.saveIsItABoy("Нет")
                 saveAnswer(AnswerNames.IS_IT_A_BOY_ANSWER.toString(), "Нет")
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -95,8 +206,8 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // Указываем все ответы, которые находятся на третьем фрагменте
-                onboardingInteractor.saveHobbyAnswer("")
-                saveAnswer(AnswerNames.HOBBY_ANSWER.toString(), "")
+                onboardingUC.saveHobbyAnswer("")
+                saveAnswer(AnswerNames.CHILD_HOBBY_ANSWER.toString(), "")
             } catch (e: IOException) {
                 e.printStackTrace()
                 _errorMessageLiveData.postValue(
@@ -114,8 +225,8 @@ class MainViewModel @Inject constructor(
     fun saveGenderAnswer(genderAnswer: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.saveGender(genderAnswer)
-                saveAnswer(AnswerNames.GENDER_ANSWER.toString(), genderAnswer)
+                onboardingUC.saveGender(genderAnswer) // Сохраняем в data store
+                saveAnswer(AnswerNames.CHILD_GENDER_ANSWER.toString(), genderAnswer)
             } catch (e: IOException) {
                 e.printStackTrace()
                 _errorMessageLiveData.postValue(
@@ -133,8 +244,8 @@ class MainViewModel @Inject constructor(
     fun saveNameAnswer(nameAnswer: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.saveName(nameAnswer)
-                saveAnswer(AnswerNames.NAME_ANSWER.toString(), nameAnswer)
+                onboardingUC.saveName(nameAnswer)
+                saveAnswer(AnswerNames.CHILD_NAME_ANSWER.toString(), nameAnswer)
             } catch (e: IOException) {
                 e.printStackTrace()
                 _errorMessageLiveData.postValue(
@@ -152,7 +263,7 @@ class MainViewModel @Inject constructor(
     fun saveIsItABoyAnswer(answer: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.saveIsItABoy(answer)
+                onboardingUC.saveIsItABoy(answer)
                 saveAnswer(AnswerNames.IS_IT_A_BOY_ANSWER.toString(), answer)
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -171,8 +282,8 @@ class MainViewModel @Inject constructor(
     fun saveHobbyAnswer(hobby: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.saveHobbyAnswer(hobby)
-                saveAnswer(AnswerNames.HOBBY_ANSWER.toString(), hobby)
+                onboardingUC.saveHobbyAnswer(hobby)
+                saveAnswer(AnswerNames.CHILD_HOBBY_ANSWER.toString(), hobby)
             } catch (e: IOException) {
                 e.printStackTrace()
                 _errorMessageLiveData.postValue(
@@ -189,16 +300,40 @@ class MainViewModel @Inject constructor(
 
     // Запустить метод для получения этих данных можно, когда открывается paywallfragment - в этот момент опрос уже точно пройден
     fun getAndUseAnswersFromOnboardind() {
-        getAndUseGenderAnswer()
-        getAndUseNameAnswer()
-        getAndUseIsItABoyAnswer()
-        getAndHobbyAnswer()
+
+        // Теперь мы вызываем опросник не только при первом запуске, но и если нажали кнопку "обновить поля"
+        // Значит, мы можем находиться здесь и для обновления существующих полей. Узнаем, залогинен ли человек, чтобы знать, нужно ли сохранять данные на сервер или использовать их через Data store
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentUser = getCurrentUserUC.execute().data
+
+            getAndUseGenderAnswer()
+            getAndUseNameAnswer()
+            getAndUseIsItABoyAnswer()
+            getAndHobbyAnswer()
+
+            if (currentUser != null) {
+                val updatedUser = UserPresentation(
+                    uid = currentUser.uid,
+                    email = answers[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
+                    isEmailVerified = answers[AnswerNames.IS_EMAIL_VERIFIED_ANSWER.toString()].toBoolean(),
+                    userName = answers[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
+                    childGender = answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
+                    isItABoy = answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
+                    childName = answers[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
+                    childHobby = answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
+                    childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
+                    childBirthDate = answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
+                )
+
+                _profileUpdatedLiveData.postValue(updateProfileUC.execute(updatedUser))
+            }
+        }
     }
 
     private fun getAndUseGenderAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.getGenderFlow().collect { gender ->
+                onboardingUC.getGenderFlow().collect { gender ->
                     gender?.let { notNullGender ->
                         _genderLiveData.postValue(notNullGender)
 //                        _answers["GENDER"] = notNullGender
@@ -221,9 +356,9 @@ class MainViewModel @Inject constructor(
     private fun getAndUseNameAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.getNameFlow().collect { gender ->
+                onboardingUC.getNameFlow().collect { gender ->
                     gender?.let { notNullGender ->
-                        _nameLiveData.postValue(notNullGender)
+                        _childNameLiveData.postValue(notNullGender)
                     }
                 }
             } catch (e: IOException) {
@@ -243,7 +378,7 @@ class MainViewModel @Inject constructor(
     private fun getAndUseIsItABoyAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.getIsItABoyFlow().collect { gender ->
+                onboardingUC.getIsItABoyFlow().collect { gender ->
                     gender?.let { notNullGender ->
                         _isItABoyLiveData.postValue(notNullGender)
                     }
@@ -265,7 +400,7 @@ class MainViewModel @Inject constructor(
     private fun getAndHobbyAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingInteractor.getHobbyFlow().collect { gender ->
+                onboardingUC.getHobbyFlow().collect { gender ->
                     gender?.let { notNullGender ->
                         _hobbyLiveData.postValue(notNullGender)
                     }
@@ -288,7 +423,28 @@ class MainViewModel @Inject constructor(
         _answers[questionName] = answer
         Log.d(
             TAG,
-            "Проверка: Размер ${_answers.size}, Пол: ${_answers[AnswerNames.GENDER_ANSWER.toString()]}"
+            "Проверка: Размер ${_answers.size}, Пол: ${_answers[AnswerNames.CHILD_GENDER_ANSWER.toString()]}"
         )
+    }
+
+    //    // REGISTER
+//    fun register(email: String, password: String) {
+//        // TODO собрать данные
+////        val email = etEmailRegister.text.toString()
+////        val password = etPasswordRegister.text.toString()
+//        viewModelScope.launch {
+//            _registrationStateFlow.value = Resource.loading(null)
+//            _registrationStateFlow.value = registerUC.execute(email, password)
+//            // TODO обработка successful и error Resource в Activity через LiveData
+////            Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
+//            // "Регистрация успешна" или "Ошибка регистрации" - строка из res
+//            checkLoggedInStateAfterAuth()
+//        }
+//    }
+//
+    fun checkLoggedInStateGetUser() {
+        viewModelScope.launch {
+            _checkedUserInfo.value = getCurrentUserUC.execute()
+        }
     }
 }

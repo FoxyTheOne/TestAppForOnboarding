@@ -2,8 +2,14 @@ package com.foxynest.testappforonboarding.di
 
 import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.CheckEmailVerifiedUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.SendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.CheckRegisteredEmailAndPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ICheckRegisteredEmailAndPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateRepeatedPasswordUC

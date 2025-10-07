@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.presentation.welcome.auth
+package com.foxynest.testappforonboarding.presentation.welcome.auth.welcome
 
 import android.os.Bundle
 import android.view.LayoutInflater

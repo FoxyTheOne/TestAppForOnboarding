@@ -1,8 +1,13 @@
 package com.foxynest.testappforonboarding.domain.entities
 
 enum class AnswerNames {
-    GENDER_ANSWER,
-    NAME_ANSWER,
+    EMAIL_ANSWER,
+    IS_EMAIL_VERIFIED_ANSWER,
+    USER_NAME_ANSWER,
+    CHILD_GENDER_ANSWER,
     IS_IT_A_BOY_ANSWER,
-    HOBBY_ANSWER
+    CHILD_NAME_ANSWER,
+    CHILD_HOBBY_ANSWER,
+    CHILD_AGE_ANSWER,
+    CHILD_BIRTH_DATE_ANSWER
 }

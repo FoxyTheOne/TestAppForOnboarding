@@ -1,6 +1,9 @@
 package com.foxynest.testappforonboarding.presentation.welcome.auth.registration
 
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
+import android.os.Parcelable
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,13 +11,18 @@ import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentRegisterBinding
+import com.foxynest.testappforonboarding.domain.entities.UserPresentation
+import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -26,6 +34,8 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentRegisterBinding? = null
 
+    // 1.1. ViewModel. We bind our viewModel to the cycle of our activity, not fragment. So, we need to do this way:
+    private lateinit var mainViewModel: MainViewModel
     private val registrationViewModel by viewModels<RegistrationViewModel>()
 
     override fun onCreateView(
@@ -41,8 +51,36 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        var user = UserPresentation(
+            uid = "",
+            email = "",
+            isEmailVerified = false,
+            userName = "",
+            childGender = "",
+            isItABoy = "",
+            childName = "",
+            childHobby = "",
+            childAge = 0,
+            childBirthDate = ""
+        )
+        if (arguments != null) {
+            arguments?.parcelable<UserPresentation>("user_presentation")
+                ?.let { user = it }
+        }
+        registrationViewModel.setUser(user)
+
+        // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
+        // So, we need to do this way:
+        mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+
         initListeners()
         observeViewModel()
+    }
+
+    // Bundle
+    private inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
+        SDK_INT >= 33 -> getParcelable(key, T::class.java)
+        else -> @Suppress("DEPRECATION") getParcelable(key) as? T
     }
 
     private fun initListeners() {
@@ -80,15 +118,49 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
             }
         }
 
-        // Наблюдаем за событиями валидации
+//        // Наблюдаем за событиями валидации
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                registrationViewModel.validationEvents.collect { event ->
+//                    when (event) {
+//                        // Успешное заполнение
+//                        is RegistrationViewModel.ValidationEvent.SuccessValidation -> {
+//                            showRegistrationSuccess()
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        // Наблюдаем за событиями регистрации
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                registrationViewModel.validationEvents.collect { event ->
-                    when (event) {
-                        // Успешное заполнение
-                        is RegistrationViewModel.ValidationEvent.SuccessValidation -> {
-                            showRegistrationSuccess()
+            registrationViewModel.registrationStateFlow.onEach { resource ->
+                when (resource.status) {
+                    Status.SUCCESS -> {
+                        // Вызываем сообщение
+                        // TODO проверить, чтобы строка бралась из ресурсов
+                        Toast.makeText(
+                            activity,
+                            "Регистрация успешна, переход на страницу профиля",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        // Обновляем состояние user в MainViewModel
+                        mainViewModel.checkLoggedInStateGetUser()
+
+                        // Переходим в профиль
+                        if (findNavController().currentDestination?.id == R.id.navigation_register) {
+                            findNavController().navigate(R.id.action_registerFragment_to_navigation_profile)
                         }
+                    }
+
+                    Status.ERROR -> {
+                        // TODO проверить, чтобы строка бралась из ресурсов и что это вообще за сообщение будет
+                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
+                    }
+
+                    else -> {
+                        Log.d(TAG, "resource.status = ${resource.status} ")
                     }
                 }
             }
@@ -102,15 +174,15 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
         binding?.textFieldPassword2?.error = state.repeatedPasswordError
     }
 
-    private fun showRegistrationSuccess() {
-        // TODO Действия после успешной регистрации
-        // TODO String resources instead of text
-        Toast.makeText(
-            requireContext(),
-            "Registration successful",
-            Toast.LENGTH_LONG
-        ).show()
-    }
+//    private fun showRegistrationSuccess() {
+//        // TODO Действия после успешной регистрации
+//        // TODO String resources instead of text
+//        Toast.makeText(
+//            requireContext(),
+//            "Registration successful",
+//            Toast.LENGTH_LONG
+//        ).show()
+//    }
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {

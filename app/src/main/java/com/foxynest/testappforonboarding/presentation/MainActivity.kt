@@ -46,6 +46,8 @@ class MainActivity : AppCompatActivity() {
 
         // Подтягиваем ответы из пройденного ранее онбординга
         mainViewModel.getAndUseAnswersFromOnboardind()
+//        // Firebase: При инициализации Activity проверьте, вошел ли пользователь в систему
+//        mainViewModel.checkLoggedInState() -> проверяем в BaseWelcomeFragmentAbstract при запуске и в каждом фрагменте отдельно
 
         // Уберем Action bar
         supportActionBar?.hide()

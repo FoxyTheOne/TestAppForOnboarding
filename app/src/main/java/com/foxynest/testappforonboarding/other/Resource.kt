@@ -12,6 +12,8 @@ data class Resource<out T>(val status: Status, val data: T?, val message: String
 
     // functions for corresponding status from enum class Status
     companion object {
+        fun <T> init(data: T?) = Resource(Status.INIT, data, null)
+
         fun <T> success(data: T?) = Resource(Status.SUCCESS, data, null)
 
         fun <T> error(message: String, data: T?) = Resource(Status.ERROR, data, message)
@@ -22,6 +24,7 @@ data class Resource<out T>(val status: Status, val data: T?, val message: String
 }
 
 enum class Status {
+    INIT,
     SUCCESS,
     ERROR,
     LOADING

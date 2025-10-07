@@ -30,149 +30,325 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_32"
             android:text="@string/profile_text_title"
             android:textAlignment="center"
             android:textSize="32sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_gender_title"
+            app:layout_constraintBottom_toTopOf="@+id/text_user_name_title"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed" />
 
         <TextView
+            android:id="@+id/text_user_name_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/profile_title_user_name"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_user_name_answer"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_profile_title" />
+
+        <TextView
+            android:id="@+id/text_user_name_answer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_32"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_gender_title"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_user_name_title" />
+
+        <TextView
             android:id="@+id/text_gender_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
             android:text="@string/profile_title_gender"
             android:textSize="20sp"
             app:layout_constraintBottom_toTopOf="@+id/text_gender_answer"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_profile_title"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_user_name_answer" />
 
         <TextView
             android:id="@+id/text_gender_answer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_32"
-            android:layout_marginTop="@dimen/space_beforeOrAfterElement"
+            android:layout_marginBottom="@dimen/space_32"
             android:textSize="16sp"
             app:layout_constraintBottom_toTopOf="@+id/text_gender_title_is_it_a_boy"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_gender_title"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_gender_title" />
 
         <TextView
             android:id="@+id/text_gender_title_is_it_a_boy"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
             android:text="@string/profile_title_gender_question"
             android:textSize="20sp"
             app:layout_constraintBottom_toTopOf="@+id/text_gender_answer_is_it_a_boy"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_gender_answer"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_gender_answer" />
 
         <TextView
             android:id="@+id/text_gender_answer_is_it_a_boy"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_32"
-            android:layout_marginTop="@dimen/space_beforeOrAfterElement"
+            android:layout_marginBottom="@dimen/space_32"
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_name_title"
+            app:layout_constraintBottom_toTopOf="@+id/text_child_name_title"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_gender_title_is_it_a_boy"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_gender_title_is_it_a_boy" />
 
         <TextView
-            android:id="@+id/text_name_title"
+            android:id="@+id/text_child_name_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
             android:text="@string/profile_title_name"
             android:textSize="20sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_name_answer"
+            app:layout_constraintBottom_toTopOf="@+id/text_child_name_answer"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_gender_answer_is_it_a_boy"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_gender_answer_is_it_a_boy" />
 
         <TextView
-            android:id="@+id/text_name_answer"
+            android:id="@+id/text_child_name_answer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_32"
-            android:layout_marginTop="@dimen/space_beforeOrAfterElement"
+            android:layout_marginBottom="@dimen/space_32"
             android:textSize="16sp"
             app:layout_constraintBottom_toTopOf="@+id/text_hobby_title"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_name_title"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_child_name_title" />
 
         <TextView
             android:id="@+id/text_hobby_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
             android:text="@string/profile_title_hobby"
             android:textSize="20sp"
             app:layout_constraintBottom_toTopOf="@+id/text_hobby_answer"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_name_answer"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_child_name_answer" />
 
         <TextView
             android:id="@+id/text_hobby_answer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_32"
-            android:layout_marginTop="@dimen/space_beforeOrAfterElement"
+            android:layout_marginBottom="@dimen/space_32"
             android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_child_age_title"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
-            app:layout_constraintBottom_toTopOf="@+id/text_warning"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_hobby_title"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_hobby_title" />
 
         <TextView
-            android:id="@+id/text_warning"
+            android:id="@+id/text_child_age_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_32"
             android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
-            android:text="@string/profile_text_warning"
-            android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/button_register_and_login"
+            android:text="@string/profile_title_child_age"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_child_age_answer"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_hobby_answer"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_hobby_answer" />
+
+        <TextView
+            android:id="@+id/text_child_age_answer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_32"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_birth_date_title"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_child_age_title" />
+
+        <TextView
+            android:id="@+id/text_birth_date_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/profile_title_birth_date"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_birth_date_answer"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_child_age_answer" />
+
+        <TextView
+            android:id="@+id/text_birth_date_answer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_32"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_email_title"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_birth_date_title" />
+
+        <TextView
+            android:id="@+id/text_email_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/profile_title_email"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/linear_email_answer"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_birth_date_answer" />
+
+        <LinearLayout
+            android:id="@+id/linear_email_answer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_beforeOrAfterElement"
+            android:layout_marginEnd="@dimen/space_beforeOrAfterElement"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:textSize="16sp"
+            android:weightSum="2"
+            app:layout_constraintBottom_toTopOf="@+id/linear_email_verification"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_email_title">
+
+            <TextView
+                android:id="@+id/text_email_answer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:textColor="@color/purple_200" />
+
+            <Button
+                android:id="@+id/button_change_email"
+                style="@style/Widget.AppCompat.ActionButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_rounded_corners"
+                android:paddingStart="@dimen/space_32"
+                android:paddingEnd="@dimen/space_32"
+                android:text="@string/profile_change_email"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/button_text"
+                android:textStyle="bold"
+                app:backgroundTint="@null" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linear_email_verification"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_beforeOrAfterElement"
+            android:layout_marginEnd="@dimen/space_beforeOrAfterElement"
+            android:layout_marginBottom="@dimen/space_32"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="visible"
+            android:weightSum="2"
+            app:layout_constraintBottom_toTopOf="@+id/button_update_fields"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linear_email_answer">
+
+            <TextView
+                android:id="@+id/text_email_not_verified"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/profile_email_not_verified"
+                android:textAlignment="center"
+                android:textColor="@color/purple_200" />
+
+            <Button
+                android:id="@+id/button_verify_email"
+                style="@style/Widget.AppCompat.ActionButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_rounded_corners"
+                android:paddingStart="@dimen/space_32"
+                android:paddingEnd="@dimen/space_32"
+                android:text="@string/profile_verify_email"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/button_text"
+                android:textStyle="bold"
+                app:backgroundTint="@null" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_update_fields"
+            style="@style/Widget.AppCompat.ActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:background="@drawable/button_rounded_corners"
+            android:paddingStart="@dimen/space_32"
+            android:paddingEnd="@dimen/space_32"
+            android:text="@string/profile_button_update_fields"
+            android:textColor="@color/white"
+            android:textSize="@dimen/button_text"
+            android:textStyle="bold"
+            android:visibility="visible"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toTopOf="@+id/button_refill_fields"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
+            app:layout_constraintRight_toRightOf="@+id/guideline_right"
+            app:layout_constraintTop_toBottomOf="@+id/linear_email_verification" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_refill_fields"
+            style="@style/Widget.AppCompat.ActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:background="@drawable/button_rounded_corners"
+            android:paddingStart="@dimen/space_32"
+            android:paddingEnd="@dimen/space_32"
+            android:text="@string/profile_button_refill_fields"
+            android:textColor="@color/white"
+            android:textSize="@dimen/button_text"
+            android:textStyle="bold"
+            android:visibility="visible"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toTopOf="@+id/button_register_and_login"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
+            app:layout_constraintRight_toRightOf="@+id/guideline_right"
+            app:layout_constraintTop_toBottomOf="@+id/button_update_fields" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_register_and_login"
             style="@style/Widget.AppCompat.ActionButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
             android:background="@drawable/button_rounded_corners"
             android:paddingStart="@dimen/space_32"
             android:paddingEnd="@dimen/space_32"
@@ -182,11 +358,22 @@
             android:textStyle="bold"
             android:visibility="visible"
             app:backgroundTint="@null"
-            app:layout_constraintBottom_toTopOf="@+id/button_log_in"
+            app:layout_constraintBottom_toTopOf="@+id/text_warning"
             app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
             app:layout_constraintRight_toRightOf="@+id/guideline_right"
-            app:layout_constraintTop_toBottomOf="@+id/text_warning"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/button_refill_fields" />
+
+        <TextView
+            android:id="@+id/text_warning"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:text="@string/profile_text_warning"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@+id/button_log_in"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/button_register_and_login" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_log_in"
@@ -206,8 +393,7 @@
             app:layout_constraintBottom_toTopOf="@+id/text_warning_data"
             app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
             app:layout_constraintRight_toRightOf="@+id/guideline_right"
-            app:layout_constraintTop_toBottomOf="@+id/button_register_and_login"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/text_warning" />
 
         <TextView
             android:id="@+id/text_warning_data"
@@ -216,12 +402,30 @@
             android:layout_marginBottom="@dimen/space_32"
             android:text="@string/profile_text_warning_data"
             android:textSize="16sp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/button_log_out"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-            app:layout_constraintHorizontal_bias="0.25"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/button_log_in"
-            app:layout_constraintVertical_chainStyle="packed" />
+            app:layout_constraintTop_toBottomOf="@+id/button_log_in" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_log_out"
+            style="@style/Widget.AppCompat.ActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:background="@drawable/button_rounded_corners"
+            android:paddingStart="@dimen/space_32"
+            android:paddingEnd="@dimen/space_32"
+            android:text="@string/profile_button_log_out"
+            android:textColor="@color/white"
+            android:textSize="@dimen/button_text"
+            android:textStyle="bold"
+            android:visibility="visible"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
+            app:layout_constraintRight_toRightOf="@+id/guideline_right"
+            app:layout_constraintTop_toBottomOf="@+id/text_warning_data" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

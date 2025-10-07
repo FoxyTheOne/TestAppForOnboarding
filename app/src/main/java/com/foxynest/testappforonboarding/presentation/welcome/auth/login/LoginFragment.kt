@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.presentation.welcome.auth.login
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,16 +9,18 @@ import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentLogInBinding
+import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
+import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
-import com.foxynest.testappforonboarding.presentation.welcome.auth.registration.RegistrationFormState
-import com.foxynest.testappforonboarding.presentation.welcome.auth.registration.RegistrationViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -29,6 +32,8 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentLogInBinding? = null
 
+    // 1.1. ViewModel. We bind our viewModel to the cycle of our activity, not fragment. So, we need to do this way:
+    private lateinit var mainViewModel: MainViewModel
     private val loginViewModel by viewModels<LoginViewModel>()
 
     override fun onCreateView(
@@ -44,6 +49,10 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
+        // So, we need to do this way:
+        mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+
         initListeners()
         observeViewModel()
     }
@@ -57,7 +66,7 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
             loginViewModel.onEvent(LoginFormEvent.PasswordChanged(it.toString()))
         }
 
-        binding?.buttonLogin?.setOnClickListener{
+        binding?.buttonLogin?.setOnClickListener {
             loginViewModel.onEvent(LoginFormEvent.Submit)
         }
 
@@ -90,15 +99,49 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
             }
         }
 
-        // Наблюдаем за событиями валидации
+//        // Наблюдаем за событиями валидации
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                loginViewModel.checkRegistrationEvents.collect { event ->
+//                    when (event) {
+//                        // Успешное заполнение
+//                        is LoginViewModel.CheckRegistrationEvent.SuccessCheckRegistration -> {
+//                            showLoginSuccess()
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        // Наблюдаем за событиями входа в аккаунт
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                loginViewModel.checkRegistrationEvents.collect { event ->
-                    when (event) {
-                        // Успешное заполнение
-                        is LoginViewModel.CheckRegistrationEvent.SuccessCheckRegistration -> {
-                            showLoginSuccess()
+            loginViewModel.loginStateFlow.onEach { resource ->
+                when (resource.status) {
+                    Status.SUCCESS -> {
+                        // Вызываем сообщение
+                        // TODO проверить, чтобы строка бралась из ресурсов
+                        Toast.makeText(
+                            activity,
+                            "Успешный вход, переход на страницу профиля",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        // Обновляем состояние user в MainViewModel
+                        mainViewModel.checkLoggedInStateGetUser()
+
+                        // Переходим в профиль
+                        if (findNavController().currentDestination?.id == R.id.navigation_login) {
+                            findNavController().navigate(R.id.action_registerFragment_to_navigation_profile)
                         }
+                    }
+
+                    Status.ERROR -> {
+                        // TODO проверить, чтобы строка бралась из ресурсов и что это вообще за сообщение будет
+                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
+                    }
+
+                    else -> {
+                        Log.d(TAG, "resource.status = ${resource.status} ")
                     }
                 }
             }

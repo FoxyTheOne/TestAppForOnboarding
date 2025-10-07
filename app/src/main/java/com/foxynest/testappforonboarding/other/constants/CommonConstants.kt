@@ -6,4 +6,6 @@ object CommonConstants {
     const val FAILED_TO_LOAD_LOCAL = "Failed to load answers from the local database"
     // Destination for navigation
     const val PROFILE_DESTINATION = "Profile"
+    // Firebase
+    const val USERS_COLLECTION = "users"
 }

@@ -7,6 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,22 +26,33 @@ abstract class BaseWelcomeFragmentAbstract : Fragment() {
     @Inject
     lateinit var appPreferences: IAppDatastorePreferences
 
+    @Inject
+    lateinit var getCurrentLogInStateUC: GetCurrentUserUC
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
-            appPreferences.isOnboardingCompleted()
-                .collect { isCompleted ->
-                    Log.d(TAG, "Проверка, пройден ли онбординг = $isCompleted")
-                    if (isCompleted) {
+            // Проверка авторизации при запуске. Регистрация возможна только после прохождения опроса, значит если человек залогинен - опрос пройден
+            if (getCurrentLogInStateUC.execute().data != null) {
+                if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
+                    findNavController().navigate(R.id.action_global_navigation_home)
+                }
+            } else {
+                // Если user = null, значит not logged in
+                appPreferences.isOnboardingCompleted()
+                    .collect { isCompleted ->
+                        Log.d(TAG, "Проверка, пройден ли онбординг = $isCompleted")
+                        if (isCompleted) {
 //                        // Срабатывает моментально, а нам это нужно для последующих запусков, после первого
 //                        findNavController().navigate(R.id.action_global_navigation_home)
 
-                        if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
-                            findNavController().navigate(R.id.action_global_navigation_home)
+                            if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
+                                findNavController().navigate(R.id.action_global_navigation_home)
+                            }
                         }
                     }
-                }
+            }
         }
 
     }

@@ -55,4 +55,14 @@
     <string name="home_title_part3">ваш замечательный ребенок?</string>
     <string name="home_text">Ресурсного вам дня!</string>
     <string name="info_title_empty">Здесь будет разамещена полезная информация для вас</string>
+
+    <!-- Для сообщений об ошибке и проч. Вы можете вставлять другие переменные или форматированный текст в строку, используя символ %s для строк или %d для чисел, а также передавая дополнительные аргументы в метод getString() -->
+    <string name="email_empty_error">Почта не может быть пустой</string>
+    <string name="email_format_error">Не верная почта</string>
+    <string name="email_length_error">В пароле должно быть минимум %d символов</string>
+    <string name="password_empty_error">Пароль не может быть пустой</string>
+    <string name="password_letters_error">Пароль должен содержать цифры и буквы</string>
+    <string name="password_match_error">Пароли не совпадают</string>
+    <string name="terms_error">Пожалуйста, согласитесь с условиями</string>
+    <string name="logged_in_text">"Успешный вход, переход на страницу профиля"</string>
 </resources>

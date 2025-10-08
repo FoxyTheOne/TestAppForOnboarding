@@ -1,6 +1,9 @@
-package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
+package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
+import com.foxynest.testappforonboarding.other.utils.EmailUtils
+import javax.inject.Inject
 
 /**
  * Domain layer, UseCase. Бизнес-логика, Kotlin.
@@ -14,23 +17,23 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.Validatio
  * So we have a class for every single bit of logic we have in our project.
  * Typically each use case consists of just one function which executes that use case (which validates the email for instance)
  */
-class ValidateTermsUC : IValidateTermsUC {
-
-    override fun execute(acceptedTerms: Boolean): ValidationResult {
-        if (!acceptedTerms) {
-            // TODO Здесь можно использовать String Resources
+class LoginValidateEmailUC @Inject constructor() : ILoginValidateEmailUC {
+    // Для ВХОДА - базовая валидация
+    override fun execute(email: String): ValidationResult {
+        if (email.isBlank()) {
             return ValidationResult(
                 false,
-                "Пожалуйста, согласитесь с условиями"
+                ErrorType.EMAIL_EMPTY_ERROR
             )
         }
 
-        return ValidationResult(
-            true
-        )
-    }
+        if (!EmailUtils.emailMatches(email)) {
+            return ValidationResult(
+                false,
+                ErrorType.EMAIL_FORMAT_ERROR
+            )
+        }
 
-    // We can make a data class right here (if this type of result class would really differ per use case)
-    // data class Result (..) and we would have here all fields that are individual to the email validation
-    // But since it's the same for all of our use cases let's create a separate class ValidationResult
+        return ValidationResult(true)
+    }
 }

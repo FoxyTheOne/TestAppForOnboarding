@@ -119,10 +119,9 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
                 when (resource.status) {
                     Status.SUCCESS -> {
                         // Вызываем сообщение
-                        // TODO проверить, чтобы строка бралась из ресурсов
                         Toast.makeText(
                             activity,
-                            "Успешный вход, переход на страницу профиля",
+                            getString(R.string.logged_in_text),
                             Toast.LENGTH_LONG
                         ).show()
 
@@ -136,7 +135,6 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
                     }
 
                     Status.ERROR -> {
-                        // TODO проверить, чтобы строка бралась из ресурсов и что это вообще за сообщение будет
                         Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
                     }
 
@@ -152,16 +150,6 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
         // Обновление ошибок для полей
         binding?.textFieldMail?.error = state.emailError
         binding?.textFieldPassword?.error = state.passwordError
-    }
-
-    private fun showLoginSuccess() {
-        // TODO Действия после успешного входа
-        // TODO String resources instead of text
-        Toast.makeText(
-            requireContext(),
-            "Account exists",
-            Toast.LENGTH_LONG
-        ).show()
     }
 
     // VIEW BINDING -> 3. onDestroyView()

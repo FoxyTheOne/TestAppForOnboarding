@@ -1,5 +1,6 @@
-package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
+package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
 
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
 import javax.inject.Inject
 
@@ -15,23 +16,21 @@ import javax.inject.Inject
  * So we have a class for every single bit of logic we have in our project.
  * Typically each use case consists of just one function which executes that use case (which validates the email for instance)
  */
-class CheckRegisteredEmailAndPasswordUC @Inject constructor() : ICheckRegisteredEmailAndPasswordUC {
-    override fun execute(email: String, password: String): ValidationResult {
-        // TODO Сначала узнаём, зарегистрирована ли такая почта и соответствует ли пароль, а затем передаём результат в UI
-        val isEmailRegistered = false
-        val isPasswordCorrect = false
+class RegisterValidateRepeatedPasswordUC @Inject constructor() : IRegisterValidateRepeatedPasswordUC {
 
-        // По правилам безопасности нельзя говорить, не верен логин или пароль, только всё вместе.
-        if (!isEmailRegistered || !isPasswordCorrect) {
-            // TODO Здесь можно использовать String Resources
+    // Data слой здесь не нужен, мы проверяем только те данные, которые вводят в textfield
+    override fun execute(password: String, repeatedPassword: String): ValidationResult {
+        if (password != repeatedPassword) {
             return ValidationResult(
                 false,
-                "Не верная почта или пароль"
+                ErrorType.PASSWORD_MATCH_ERROR
             )
         }
 
-        return ValidationResult(
-            true
-        )
+        return ValidationResult(true)
     }
+
+    // We can make a data class right here (if this type of result class would really differ per use case)
+    // data class Result (..) and we would have here all fields that are individual to the email validation
+    // But since it's the same for all of our use cases let's create a separate class ValidationResult
 }

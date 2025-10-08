@@ -1,6 +1,9 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
 
+import com.foxynest.testappforonboarding.R
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
+import com.foxynest.testappforonboarding.other.utils.EmailUtils
 import javax.inject.Inject
 
 /**
@@ -15,21 +18,25 @@ import javax.inject.Inject
  * So we have a class for every single bit of logic we have in our project.
  * Typically each use case consists of just one function which executes that use case (which validates the email for instance)
  */
-class ValidateRepeatedPasswordUC @Inject constructor() : IValidateRepeatedPasswordUC {
+class RegisterValidateEmailUC @Inject constructor() : IRegisterValidateEmailUC {
 
     // Data слой здесь не нужен, мы проверяем только те данные, которые вводят в textfield
-    override fun execute(password: String, repeatedPassword: String): ValidationResult {
-        if (password != repeatedPassword) {
-            // TODO Здесь можно использовать String Resources
+    override fun execute(email: String): ValidationResult {
+        if (email.isBlank()) {
             return ValidationResult(
                 false,
-                "Пароли не совпадают"
+                ErrorType.EMAIL_EMPTY_ERROR
             )
         }
 
-        return ValidationResult(
-            true
-        )
+        if (!EmailUtils.emailMatches(email)) {
+            return ValidationResult(
+                false,
+                ErrorType.EMAIL_FORMAT_ERROR
+            )
+        }
+
+        return ValidationResult(true)
     }
 
     // We can make a data class right here (if this type of result class would really differ per use case)

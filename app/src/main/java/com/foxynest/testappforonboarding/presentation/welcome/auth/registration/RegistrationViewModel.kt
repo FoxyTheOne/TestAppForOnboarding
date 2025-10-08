@@ -1,15 +1,19 @@
 package com.foxynest.testappforonboarding.presentation.welcome.auth.registration
 
+import android.content.Context
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateEmailUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidatePasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateRepeatedPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateRepeatedPasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterUC
 import com.foxynest.testappforonboarding.other.Resource
+import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,9 +29,10 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
-    private val validateEmailInteractor: IValidateEmailUC,
-    private val validatePasswordInteractor: IValidatePasswordUC,
-    private val validateRepeatedPasswordInteractor: IValidateRepeatedPasswordUC,
+    @ApplicationContext private val context: Context,
+    private val validateEmailInteractor: IRegisterValidateEmailUC,
+    private val validatePasswordInteractor: IRegisterValidatePasswordUC,
+    private val validateRepeatedPasswordInteractor: IRegisterValidateRepeatedPasswordUC,
     private val registerUC: RegisterUC,
     private val getCurrentLogInStateUC: GetCurrentUserUC
 ) : ViewModel() {
@@ -44,14 +49,13 @@ class RegistrationViewModel @Inject constructor(
     private val _state = MutableStateFlow(RegistrationFormState())
     val state: StateFlow<RegistrationFormState> = _state.asStateFlow()
 
-//    // To send events to the channel. UI can collect this changes by collecting from the flow
-//    private val validationEventChannel = Channel<ValidationEvent>()
-//    val validationEvents = validationEventChannel.receiveAsFlow()
-
     // REGISTER
     // For a toast of registration state
     private val _registrationStateFlow = MutableStateFlow<Resource<Unit>>(Resource.init(null))
     val registrationStateFlow: StateFlow<Resource<Unit>> = _registrationStateFlow
+
+    private val resources: Resources
+        get() = context.resources
 
     fun onEvent(event: RegistrationFormEvent) {
         when (event) {
@@ -75,22 +79,41 @@ class RegistrationViewModel @Inject constructor(
     }
 
     private fun submitData() {
-        // Всё, что мы должны передать при подтверждении формы регистрации:
         val currentState = _state.value
+
+        // Валидация. Всё, что мы должны передать при подтверждении формы регистрации:
         val emailResult = validateEmailInteractor.execute(currentState.email)
         val passwordResult = validatePasswordInteractor.execute(currentState.password)
         val repeatedPasswordResult = validateRepeatedPasswordInteractor.execute(
             currentState.password, currentState.repeatedPassword
         )
 
-        // Заменяем поля
+        // Обновляем состояние с ошибками, заменяем поля
+//        _state.value = currentState.copy(
+//            emailError = emailResult.errorMessage.getErrorMessage() emailResult.errorMessage?.let { resources.getString(it.getStringId()) },
+//            passwordError = passwordResult.errorMessage?.let {
+//                if (passwordResult.errorMessage == ErrorType.EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH) {
+//                    String.format(resources.getString(it.getStringId()), MIN_PASSWORD_LENGTH)
+//                } else {
+//                    resources.getString(it.getStringId())
+//                }
+//            },
+//            repeatedPasswordError = repeatedPasswordResult.errorMessage?.let {
+//                if (passwordResult.errorMessage == ErrorType.EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH) {
+//                    String.format(resources.getString(it.getStringId()), MIN_PASSWORD_LENGTH)
+//                } else {
+//                    resources.getString(it.getStringId())
+//                }
+//            }
+//        )
+
         _state.value = currentState.copy(
-            emailError = emailResult.errorMessage,
-            passwordError = passwordResult.errorMessage,
-            repeatedPasswordError = repeatedPasswordResult.errorMessage
+            emailError = emailResult.errorMessage.toErrorMessage(resources),
+            passwordError = passwordResult.errorMessage.toErrorMessage(resources),
+            repeatedPasswordError = repeatedPasswordResult.errorMessage.toErrorMessage(resources)
         )
 
-        // We need to know, was there a validation error or not
+        // Проверяем наличие ошибок валидации
         val hasError = listOf(
             emailResult,
             passwordResult,
@@ -101,11 +124,6 @@ class RegistrationViewModel @Inject constructor(
         if (hasError) {
             return
         }
-
-//        // Now we need to send events from view model to our ui (not from ui to view model) so we use a channel
-//        viewModelScope.launch {
-//            validationEventChannel.send(ValidationEvent.SuccessValidation)
-//        }
 
         // Получаем переданный из профиля аргумент (выходим из метода, если он = null)
         val user = _user.value ?: run {
@@ -121,9 +139,4 @@ class RegistrationViewModel @Inject constructor(
                 registerUC.execute(currentState.email, currentState.password, user)
         }
     }
-
-//    sealed class ValidationEvent {
-//        // Here can be others events
-//        object SuccessValidation : ValidationEvent()
-//    }
 }

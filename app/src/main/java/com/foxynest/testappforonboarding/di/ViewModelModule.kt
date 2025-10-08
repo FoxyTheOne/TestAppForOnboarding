@@ -2,20 +2,16 @@ package com.foxynest.testappforonboarding.di
 
 import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.CheckEmailVerifiedUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.SendEmailVerificationUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.CheckRegisteredEmailAndPasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ICheckRegisteredEmailAndPasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateEmailUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidatePasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IValidateRepeatedPasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidateEmailUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidatePasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidateRepeatedPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateRepeatedPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidateRepeatedPasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.OnboardingUC
 import dagger.Binds
@@ -33,18 +29,18 @@ abstract class ViewModelModule {
 
     @Binds
     abstract fun bindsValidateEmailInteractor(
-        validateEmailInteractor: ValidateEmailUC
-    ): IValidateEmailUC
+        validateEmailInteractor: RegisterValidateEmailUC
+    ): IRegisterValidateEmailUC
 
     @Binds
     abstract fun bindsValidatePasswordInteractor(
-        validatePasswordInteractor: ValidatePasswordUC
-    ): IValidatePasswordUC
+        validatePasswordInteractor: RegisterValidatePasswordUC
+    ): IRegisterValidatePasswordUC
 
     @Binds
     abstract fun bindsValidateRepeatedPasswordInteractor(
-        validateRepeatedPasswordInteractor: ValidateRepeatedPasswordUC
-    ): IValidateRepeatedPasswordUC
+        validateRepeatedPasswordInteractor: RegisterValidateRepeatedPasswordUC
+    ): IRegisterValidateRepeatedPasswordUC
 
 //    @Binds
 //    abstract fun bindsValidateTermsInteractor(
@@ -52,9 +48,14 @@ abstract class ViewModelModule {
 //    ): IValidateTermsUseCase
 
     @Binds
-    abstract fun bindsCheckRegisteredEmailAndPasswordInteractor(
-        checkRegisteredEmailAndPasswordInteractor: CheckRegisteredEmailAndPasswordUC
-    ): ICheckRegisteredEmailAndPasswordUC
+    abstract fun bindsLoginValidateEmailInteractor(
+        loginValidateEmailInteractor: LoginValidateEmailUC
+    ): ILoginValidateEmailUC
+
+    @Binds
+    abstract fun bindsLoginValidatePasswordInteractor(
+        loginValidatePasswordInteractor: LoginValidatePasswordUC
+    ): ILoginValidatePasswordUC
 
     @Binds
     abstract fun bindsOnboardingRepository(

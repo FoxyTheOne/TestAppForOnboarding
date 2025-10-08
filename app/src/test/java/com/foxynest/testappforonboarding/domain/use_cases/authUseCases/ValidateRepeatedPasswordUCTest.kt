@@ -1,16 +1,16 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases
 
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidateRepeatedPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidateRepeatedPasswordUC
 import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Test
 
 class ValidateRepeatedPasswordUCTest {
-    private lateinit var validateRepeatedPasswordUseCase: ValidateRepeatedPasswordUC
+    private lateinit var validateRepeatedPasswordUseCase: RegisterValidateRepeatedPasswordUC
 
     @Before
     fun setUp() {
-        validateRepeatedPasswordUseCase = ValidateRepeatedPasswordUC()
+        validateRepeatedPasswordUseCase = RegisterValidateRepeatedPasswordUC()
     }
 
     @Test

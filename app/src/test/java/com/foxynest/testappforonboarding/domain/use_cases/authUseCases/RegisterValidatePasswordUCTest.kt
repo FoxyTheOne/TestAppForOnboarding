@@ -1,6 +1,6 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases
 
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.ValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidatePasswordUC
 import com.foxynest.testappforonboarding.other.constants.AuthConstants
 import junit.framework.TestCase.assertEquals
 import org.junit.Before
@@ -8,12 +8,12 @@ import org.junit.Test
 import kotlin.math.pow
 import kotlin.random.Random
 
-class ValidatePasswordUCTest {
-    private lateinit var validatePasswordUseCase: ValidatePasswordUC
+class RegisterValidatePasswordUCTest {
+    private lateinit var validatePasswordUseCase: RegisterValidatePasswordUC
 
     @Before
     fun setUp() {
-        validatePasswordUseCase = ValidatePasswordUC()
+        validatePasswordUseCase = RegisterValidatePasswordUC()
     }
 
     @Test

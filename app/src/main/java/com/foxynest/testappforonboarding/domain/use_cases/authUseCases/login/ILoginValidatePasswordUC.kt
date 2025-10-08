@@ -1,7 +1,7 @@
-package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
+package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
 
-interface IValidatePasswordUC {
+interface ILoginValidatePasswordUC {
     fun execute(password: String): ValidationResult
 }

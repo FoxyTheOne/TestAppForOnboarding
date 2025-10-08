@@ -1,8 +1,7 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
 
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
-import com.foxynest.testappforonboarding.other.constants.AuthConstants.MIN_PASSWORD_LENGTH
-import javax.inject.Inject
 
 /**
  * Domain layer, UseCase. Бизнес-логика, Kotlin.
@@ -16,25 +15,13 @@ import javax.inject.Inject
  * So we have a class for every single bit of logic we have in our project.
  * Typically each use case consists of just one function which executes that use case (which validates the email for instance)
  */
-class ValidatePasswordUC @Inject constructor() : IValidatePasswordUC {
+class RegisterValidateTermsUC : IRegisterValidateTermsUC {
 
-    // Data слой здесь не нужен, мы проверяем только те данные, которые вводят в textfield
-    override fun execute(password: String): ValidationResult {
-        if (password.length < MIN_PASSWORD_LENGTH) {
-            // TODO Здесь можно использовать String Resources
+    override fun execute(acceptedTerms: Boolean): ValidationResult {
+        if (!acceptedTerms) {
             return ValidationResult(
                 false,
-                "В пароле должно быть минимум $MIN_PASSWORD_LENGTH символов"
-            )
-        }
-
-        val containsLettersAndDigits =
-            password.any { it.isDigit() } && password.any { it.isLetter() }
-        if (!containsLettersAndDigits) {
-            // TODO Здесь можно использовать String Resources
-            return ValidationResult(
-                false,
-                "Пароль должен содержать хотябы одну цифру и одну букву"
+                ErrorType.TERMS_ERROR
             )
         }
 

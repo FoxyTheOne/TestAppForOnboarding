@@ -1,7 +1,7 @@
-package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
+package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
 
-interface IValidateEmailUC {
+interface ILoginValidateEmailUC {
     fun execute(email: String): ValidationResult
 }

@@ -35,40 +35,22 @@ class FirebaseAuthDataSource @Inject constructor(
         private const val TAG = "FirebaseAuthDataSource"
     }
 
-//    Вы правы, Firebase рекомендует использовать addOnCompleteListener(), но использование await() с корутинами - это современный и более удобный подход для Kotlin.
-//    Почему можно использовать await():
-//    await() - это часть библиотеки kotlinx-coroutines-play-services, которая предоставляет suspend-функции для Firebase операций
-//    Код с await() более читаемый и легче поддерживается
-//    Позволяет избежать "callback hell" (вложенных колбэков)
-//    Лучше интегрируется с архитектурой приложения на корутинах
-
+    // await() - это часть библиотеки kotlinx-coroutines-play-services, которая предоставляет suspend-функции для Firebase операций
+    // Код с await() более читаемый и легче поддерживается. Позволяет избежать "callback hell" (вложенных колбэков). Лучше интегрируется с архитектурой приложения на корутинах
     suspend fun register(email: String, password: String, user: UserPresentation): Resource<Unit> {
         return try {
             val emailLowerCase = email.lowercase().trim()
             val result = auth.createUserWithEmailAndPassword(emailLowerCase, password).await()
 
-            // Создаем документ пользователя в Firestore. uid создаётся автоматически, верификацтю почты тоже настраивать будем позже
+            // Создаем документ пользователя в Firestore; uid создаётся автоматически, верификацтю почты тоже настраивать будем позже
             result.user?.let { nonNullFirebaseUser ->
                 val userEmailLowerCase = nonNullFirebaseUser.email?.lowercase()?.trim() ?: ""
 
-                // Использование extension-функции
                 val userData = user.toFirestoreMapWithCreationTimestamp()
                     .toMutableMap()
                     .apply {
                         put(UserFirestoreFields.EMAIL, userEmailLowerCase)
                     }
-
-//                val userData = hashMapOf(
-//                    "email" to emailLowerCase,
-//                    "username" to user.userName,
-//                    "childGender" to user.childGender,
-//                    "childIsItABoy" to user.isItABoy,
-//                    "childName" to user.childName,
-//                    "childHobby" to user.childHobby,
-//                    "childAge" to user.childAge,
-//                    "childBirthDate" to user.childBirthDate,
-//                    "createdAt" to FieldValue.serverTimestamp()
-//                )
 
                 firestore
                     .collection(USERS_COLLECTION)
@@ -85,7 +67,6 @@ class FirebaseAuthDataSource @Inject constructor(
                     "Invalid email format",
                     null
                 )
-
                 is FirebaseAuthUserCollisionException -> Resource.error("User already exists", null)
                 else -> Resource.error(e.message ?: "Registration failed", null)
             }
@@ -119,42 +100,7 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
-//    suspend fun getCurrentUser(): Resource<User?> {
-//        return try {
-//            val firebaseUser = auth.currentUser
-//            return if (firebaseUser != null) {
-//
-//
-//                // Получаем дополнительные данные из Firestore
-//                val document = firestore.collection("users")
-//                    .document(firebaseUser.uid)
-//                    .get()
-//                    .await()
-//
-//                // TODO берем данные из Firestore - проверить все поля
-//                val user = User(
-//                    uid = firebaseUser.uid,
-//                    email = firebaseUser.email ?: "",
-//                    isEmailVerified = firebaseUser.isEmailVerified,
-//                    userName = document.getString("username") ?: "",
-//                    childName = document.getString("childName") ?: "",
-//                    childAge = document.getLong("childAge")?.toInt() ?: 0,
-//                    childBirthDate = document.getString("childBirthDate") ?: ""
-//                )
-//                Resource.success(user)
-//
-//
-//            } else {
-//                Resource.success(null)
-//            }
-//        } catch (e: Exception) {
-//            // Если не удалось получить данные из Firestore, возвращаем базовые данные
-//            Resource.error(e.message ?: "Current user failure", null)
-//        }
-//    }
-
-
-    //    Используется для разовых проверок состояния аутентификации. Синхронный метод, возвращает текущего пользователя сразу
+    // Используется для разовых проверок состояния аутентификации. Синхронный метод, возвращает текущего пользователя сразу
     suspend fun getCurrentUser(): Resource<UserPresentation?> {
         try {
             val firebaseUser = auth.currentUser
@@ -169,21 +115,6 @@ class FirebaseAuthDataSource @Inject constructor(
                         .await()
 
                     Resource.success(document.toUserPresentation(firebaseUser))
-
-//                    Resource.success(
-//                        UserPresentation.firebaseUserToUser(
-//                            firebaseUid = firebaseUser.uid,
-//                            firebaseEmail = firebaseUser.email ?: "",
-//                            firebaseIsEmailVerified = firebaseUser.isEmailVerified,
-//                            firebaseUserName = document.getString("username") ?: "",
-//                            firebaseChildGender = document.getString("childGender") ?: "",
-//                            firebaseIsItABoy = document.getString("childIsItABoy") ?: "",
-//                            firebaseChildName = document.getString("childName") ?: "",
-//                            firebaseChildHobby = document.getString("childHobby") ?: "",
-//                            firebaseChildAge = document.getLong("childAge")?.toInt() ?: 0,
-//                            firebaseChildBirthDate = document.getString("childBirthDate") ?: ""
-//                        )
-//                    )
                 } catch (e: Exception) {
                     // Если не удалось получить данные из Firestore, возвращаем базовые данные
                     Resource.error(
@@ -204,7 +135,7 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
-    //    Используется для реактивного отслеживания изменений. Возвращает Flow, который эмитит события при изменении состояния аутентификации (вход, выход, обновление токена)
+    // Используется для реактивного отслеживания изменений. Возвращает Flow, который эмитит события при изменении состояния аутентификации (вход, выход, обновление токена)
     fun getAuthState(): Flow<FirebaseUser?> = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
             trySend(auth.currentUser)
@@ -215,12 +146,6 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
-
-    //    suspend fun updateUserData(user: User) {
-//        firestore.collection("users").document(user.uid)
-//            .set(user.toMap()) // Добавьте метод toMap() в User
-//            .await()
-//    }
     suspend fun updateProfile(user: UserPresentation): Resource<Unit> {
         return try {
             // Проверяем, что пользователь авторизован
@@ -234,30 +159,10 @@ class FirebaseAuthDataSource @Inject constructor(
             currentUser.updateProfile(profileUpdates).await()
 
             // Обновляем дополнительные данные в Firestore
-            // Использование extension-функции
             val userData = user.toFirestoreMapWithUpdatedAtTimestamp(FieldValue.serverTimestamp())
 
-//            val userData = hashMapOf(
-//                "email" to user.email.lowercase().trim(),
-//                "username" to user.userName,
-//                "childGender" to user.childGender,
-//                "childIsItABoy" to user.isItABoy,
-//                "childName" to user.childName,
-//                "childHobby" to user.childHobby,
-//                "childAge" to user.childAge,
-//                "childBirthDate" to user.childBirthDate,
-//                "updatedAt" to FieldValue.serverTimestamp()
-//            )
-
-//            Оба подхода правильные, но используются в разных scenarios:
-//            update():
-//            Обновляет только указанные поля в существующем документе
-//            Если документа не существует, выбросит исключение
-//            Используется, когда вы уверены, что документ уже создан
-//            set() с SetOptions.merge():
-//            Создает документ, если он не существует
-//            Если документ существует, обновляет только указанные поля
-//            Более безопасный подход, так как не выбросит исключение если документ не найден
+//            update(): Обновляет только указанные поля в существующем документе. Если документа не существует, выбросит исключение. Используется, когда вы уверены, что документ уже создан
+//            set() с SetOptions.merge(): Создает документ, если он не существует. Если документ существует, обновляет только указанные поля. Более безопасный подход, так как не выбросит исключение если документ не найден
 //            auth.currentUser?.uid?.let { uid ->
 //                firestore.collection("users")
 //                    .document(uid)
@@ -265,12 +170,10 @@ class FirebaseAuthDataSource @Inject constructor(
 //                    .await()
 //            }
 
-//            auth.currentUser?.uid?.let { uid ->
             firestore.collection(USERS_COLLECTION)
                 .document(currentUser.uid)
                 .set(userData, SetOptions.merge())
                 .await()
-//            }
 
             Resource.success(Unit)
         } catch (e: Exception) {

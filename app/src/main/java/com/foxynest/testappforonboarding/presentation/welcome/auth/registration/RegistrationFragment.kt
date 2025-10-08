@@ -155,6 +155,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
                     }
 
                     Status.ERROR -> {
+                        // Неудачная регистрация - например, такой email уже зарегистрирован
                         // TODO проверить, чтобы строка бралась из ресурсов и что это вообще за сообщение будет
                         Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
                     }

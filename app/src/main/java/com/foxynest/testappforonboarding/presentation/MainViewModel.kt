@@ -427,21 +427,6 @@ class MainViewModel @Inject constructor(
         )
     }
 
-    //    // REGISTER
-//    fun register(email: String, password: String) {
-//        // TODO собрать данные
-////        val email = etEmailRegister.text.toString()
-////        val password = etPasswordRegister.text.toString()
-//        viewModelScope.launch {
-//            _registrationStateFlow.value = Resource.loading(null)
-//            _registrationStateFlow.value = registerUC.execute(email, password)
-//            // TODO обработка successful и error Resource в Activity через LiveData
-////            Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
-//            // "Регистрация успешна" или "Ошибка регистрации" - строка из res
-//            checkLoggedInStateAfterAuth()
-//        }
-//    }
-//
     fun checkLoggedInStateGetUser() {
         viewModelScope.launch {
             _checkedUserInfo.value = getCurrentUserUC.execute()

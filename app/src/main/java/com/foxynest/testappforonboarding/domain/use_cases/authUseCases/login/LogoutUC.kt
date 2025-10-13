@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
 
@@ -19,7 +20,7 @@ import javax.inject.Inject
 class LogoutUC @Inject constructor(
     private val authRepository: AuthRepository
 ) : ILogoutUC {
-    override suspend fun execute(): Resource<Unit> {
+    override suspend fun execute(): Resource<ErrorType> {
         return authRepository.logout()
     }
 }

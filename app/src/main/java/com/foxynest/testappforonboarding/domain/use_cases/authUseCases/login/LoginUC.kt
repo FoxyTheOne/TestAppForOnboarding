@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
 
@@ -19,9 +20,9 @@ import javax.inject.Inject
 class LoginUC @Inject constructor(
     private val authRepository: AuthRepository
 ) : ILoginUC {
-    override suspend fun execute(email: String, password: String): Resource<Unit> {
+    override suspend fun execute(email: String, password: String): Resource<ErrorType> {
         if (email.isBlank() || password.isBlank()) {
-            return Resource.error("Поле не может быть пустым", null)
+            return Resource.error("Поле не может быть пустым", ErrorType.FIELD_EMPTY_ERROR)
         }
         return authRepository.login(email, password)
     }

@@ -31,6 +31,7 @@ class PaywallViewModel @Inject constructor(
     fun saveOnboardingState(onboardingState: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                //
                 onboardingInteractor.saveOnboardingState(onboardingState)
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -42,7 +43,7 @@ class PaywallViewModel @Inject constructor(
                         )
                     )
                 )
-                // TODO Нужна обработка этой ошибки сохранения. Возможно всплывающее окно, или из paywall или из activity. Например "проблема с подключением к интернету, мы не смогли сохранить результаты вашего опроса в ваш аккаунт. Ответы сохранены только в локальном хранилище и будут удалены при очистке кеша программы. Пожалуйста, проверьте ваше подключение к интернету а затем воспользуйтесь кнопкой "синхронизация" в профиле" и сделать кнопку "синхронизация" для сохранения ответов из локального хранилища в облачное
+                // TODO Нужна обработка этой ошибки сохранения (Ошибка сохранения статуса пройденного опроса)
             }
         }
     }

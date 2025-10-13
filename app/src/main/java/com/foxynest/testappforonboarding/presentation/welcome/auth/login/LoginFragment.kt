@@ -17,6 +17,7 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentLogInBinding
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
+import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
@@ -135,7 +136,9 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
                     }
 
                     Status.ERROR -> {
-                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
+                        val messageToShow = resource.data.toErrorMessage(resources)
+//                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
                     }
 
                     else -> {

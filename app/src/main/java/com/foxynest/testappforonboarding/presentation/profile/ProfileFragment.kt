@@ -18,7 +18,10 @@ import com.foxynest.testappforonboarding.databinding.FragmentProfileBinding
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
+import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
+import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -32,6 +35,7 @@ class ProfileFragment : Fragment() {
     }
 
     private var localFieldsObserver: Observer<Any>? = null
+    private var dataSaveErrorDialog: DataSaveErrorDialog? = null
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentProfileBinding? = null
@@ -60,8 +64,9 @@ class ProfileFragment : Fragment() {
 //        // Firebase: При инициализации Activity проверьте, вошел ли пользователь в систему
 //        mainViewModel.checkLoggedInStateGetUser()
 
-        // TODO На экране профиля под заполненныеми полями кнопки "Сохранить данные на сервер" и "Загрузить данные с сервера (обновить поля)"
-        //  Но показывать их если поля user != user ? (через || , кроме uid) с подписью "Введенные данные отличаются от сохранённых на сервере, выберите действие:"
+        // ???? На экране профиля под заполненныеми полями кнопки "Сохранить данные на сервер" и "Загрузить данные с сервера (обновить поля)"
+        // ???? Но показывать их если поля user != user ? (через || , кроме uid) с подписью "Введенные данные отличаются от сохранённых на сервере, выберите действие:"
+        // Не делала потому что при создании фрагмента профиля мы загружаем данные с сервера
 
         initListeners()
         subscribeOnObservers()
@@ -118,11 +123,7 @@ class ProfileFragment : Fragment() {
         }
 
         binding?.buttonRefillFields?.setOnClickListener {
-            // TODO !!! всплывающее окно с вопросом "вы уверены? Текущие ответы будут стёрты и перезаписаны". Если "Да", то:
-            // Запускаем заново онбординг, проходим его и в конце сохраняем результаты на сервер
-            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-                findNavController().navigate(R.id.navigation_question1)
-            }
+            showConfirmOnboardingRestartDialog()
         }
     }
 
@@ -273,26 +274,77 @@ class ProfileFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.logoutStateFlow.collect {
-                // Вышли из аккаунта, провряем состояние user и обновляем UI
-                mainViewModel.checkLoggedInStateGetUser()
+            profileViewModel.logoutStateFlow.collect { resourceResult ->
+                val messageToShow = resourceResult.data.toErrorMessage(resources)
+
+                when (resourceResult.status) {
+                    Status.SUCCESS -> {
+                        // Вышли из аккаунта, провряем состояние user и обновляем UI
+                        mainViewModel.checkLoggedInStateGetUser()
+                    }
+                    Status.ERROR -> {
+                        Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
+                    }
+                    else -> {
+                        Log.d(TAG, "resource.status = ${resourceResult.status} ")
+                    }
+                }
             }
         }
 
         mainViewModel.profileUpdatedLiveData.observe(viewLifecycleOwner) { resourceResult ->
+            val messageToShow = resourceResult.data.toErrorMessage(resources)
+
             when (resourceResult.status) {
                 Status.SUCCESS -> {
                     Log.d(TAG, "Profile updated")
                     mainViewModel.checkLoggedInStateGetUser() // To automatically update our image view and our edit text
+                    Toast.makeText(requireContext(), R.string.profile_toast_data_updated, Toast.LENGTH_SHORT).show()
+                    // Закрываем диалог если открыт
+                    dataSaveErrorDialog?.dismiss()
+                    dataSaveErrorDialog = null
                 }
 
                 Status.ERROR -> {
-                    Log.d(TAG, "Error while saving data")
-                    // TODO !!! Всплывающее окно "ошибка при соединении с сервером, данные не сохранены. Повторить? Да"
+//                    Log.d(TAG, "Error while saving data: ${resourceResult.message}")
+//                    showDataSaveErrorDialog()
+
+                    Log.d(TAG, "Error while saving data: $messageToShow")
+                    // Показываем диалог только если это первая ошибка
+                    if (dataSaveErrorDialog == null) {
+                        showDataSaveErrorDialog(messageToShow)
+                    }
                 }
 
                 else -> {
                     Log.d(TAG, "resource.status = ${resourceResult.status} ")
+                }
+            }
+        }
+
+        // Новая подписка на состояние повторного сохранения
+        mainViewModel.retrySaveState.observe(viewLifecycleOwner) { resourceResult ->
+            val messageToShow = resourceResult.data.toErrorMessage(resources)
+
+            when (resourceResult.status) {
+                Status.LOADING -> {
+                    // Показываем индикатор загрузки в диалоге
+                    dataSaveErrorDialog?.showLoading()
+                }
+                Status.SUCCESS -> {
+                    Log.d(TAG, "Retry save successful")
+                    Toast.makeText(requireContext(), R.string.profile_toast_data_updated, Toast.LENGTH_SHORT).show()
+                    // Закрываем диалог если открыт
+                    dataSaveErrorDialog?.dismiss()
+                    dataSaveErrorDialog = null
+                }
+                Status.ERROR -> {
+                    Log.d(TAG, "Retry save failed: $messageToShow")
+                    // Показываем ошибку в том же диалоге
+                    dataSaveErrorDialog?.showError(messageToShow)
+                }
+                else -> {
+                    // ignore
                 }
             }
         }
@@ -333,7 +385,7 @@ class ProfileFragment : Fragment() {
             binding?.textWarningData?.visibility = View.GONE
             // Показываем кнопки "log out" и "обновить поля", button_verify_email
             binding?.buttonLogOut?.visibility = View.VISIBLE
-            binding?.buttonUpdateFields?.visibility = View.VISIBLE
+//            binding?.buttonUpdateFields?.visibility = View.VISIBLE
             binding?.linearEmailVerification?.visibility = View.VISIBLE
         } else {
             // Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data
@@ -343,8 +395,73 @@ class ProfileFragment : Fragment() {
             binding?.textWarningData?.visibility = View.VISIBLE
             // Убираем кнопки "log out" и "обновить поля", button_verify_email
             binding?.buttonLogOut?.visibility = View.GONE
-            binding?.buttonUpdateFields?.visibility = View.GONE
+//            binding?.buttonUpdateFields?.visibility = View.GONE
             binding?.linearEmailVerification?.visibility = View.GONE
+        }
+    }
+
+    private fun showConfirmOnboardingRestartDialog() {
+        ConfirmOnboardingRestartDialog.newInstance()
+            .setListeners(
+                positiveAction = {
+                    // Пользователь подтвердил - запускаем заново онбординг, проходим его и в конце сохраняем результаты на сервер
+                    if (findNavController().currentDestination?.id == R.id.navigation_profile) {
+                        findNavController().navigate(R.id.navigation_question1)
+                    }
+                },
+                negativeAction = {
+                    // Пользователь отменил - ничего не делаем
+                }
+            )
+            .show(parentFragmentManager, ConfirmOnboardingRestartDialog.TAG)
+    }
+
+//    private fun showDataSaveErrorDialog() {
+//        DataSaveErrorDialog.newInstance()
+//            .setListeners(
+//                positiveAction = {
+//                    // Пользователь хочет повторить сохранение
+//                    mainViewModel.retryDataSave()
+//                },
+//                negativeAction = {
+//                    // Пользователь отменил - показываем сообщение
+//                    Toast.makeText(
+//                        requireContext(),
+//                        R.string.profile_toast_data_updating_error,
+//                        Toast.LENGTH_LONG
+//                    ).show()
+//                }
+//            )
+//            .show(parentFragmentManager, DataSaveErrorDialog.TAG)
+//    }
+
+    private fun showDataSaveErrorDialog(errorMessage: String? = null) {
+        dataSaveErrorDialog = DataSaveErrorDialog.newInstance()
+            .setListeners(
+                retryAction = {
+                    // Пользователь хочет повторить сохранение
+                    mainViewModel.retryDataSave()
+                },
+                cancelAction = {
+                    // Пользователь отменил
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.profile_toast_data_updating_error,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    dataSaveErrorDialog = null
+                }
+            )
+
+        // Показываем диалог с первоначальным сообщением об ошибке
+        dataSaveErrorDialog?.show(parentFragmentManager, DataSaveErrorDialog.TAG)
+
+        // Устанавливаем кастомное сообщение если есть
+        if (!errorMessage.isNullOrEmpty()) {
+            // Ждем пока диалог создастся и затем обновляем сообщение
+            dataSaveErrorDialog?.dialog?.setOnShowListener {
+                dataSaveErrorDialog?.showError(errorMessage)
+            }
         }
     }
 

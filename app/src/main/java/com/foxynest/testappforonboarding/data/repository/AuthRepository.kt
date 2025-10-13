@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.data.repository
 
 import com.foxynest.testappforonboarding.data.dataSource.firebase.FirebaseAuthDataSource
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
 import com.foxynest.testappforonboarding.other.Resource
@@ -22,75 +23,125 @@ class AuthRepository @Inject constructor(
         email: String,
         password: String,
         user: UserPresentation
-    ): Resource<Unit>
+    ): Resource<ErrorType>
 //    = firebaseAuthDataSource.register(email, password, user)
     {
         val result = firebaseAuthDataSource.register(email, password, user)
         return when (result.status) {
-            Status.SUCCESS -> Resource.success(Unit)
+            Status.SUCCESS -> Resource.success(null)
             Status.ERROR -> {
                 // Специфичная обработка ошибок для UI
-                val userFriendlyMessage = when {
-                    result.message?.contains("email-already-in-use") == true ->
-                        "This email is already registered"
+                var userFriendlyMessage = ""
+                var errorType: ErrorType? = null
+                when {
+                    result.message?.contains("email-already-in-use") == true -> {
+                        userFriendlyMessage = "This email is already registered"
+                        errorType = ErrorType.EMAIL_ALREADY_REGISTERED_ERROR
+                    }
 
-                    result.message?.contains("weak-password") == true ->
-                        "Password is too weak"
+                    result.message?.contains("weak-password") == true -> {
+                        userFriendlyMessage = "Password is too weak"
+                        errorType = ErrorType.PASSWORD_TOO_WEAK_ERROR
+                    }
 
-                    result.message?.contains("invalid-email") == true ->
-                        "Invalid email format"
+                    result.message?.contains("invalid-email") == true -> {
+                        userFriendlyMessage = "Invalid email format"
+                        errorType = ErrorType.EMAIL_FORMAT_ERROR
+                    }
 
-                    else -> result.message ?: "Registration failed"
+                    else -> {
+                        userFriendlyMessage = result.message ?: "Registration failed"
+                        errorType = ErrorType.REGISTER_FAILED_ERROR
+                    }
                 }
-                Resource.error(userFriendlyMessage, null)
+
+                Resource.error(userFriendlyMessage, errorType)
             }
 
             else -> result
         }
     }
 
-    override suspend fun login(email: String, password: String): Resource<Unit>
+    override suspend fun login(email: String, password: String): Resource<ErrorType>
 //    = firebaseAuthDataSource.login(email, password)
     {
         val result = firebaseAuthDataSource.login(email, password)
         return when (result.status) {
-            Status.SUCCESS -> Resource.success(Unit)
+            Status.SUCCESS -> Resource.success(null)
             Status.ERROR -> {
                 // Универсальное сообщение для безопасности
-                val userFriendlyMessage = when {
-                    result.message?.contains("invalid-credential") == true ->
-                        "Invalid email or password"
+                var userFriendlyMessage = ""
+                var errorType: ErrorType? = null
+                when {
+                    result.message?.contains("invalid-credential") == true -> {
+                        userFriendlyMessage = "Invalid email or password"
+                        errorType = ErrorType.AUTH_DATA_ERROR
+                    }
 
-                    result.message?.contains("user-not-found") == true ->
-                        "Invalid email or password"
+                    result.message?.contains("user-not-found") == true -> {
+                        userFriendlyMessage = "Invalid email or password"
+                        errorType = ErrorType.AUTH_DATA_ERROR
+                    }
 
-                    result.message?.contains("wrong-password") == true ->
-                        "Invalid email or password"
+                    result.message?.contains("wrong-password") == true -> {
+                        userFriendlyMessage = "Invalid email or password"
+                        errorType = ErrorType.AUTH_DATA_ERROR
+                    }
 
-                    result.message?.contains("too-many-requests") == true ->
-                        "Too many attempts. Try again later"
+                    result.message?.contains("too-many-requests") == true -> {
+                        userFriendlyMessage = "Too many attempts. Try again later"
+                        errorType = ErrorType.TOO_MANY_ATTEMPTS_ERROR
+                    }
 
-                    else -> result.message ?: "Login failed"
+                    else -> {
+                        userFriendlyMessage = result.message ?: "Login failed"
+                        errorType = ErrorType.LOGIN_FAILED_ERROR
+                    }
                 }
-                Resource.error(userFriendlyMessage, null)
+
+                Resource.error(userFriendlyMessage, errorType)
             }
 
             else -> result
         }
     }
 
-    override suspend fun logout(): Resource<Unit> = firebaseAuthDataSource.logout()
+    override suspend fun logout(): Resource<ErrorType> = firebaseAuthDataSource.logout()
 
     override suspend fun getCurrentUser(): Resource<UserPresentation?> =
         firebaseAuthDataSource.getCurrentUser()
 
     override fun getAuthState(): Flow<FirebaseUser?> = firebaseAuthDataSource.getAuthState()
 
-    override suspend fun updateProfile(user: UserPresentation): Resource<Unit> =
-        firebaseAuthDataSource.updateProfile(user)
+    override suspend fun updateProfile(user: UserPresentation): Resource<ErrorType> {
+        val result = firebaseAuthDataSource.updateProfile(user)
+        return when (result.status) {
+            Status.SUCCESS -> Resource.success(null)
+            Status.ERROR -> {
+                var userFriendlyMessage = ""
+                var errorType: ErrorType? = null
 
-    override suspend fun sendEmailVerification(): Resource<Unit> =
+                when {
+                    result.message?.contains("network") == true -> {
+                        userFriendlyMessage = "Проблемы с интернет-соединением"
+                        errorType = ErrorType.INTERNET_ERROR
+                    }
+
+                    else -> {
+                        userFriendlyMessage = result.message ?: "Не удалось сохранить данные"
+                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+                    }
+                }
+                Resource.error(userFriendlyMessage, errorType)
+            }
+
+            else -> result
+        }
+    }
+
+    override suspend fun sendEmailVerification(): Resource<ErrorType> =
         firebaseAuthDataSource.sendEmailVerification()
 
-    override suspend fun checkEmailVerified(): Boolean = firebaseAuthDataSource.checkEmailVerified()
+    override suspend fun checkEmailVerified(): Boolean =
+        firebaseAuthDataSource.checkEmailVerified()
 }

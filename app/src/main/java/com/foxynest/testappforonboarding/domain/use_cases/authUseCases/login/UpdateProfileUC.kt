@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class UpdateProfileUC @Inject constructor(
     private val authRepository: AuthRepository
 ) : IUpdateProfileUC {
-    override suspend fun execute(user: UserPresentation): Resource<Unit> {
+    override suspend fun execute(user: UserPresentation): Resource<ErrorType> {
         return authRepository.updateProfile(user)
     }
 }

@@ -4,15 +4,18 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetAuthStateFlowUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IUpdateProfileUC
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
+import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -58,8 +61,8 @@ class MainViewModel @Inject constructor(
     private val _answers = mutableMapOf<String, String>()
     val answers: Map<String, String> get() = _answers
 
-    private val _profileUpdatedLiveData = MutableLiveData<Resource<Unit>>()
-    val profileUpdatedLiveData: LiveData<Resource<Unit>> = _profileUpdatedLiveData
+    private val _profileUpdatedLiveData = MutableLiveData<Resource<ErrorType>>()
+    val profileUpdatedLiveData: LiveData<Resource<ErrorType>> = _profileUpdatedLiveData
 
 //    // REGISTER
 //    // For a toast of registration state
@@ -155,6 +158,10 @@ class MainViewModel @Inject constructor(
         MutableLiveData<MyEvent<Resource<Boolean>>>() // It must be private, so that other classes can't change it
     val errorMessageLiveData: LiveData<MyEvent<Resource<Boolean>>> =
         _errorMessageLiveData // And another LiveData, that equals to previous, so that classes can't change it
+
+    // Добавляем отдельный LiveData для состояния повторного сохранения
+    private val _retrySaveState = MutableLiveData<Resource<ErrorType>>()
+    val retrySaveState: LiveData<Resource<ErrorType>> = _retrySaveState
 
 //        private val _text = MutableLiveData<String>().apply {
 //        value = "This is Profile Fragment"
@@ -298,7 +305,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    // Запустить метод для получения этих данных можно, когда открывается paywallfragment - в этот момент опрос уже точно пройден
+    // Запустить метод для получения этих данных можно, когда открывается PAYWALL FRAGMENT - в этот момент опрос уже точно пройден
     fun getAndUseAnswersFromOnboardind() {
 
         // Теперь мы вызываем опросник не только при первом запуске, но и если нажали кнопку "обновить поля"
@@ -312,22 +319,62 @@ class MainViewModel @Inject constructor(
             getAndHobbyAnswer()
 
             if (currentUser != null) {
-                val updatedUser = UserPresentation(
-                    uid = currentUser.uid,
-                    email = answers[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
-                    isEmailVerified = answers[AnswerNames.IS_EMAIL_VERIFIED_ANSWER.toString()].toBoolean(),
-                    userName = answers[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
-                    childGender = answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
-                    isItABoy = answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
-                    childName = answers[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
-                    childHobby = answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
-                    childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
-                    childBirthDate = answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
-                )
+//                val updatedUser = UserPresentation(
+//                    uid = currentUser.uid,
+//                    email = answers[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
+//                    isEmailVerified = answers[AnswerNames.IS_EMAIL_VERIFIED_ANSWER.toString()].toBoolean(),
+//                    userName = answers[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
+//                    childGender = answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
+//                    isItABoy = answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
+//                    childName = answers[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
+//                    childHobby = answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
+//                    childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
+//                    childBirthDate = answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
+//                )
+                val updatedUser = createUserFromAnswers(currentUser.uid)
 
                 _profileUpdatedLiveData.postValue(updateProfileUC.execute(updatedUser))
             }
         }
+    }
+
+    fun retryDataSave() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _retrySaveState.postValue(Resource.loading(null))
+
+            // Получаем текущие данные из ViewModel и пытаемся сохранить снова
+            val currentUser = getCurrentUserUC.execute().data
+            if (currentUser != null) {
+                // Повторно собираем данные для сохранения
+                val updatedUser = createUserFromAnswers(currentUser.uid)
+                val result = updateProfileUC.execute(updatedUser)
+
+                // Отправляем результат в отдельный LiveData для повторных попыток
+                _retrySaveState.postValue(result)
+
+                // Также обновляем основной LiveData для consistency
+                if (result.status == Status.SUCCESS) {
+                    _profileUpdatedLiveData.postValue(result)
+                }
+            } else {
+                _retrySaveState.postValue(Resource.error("User not authenticated", null))
+            }
+        }
+    }
+
+    private fun createUserFromAnswers(currentUserUid: String): UserPresentation {
+        return UserPresentation(
+            uid = currentUserUid,
+            email = answers[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
+            isEmailVerified = answers[AnswerNames.IS_EMAIL_VERIFIED_ANSWER.toString()].toBoolean(),
+            userName = answers[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
+            childGender = answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
+            isItABoy = answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
+            childName = answers[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
+            childHobby = answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
+            childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
+            childBirthDate = answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
+        )
     }
 
     private fun getAndUseGenderAnswer() {

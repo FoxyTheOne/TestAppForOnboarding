@@ -44,11 +44,14 @@
     <string name="profile_verify_email">Подтвердить</string>
     <string name="profile_button_register">Зарегистрироваться *</string>
     <string name="profile_text_warning">* Вы не зарегистрированы. Ваши данные пропадут при очистке памяти приложения. Советуем вам зарегистрировать аккаунт для хранения ваших данных во избежании их потери.</string>
-    <string name="profile_button_update_fields">Обновить поля (запрос на сервер)</string>
+    <string name="profile_button_save_fields_to_server">Сохранить данные на сервер</string>
+    <string name="profile_button_download_fields_from_server">Загрузить данные с сервера (обновить поля)</string>
     <string name="profile_button_refill_fields">Пройти опрос заново (изменить поля)</string>
     <string name="profile_button_log_in">У меня уже есть аккаунт **</string>
     <string name="profile_text_warning_data">** Введенные сейчас данные заменятся на те, которые сохранены на аккаунте.</string>
     <string name="profile_button_log_out">Выйти</string>
+    <string name="profile_toast_data_updated">Данные успешно сохранены</string>
+    <string name="profile_toast_data_updating_error">Данные не сохранены. Вы можете повторить попытку позже</string>
     <string name="home_title_part1">Чем сегодня</string>
     <string name="home_title_part2_girl">занималась</string>
     <string name="home_title_part2_boy">занимался</string>
@@ -60,9 +63,29 @@
     <string name="email_empty_error">Почта не может быть пустой</string>
     <string name="email_format_error">Не верная почта</string>
     <string name="email_length_error">В пароле должно быть минимум %d символов</string>
+    <string name="email_already_registered_error">Указанный email уже зарегистрирован</string>
     <string name="password_empty_error">Пароль не может быть пустой</string>
     <string name="password_letters_error">Пароль должен содержать цифры и буквы</string>
     <string name="password_match_error">Пароли не совпадают</string>
+    <string name="password_too_weak_error">Слабый пароль</string>
     <string name="terms_error">Пожалуйста, согласитесь с условиями</string>
-    <string name="logged_in_text">"Успешный вход, переход на страницу профиля"</string>
+    <string name="logged_in_text">Успешный вход, переход на страницу профиля</string>
+    <string name="registered_text">Регистрация успешна, переход на страницу профиля</string>
+    <string name="field_empty_error">Поле не может быть пустым</string>
+    <string name="auth_data_error">Не верный email или пароль</string>
+    <string name="too_many_attempts_error">Слишком много попыток. Попробуйте позже</string>
+    <string name="login_failed_error">Ошибка входа</string>
+    <string name="register_failed_error">Ошибка регистрации</string>
+    <string name="logout_failed_error">Ошибка выхода</string>
+    <string name="not_authenticated_error">Ошибка входа - пользователь не вошел в аккаунт</string>
+    <string name="internet_error">Проблемы с интернет-соединением</string>
+    <string name="data_not_saved_error">Не удалось сохранить данные</string>
+    <string name="sending_email_verification_error">Не удалось запрос на верификацию почты</string>
+
+    <!-- dialog_data_save_error -->
+    <string name="data_save_error_title">Ошибка сохранения</string>
+    <string name="data_save_error_message">Ошибка при соединении с сервером, данные не сохранены. Повторить?</string>
+    <string name="data_save_loading_message">Сохранение данных…</string>
+    <string name="retry">Повторить</string>
+    <string name="cancel">Отмена</string>
 </resources>

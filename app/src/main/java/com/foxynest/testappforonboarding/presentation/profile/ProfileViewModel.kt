@@ -3,6 +3,7 @@ package com.foxynest.testappforonboarding.presentation.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
@@ -39,8 +40,8 @@ class ProfileViewModel @Inject constructor(
 
     // LOG OUT
     // For a toast of logging out state
-    private val _logoutStateFlow = MutableStateFlow<Resource<Unit>>(Resource.init(null))
-    val logoutStateFlow: StateFlow<Resource<Unit>> = _logoutStateFlow
+    private val _logoutStateFlow = MutableStateFlow<Resource<ErrorType>>(Resource.init(null))
+    val logoutStateFlow: StateFlow<Resource<ErrorType>> = _logoutStateFlow
 
     init {
 //        loadUser()

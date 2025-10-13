@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateEmailUC
@@ -51,8 +52,8 @@ class RegistrationViewModel @Inject constructor(
 
     // REGISTER
     // For a toast of registration state
-    private val _registrationStateFlow = MutableStateFlow<Resource<Unit>>(Resource.init(null))
-    val registrationStateFlow: StateFlow<Resource<Unit>> = _registrationStateFlow
+    private val _registrationStateFlow = MutableStateFlow<Resource<ErrorType>>(Resource.init(null))
+    val registrationStateFlow: StateFlow<Resource<ErrorType>> = _registrationStateFlow
 
     private val resources: Resources
         get() = context.resources

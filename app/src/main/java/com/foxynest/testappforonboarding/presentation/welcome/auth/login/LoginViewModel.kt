@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidatePasswordUC
@@ -41,8 +42,8 @@ class LoginViewModel @Inject constructor(
 
     // LOG IN
     // For a toast of logging in state
-    private val _loginStateFlow = MutableStateFlow<Resource<Unit>>(Resource.init(null))
-    val loginStateFlow: StateFlow<Resource<Unit>> = _loginStateFlow
+    private val _loginStateFlow = MutableStateFlow<Resource<ErrorType>>(Resource.init(null))
+    val loginStateFlow: StateFlow<Resource<ErrorType>> = _loginStateFlow
 
     // Добавьте computed property для resources
     private val resources: Resources

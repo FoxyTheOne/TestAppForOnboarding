@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.data.dataSource.firebase
 
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.UserFirestoreFields
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
@@ -37,7 +38,11 @@ class FirebaseAuthDataSource @Inject constructor(
 
     // await() - это часть библиотеки kotlinx-coroutines-play-services, которая предоставляет suspend-функции для Firebase операций
     // Код с await() более читаемый и легче поддерживается. Позволяет избежать "callback hell" (вложенных колбэков). Лучше интегрируется с архитектурой приложения на корутинах
-    suspend fun register(email: String, password: String, user: UserPresentation): Resource<Unit> {
+    suspend fun register(
+        email: String,
+        password: String,
+        user: UserPresentation
+    ): Resource<ErrorType> {
         return try {
             val emailLowerCase = email.lowercase().trim()
             val result = auth.createUserWithEmailAndPassword(emailLowerCase, password).await()
@@ -59,44 +64,60 @@ class FirebaseAuthDataSource @Inject constructor(
                     .await()
             }
 
-            Resource.success(Unit)
+            Resource.success(null)
         } catch (e: Exception) {
             when (e) {
-                is FirebaseAuthWeakPasswordException -> Resource.error("Password is too weak", null)
+                is FirebaseAuthWeakPasswordException -> Resource.error(
+                    "Password is too weak",
+                    ErrorType.PASSWORD_TOO_WEAK_ERROR
+                )
+
                 is FirebaseAuthInvalidCredentialsException -> Resource.error(
                     "Invalid email format",
-                    null
+                    ErrorType.EMAIL_FORMAT_ERROR
                 )
-                is FirebaseAuthUserCollisionException -> Resource.error("User already exists", null)
-                else -> Resource.error(e.message ?: "Registration failed", null)
+
+                is FirebaseAuthUserCollisionException -> Resource.error(
+                    "User already exists",
+                    ErrorType.EMAIL_ALREADY_REGISTERED_ERROR
+                )
+
+                else -> Resource.error(
+                    e.message ?: "Registration failed",
+                    ErrorType.REGISTER_FAILED_ERROR
+                )
             }
         }
     }
 
-    suspend fun login(email: String, password: String): Resource<Unit> {
+    suspend fun login(email: String, password: String): Resource<ErrorType> {
         return try {
             val emailLowerCase = email.lowercase().trim()
             auth.signInWithEmailAndPassword(emailLowerCase, password).await()
-            Resource.success(Unit)
+            Resource.success(null)
         } catch (e: Exception) {
             when (e) {
                 is FirebaseAuthInvalidCredentialsException -> Resource.error(
                     "Invalid email or password",
-                    null
+                    ErrorType.AUTH_DATA_ERROR
                 )
 
-                is FirebaseAuthInvalidUserException -> Resource.error("User not found", null)
-                else -> Resource.error(e.message ?: "Login failed", null)
+                is FirebaseAuthInvalidUserException -> Resource.error(
+                    "User not found",
+                    ErrorType.AUTH_DATA_ERROR
+                )
+
+                else -> Resource.error(e.message ?: "Login failed", ErrorType.LOGIN_FAILED_ERROR)
             }
         }
     }
 
-    suspend fun logout(): Resource<Unit> {
+    suspend fun logout(): Resource<ErrorType> {
         return try {
             auth.signOut()
-            Resource.success(Unit)
+            Resource.success(null)
         } catch (e: Exception) {
-            Resource.error(e.message ?: "Logout failed", null)
+            Resource.error(e.message ?: "Logout failed", ErrorType.LOGOUT_FAILED_ERROR)
         }
     }
 
@@ -146,11 +167,14 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
-    suspend fun updateProfile(user: UserPresentation): Resource<Unit> {
+    suspend fun updateProfile(user: UserPresentation): Resource<ErrorType> {
         return try {
             // Проверяем, что пользователь авторизован
             val currentUser =
-                auth.currentUser ?: return Resource.error("User not authenticated", null)
+                auth.currentUser ?: return Resource.error(
+                    "User not authenticated",
+                    ErrorType.NOT_AUTHENTICATED_ERROR
+                )
 
             // Обновляем базовые данные в FirebaseAuth
             val profileUpdates = UserProfileChangeRequest.Builder()
@@ -175,18 +199,21 @@ class FirebaseAuthDataSource @Inject constructor(
                 .set(userData, SetOptions.merge())
                 .await()
 
-            Resource.success(Unit)
+            Resource.success(null)
         } catch (e: Exception) {
-            Resource.error(e.message ?: "Profile update failed", null)
+            Resource.error(e.message ?: "Profile update failed", ErrorType.DATA_NOT_SAVED_ERROR)
         }
     }
 
-    suspend fun sendEmailVerification(): Resource<Unit> {
+    suspend fun sendEmailVerification(): Resource<ErrorType> {
         return try {
             auth.currentUser?.sendEmailVerification()?.await()
-            Resource.success(Unit)
+            Resource.success(null)
         } catch (e: Exception) {
-            Resource.error(e.message ?: "Failed to send verification email", null)
+            Resource.error(
+                e.message ?: "Failed to send verification email",
+                ErrorType.SENDING_EMAIL_VERIFICATION_ERROR
+            )
         }
     }
 

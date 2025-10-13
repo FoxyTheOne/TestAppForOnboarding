@@ -19,6 +19,7 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentRegisterBinding
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
@@ -138,10 +139,9 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
                 when (resource.status) {
                     Status.SUCCESS -> {
                         // Вызываем сообщение
-                        // TODO проверить, чтобы строка бралась из ресурсов
                         Toast.makeText(
                             activity,
-                            "Регистрация успешна, переход на страницу профиля",
+                            getString(R.string.registered_text),
                             Toast.LENGTH_LONG
                         ).show()
 
@@ -156,8 +156,9 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
 
                     Status.ERROR -> {
                         // Неудачная регистрация - например, такой email уже зарегистрирован
-                        // TODO проверить, чтобы строка бралась из ресурсов и что это вообще за сообщение будет
-                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
+                        val toastMessage = resource.data.toErrorMessage(resources)
+//                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(activity, toastMessage, Toast.LENGTH_LONG).show()
                     }
 
                     else -> {

@@ -272,7 +272,7 @@
             android:orientation="horizontal"
             android:visibility="visible"
             android:weightSum="2"
-            app:layout_constraintBottom_toTopOf="@+id/button_update_fields"
+            app:layout_constraintBottom_toTopOf="@+id/button_save_fields_to_server"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linear_email_answer">
@@ -304,7 +304,7 @@
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/button_update_fields"
+            android:id="@+id/button_save_fields_to_server"
             style="@style/Widget.AppCompat.ActionButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -312,16 +312,36 @@
             android:background="@drawable/button_rounded_corners"
             android:paddingStart="@dimen/space_32"
             android:paddingEnd="@dimen/space_32"
-            android:text="@string/profile_button_update_fields"
+            android:text="@string/profile_button_save_fields_to_server"
             android:textColor="@color/white"
             android:textSize="@dimen/button_text"
             android:textStyle="bold"
-            android:visibility="visible"
+            android:visibility="gone"
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toTopOf="@+id/button_download_fields_from_server"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
+            app:layout_constraintRight_toRightOf="@+id/guideline_right"
+            app:layout_constraintTop_toBottomOf="@+id/linear_email_verification" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_download_fields_from_server"
+            style="@style/Widget.AppCompat.ActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:background="@drawable/button_rounded_corners"
+            android:paddingStart="@dimen/space_32"
+            android:paddingEnd="@dimen/space_32"
+            android:text="@string/profile_button_download_fields_from_server"
+            android:textColor="@color/white"
+            android:textSize="@dimen/button_text"
+            android:textStyle="bold"
+            android:visibility="gone"
             app:backgroundTint="@null"
             app:layout_constraintBottom_toTopOf="@+id/button_refill_fields"
             app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
             app:layout_constraintRight_toRightOf="@+id/guideline_right"
-            app:layout_constraintTop_toBottomOf="@+id/linear_email_verification" />
+            app:layout_constraintTop_toBottomOf="@+id/button_save_fields_to_server" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_refill_fields"
@@ -341,7 +361,7 @@
             app:layout_constraintBottom_toTopOf="@+id/button_register_and_login"
             app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
             app:layout_constraintRight_toRightOf="@+id/guideline_right"
-            app:layout_constraintTop_toBottomOf="@+id/button_update_fields" />
+            app:layout_constraintTop_toBottomOf="@+id/button_download_fields_from_server" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_register_and_login"

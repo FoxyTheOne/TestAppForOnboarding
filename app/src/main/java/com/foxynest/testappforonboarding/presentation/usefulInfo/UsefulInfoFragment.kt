@@ -124,7 +124,7 @@ class UsefulInfoFragment : Fragment() {
 //    }
 
 //    private fun fillFieldsInUsefulInfo(user: UserPresentation) {
-//        TODO("Not yet implemented")
+//
 //    }
 
     // VIEW BINDING -> 3. onDestroyView()

@@ -38,12 +38,11 @@ class PaywallViewModel @Inject constructor(
                 _errorMessageLiveData.postValue(
                     MyEvent(
                         Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
+                            CommonConstants.FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL,
                             null
                         )
                     )
                 )
-                // TODO Нужна обработка этой ошибки сохранения (Ошибка сохранения статуса пройденного опроса)
             }
         }
     }

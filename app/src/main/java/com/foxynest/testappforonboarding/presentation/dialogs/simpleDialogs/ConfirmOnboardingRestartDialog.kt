@@ -1,16 +1,8 @@
 package com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs
 
-class ConfirmOnboardingRestartDialog: BaseDialogFragment() {
-    // TODO String resources
-    override fun getTitle(): String = "Подтверждение"
+import com.foxynest.testappforonboarding.R
 
-    override fun getMessage(): String =
-        "Вы уверены? Текущие ответы будут стёрты и перезаписаны."
-
-    override fun getPositiveButtonText(): String = "Да"
-
-    override fun getNegativeButtonText(): String = "Нет"
-
+class ConfirmOnboardingRestartDialog : BaseDialogFragment() {
     companion object {
         const val TAG = "ConfirmSurveyRestartDialog"
 
@@ -18,4 +10,12 @@ class ConfirmOnboardingRestartDialog: BaseDialogFragment() {
             return ConfirmOnboardingRestartDialog()
         }
     }
+
+    override fun getTitle(): String = getString(R.string.confirm_dialog_title)
+
+    override fun getMessage(): String = getString(R.string.are_you_sure_confirm)
+
+    override fun getPositiveButtonText(): String = getString(R.string.dialog_yes)
+
+    override fun getNegativeButtonText(): String = getString(R.string.dialog_no)
 }

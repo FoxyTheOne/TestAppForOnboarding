@@ -1,16 +1,14 @@
 package com.foxynest.testappforonboarding.presentation.dialogs
 
 import android.app.Dialog
-import com.foxynest.testappforonboarding.R
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.DialogFragment
+import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.DialogDataSaveErrorBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 //class DataSaveErrorDialog : BaseDialogFragment() {
-//    // TODO String resources
 //    override fun getTitle(): String = "Ошибка"
 //
 //    override fun getMessage(): String =
@@ -106,6 +104,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 //}
 
 class DataSaveErrorDialog : DialogFragment() {
+    companion object {
+        const val TAG = "DataSaveErrorDialog"
+
+        fun newInstance(): DataSaveErrorDialog {
+            return DataSaveErrorDialog()
+        }
+    }
 
     private var onRetryClick: (() -> Unit)? = null
     private var onCancelClick: (() -> Unit)? = null
@@ -184,13 +189,5 @@ class DataSaveErrorDialog : DialogFragment() {
 
         positiveButton?.isEnabled = true
         negativeButton?.isEnabled = true
-    }
-
-    companion object {
-        const val TAG = "DataSaveErrorDialog"
-
-        fun newInstance(): DataSaveErrorDialog {
-            return DataSaveErrorDialog()
-        }
     }
 }

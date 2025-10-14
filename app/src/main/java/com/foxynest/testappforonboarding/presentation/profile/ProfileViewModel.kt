@@ -44,16 +44,8 @@ class ProfileViewModel @Inject constructor(
     val logoutStateFlow: StateFlow<Resource<ErrorType>> = _logoutStateFlow
 
     init {
-//        loadUser()
         checkEmailVerificationStatus()
     }
-
-    // TODO in profile fragment при инициализации вызываем метод из main view model для проверки этого статуса и затем подписываемся на liveData
-//    private fun loadUser() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            _userState.value = getCurrentUserUseCase()
-//        }
-//    }
 
     fun checkEmailVerificationStatus() {
         viewModelScope.launch {

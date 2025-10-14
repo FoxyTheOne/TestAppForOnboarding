@@ -17,6 +17,7 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentProfileBinding
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel

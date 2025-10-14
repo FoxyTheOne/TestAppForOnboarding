@@ -19,6 +19,8 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.ActivityMainBinding
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.BaseDialogFragment
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.QuitDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -27,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
     }
+
+    private var quitDialog: BaseDialogFragment? = null
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: ActivityMainBinding? = null
@@ -130,27 +134,96 @@ class MainActivity : AppCompatActivity() {
     }
 
 //    private fun subscribeToObservers() {
-//        TODO("Not yet implemented")
+//
 //    }
 //
 //    private fun initListeners() {
-//        TODO("Not yet implemented")
+//
 //    }
 
     override fun onBackPressed() {
-        // TODO Всплывающее окно "вы действительно хотите выйти?" перед закрытием приложения вместо запрета слушателя кнопки назад
-        if (navController.currentDestination?.id == R.id.navigation_welcome ||
-            navController.currentDestination?.id == R.id.navigation_login ||
-            navController.currentDestination?.id == R.id.navigation_register ||
-            navController.currentDestination?.id == R.id.navigation_question1 ||
-            navController.currentDestination?.id == R.id.navigation_question2 ||
-            navController.currentDestination?.id == R.id.navigation_question3 ||
-            navController.currentDestination?.id == R.id.navigation_paywall
-        ) {
-            // Запрет возврата с paywall экрана
+//        // !!! Всплывающее окно "вы действительно хотите выйти?" перед закрытием приложения вместо запрета слушателя кнопки назад
+//        if (navController.currentDestination?.id == R.id.navigation_welcome ||
+//            navController.currentDestination?.id == R.id.navigation_login ||
+//            navController.currentDestination?.id == R.id.navigation_register ||
+//            navController.currentDestination?.id == R.id.navigation_question1 ||
+//            navController.currentDestination?.id == R.id.navigation_question2 ||
+//            navController.currentDestination?.id == R.id.navigation_question3 ||
+//            navController.currentDestination?.id == R.id.navigation_paywall
+//        ) {
+//            // Запрет возврата с paywall экрана
+//            return
+//        }
+//        super.onBackPressed()
+
+        val currentDestination = navController.currentDestination?.id
+
+        // Список фрагментов онбординга, где кнопка назад должна быть заблокирована
+        val onboardingFragments = setOf(
+            R.id.navigation_welcome,
+            R.id.navigation_login,
+            R.id.navigation_register,
+            R.id.navigation_question1,
+            R.id.navigation_question2,
+            R.id.navigation_question3,
+            R.id.navigation_paywall
+        )
+
+        // Список основных фрагментов приложения, где кнопка назад должна показывать диалог выхода
+        val mainAppFragments = setOf(
+            R.id.navigation_home,
+            R.id.navigation_profile,
+            R.id.navigation_useful_information
+        )
+
+        when (currentDestination) {
+            in onboardingFragments -> {
+                // Запрещаем возврат в онбординге
+                return
+            }
+            in mainAppFragments -> {
+                // Показываем диалог подтверждения выхода в основном приложении
+                showQuitDialog()
+                return
+            }
+            else -> {
+                // Для остальных случаев - стандартное поведение
+                super.onBackPressed()
+            }
+        }
+
+//        В онбординге:
+//        Welcome, Login, Register, Question1-3, Paywall - кнопка "Назад" полностью заблокирована
+//        Пользователь не может случайно выйти во время заполнения опроса
+//
+//        В основном приложении:
+//        Home, Profile, Useful Information - кнопка "Назад" показывает диалог подтверждения
+//        Пользователь воспринимает нижнее меню как вкладки, поэтому выход всегда через диалог
+//        Если пользователь нажимает "Да" - приложение закрывается
+//        Если "Нет" - диалог закрывается, пользователь остается в приложении
+//
+//        Особенности реализации:
+//        finishAffinity() - полностью закрывает приложение, а не только активность
+//        Проверка isAdded - предотвращает показ нескольких диалогов одновременно
+//        Обнуление ссылки - после закрытия диалога ссылка обнуляется для предотвращения утечек памяти
+    }
+
+    private fun showQuitDialog() {
+        if (quitDialog != null && quitDialog!!.isAdded) {
             return
         }
-        super.onBackPressed()
+
+        quitDialog = QuitDialog.newInstance()
+            .setListeners(
+                positiveAction = {
+                    finishAffinity()
+                },
+                negativeAction = {
+                    quitDialog = null
+                }
+            )
+
+        quitDialog?.show(supportFragmentManager, QuitDialog.TAG)
     }
 
     override fun onDestroy() {

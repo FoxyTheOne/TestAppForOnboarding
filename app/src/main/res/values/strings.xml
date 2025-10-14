@@ -82,10 +82,18 @@
     <string name="data_not_saved_error">Не удалось сохранить данные</string>
     <string name="sending_email_verification_error">Не удалось запрос на верификацию почты</string>
 
-    <!-- dialog_data_save_error -->
+    <!-- Dialogs -->
     <string name="data_save_error_title">Ошибка сохранения</string>
     <string name="data_save_error_message">Ошибка при соединении с сервером, данные не сохранены. Повторить?</string>
     <string name="data_save_loading_message">Сохранение данных…</string>
     <string name="retry">Повторить</string>
     <string name="cancel">Отмена</string>
+    <string name="dialog_yes">Да</string>
+    <string name="dialog_no">Нет</string>
+    <string name="confirm_dialog_title">Подтверждение</string>
+    <string name="are_you_sure_confirm">Вы уверены? Текущие ответы будут стёрты и перезаписаны.</string>
+    <string name="quit_confirm">Вы уверены, что хотите выйти?</string>
+    <string name="local_onboarding_saving_error_title">Ошибка</string>
+    <string name="local_onboarding_saving_error_text">Не получилось сохранить статус пройденного опроса на вашем телефоне. Повторить попытку?</string>
+    <string name="local_onboarding_saving_error_toast">При следующем запуске программы опрос запустится снова</string>
 </resources>

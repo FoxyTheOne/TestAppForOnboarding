@@ -177,8 +177,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
     }
 
 //    private fun showRegistrationSuccess() {
-//        // TODO Действия после успешной регистрации
-//        // TODO String resources instead of text
+//        // Действия после успешной регистрации
 //        Toast.makeText(
 //            requireContext(),
 //            "Registration successful",

@@ -7,13 +7,17 @@ import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
 import com.foxynest.testappforonboarding.domain.entities.VisibilityEnum
+import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.RepeatSavingOnboardingStateDialog
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -139,6 +143,31 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
                 else -> Unit
             }
         }
+
+        // TODO Повторить бы то же самое в профиле - вдруг этот фрагмент уже будет закрыт. Но там нет связи с этой LiveData
+        // Думаю, что это не критично = ошибка этого сохранения маловероятно. К тому же, это нужно только для не зарегистрированных пользователей и там есть предупреждение о том, что данные могут быть утеряны без регистрации
+        // (потому что данные из data store всё равно могут быть стёрты при очистке кэша)
+        paywallViewModel.errorMessageLiveData.observe(viewLifecycleOwner) { myEvent ->
+            if (myEvent.getContentIfNotHandled()?.message == CommonConstants.FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL) {
+                showRepeatSavingOnboardingStateDialog()
+            }
+        }
+    }
+
+    private fun showRepeatSavingOnboardingStateDialog() {
+        RepeatSavingOnboardingStateDialog.newInstance()
+            .setListeners(
+                positiveAction = {
+                    // Пользователь подтвердил - запускаем заново сохранение
+                    paywallViewModel.saveOnboardingState(true)
+
+                },
+                negativeAction = {
+                    // Пользователь отменил
+                    Toast.makeText(requireContext(), R.string.local_onboarding_saving_error_toast, Toast.LENGTH_SHORT).show()
+                }
+            )
+            .show(parentFragmentManager, ConfirmOnboardingRestartDialog.TAG)
     }
 
     // VIEW BINDING -> 3. onDestroyView()

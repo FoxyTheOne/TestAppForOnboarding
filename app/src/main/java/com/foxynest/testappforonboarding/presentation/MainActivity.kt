@@ -19,6 +19,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.ActivityMainBinding
+import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.BaseDialogFragment
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.QuitDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -130,16 +131,19 @@ class MainActivity : AppCompatActivity() {
         }
 
 //        initListeners()
-//        subscribeToObservers()
+        subscribeToObservers()
     }
 
-//    private fun subscribeToObservers() {
-//
-//    }
-//
 //    private fun initListeners() {
 //
 //    }
+
+    private fun subscribeToObservers() {
+        mainViewModel.errorMessageLiveData.observe(this) { event ->
+            val toastMessage = event.getContentIfNotHandled()?.data?.toErrorMessage(resources)
+            Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show()
+        }
+    }
 
     override fun onBackPressed() {
 //        // !!! Всплывающее окно "вы действительно хотите выйти?" перед закрытием приложения вместо запрета слушателя кнопки назад
@@ -181,11 +185,13 @@ class MainActivity : AppCompatActivity() {
                 // Запрещаем возврат в онбординге
                 return
             }
+
             in mainAppFragments -> {
                 // Показываем диалог подтверждения выхода в основном приложении
                 showQuitDialog()
                 return
             }
+
             else -> {
                 // Для остальных случаев - стандартное поведение
                 super.onBackPressed()

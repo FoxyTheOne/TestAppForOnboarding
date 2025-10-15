@@ -122,7 +122,7 @@ class HomeFragment : Fragment() {
                                     mainViewModel.isItABoyLiveData.value ?: "",
                                     mainViewModel.childNameLiveData.value ?: "",
                                     mainViewModel.hobbyLiveData.value ?: "",
-                                    mainViewModel.childAgeLiveData.value ?: 0,
+//                                    mainViewModel.childAgeLiveData.value ?: 0,
                                     mainViewModel.childBirthDateLiveData.value ?: ""
                                 )
                             )
@@ -157,7 +157,7 @@ class HomeFragment : Fragment() {
                         mainViewModel.isItABoyLiveData.value ?: "",
                         mainViewModel.childNameLiveData.value ?: "",
                         mainViewModel.hobbyLiveData.value ?: "",
-                        mainViewModel.childAgeLiveData.value ?: 0,
+//                        mainViewModel.childAgeLiveData.value ?: 0,
                         mainViewModel.childBirthDateLiveData.value ?: ""
                     )
                 )

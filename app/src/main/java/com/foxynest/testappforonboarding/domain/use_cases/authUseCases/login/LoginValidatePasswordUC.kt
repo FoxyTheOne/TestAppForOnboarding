@@ -22,7 +22,7 @@ class LoginValidatePasswordUC @Inject constructor() : ILoginValidatePasswordUC {
     // Data слой здесь не нужен, мы проверяем только те данные, которые вводят в textfield
     override fun execute(password: String): ValidationResult {
         if (password.isBlank()) {
-            return ValidationResult(false, ErrorType.EMAIL_EMPTY_ERROR)
+            return ValidationResult(false, ErrorType.PASSWORD_EMPTY_ERROR)
         }
         return ValidationResult(true)
     }

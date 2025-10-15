@@ -1,166 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.welcome.onboardingAndPaywall.Question1Fragment">
+    android:fillViewport="true">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_left"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="@dimen/space_beforeOrAfterElement" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_right"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_end="@dimen/space_beforeOrAfterElement" />
-
-    <TextView
-        android:id="@+id/text_gender_question"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_32"
-        android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
-        android:text="@string/text_gender_question"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/radio_group_question1"
-        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-        app:layout_constraintHorizontal_bias="0.25"
-        app:layout_constraintStart_toStartOf="@+id/guideline_left"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        tools:context=".presentation.profile.ProfileFragment">
 
-    <RadioGroup
-        android:id="@+id/radio_group_question1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/space_32"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/text_question_is_it_a_boy"
-        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-        app:layout_constraintStart_toStartOf="@+id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@+id/text_gender_question"
-        app:layout_constraintVertical_chainStyle="packed">
-
-        <RadioButton
-            android:id="@+id/gender_answer_boy"
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/text_boy" />
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="@dimen/space_beforeOrAfterElement" />
 
-        <RadioButton
-            android:id="@+id/gender_answer_girl"
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/text_girl" />
-    </RadioGroup>
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="@dimen/space_beforeOrAfterElement" />
 
-    <TextView
-        android:id="@+id/text_question_is_it_a_boy"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
-        android:text="@string/text_name_question"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/text_field_name_answer"
-        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-        app:layout_constraintStart_toStartOf="@+id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@+id/radio_group_question1"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/text_field_name_answer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/space_32"
-        android:hint="@string/text_name_hint"
-        app:layout_constraintBottom_toTopOf="@+id/buttons_linear_layout"
-        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
-        app:layout_constraintStart_toStartOf="@+id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@+id/text_question_is_it_a_boy"
-        app:layout_constraintVertical_chainStyle="packed">
-
-<!--        <com.google.android.material.textfield.TextInputEditText-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:inputType="textCapWords|textPersonName"-->
-<!--            android:imeOptions="actionDone"-->
-<!--            android:maxLines="1"-->
-<!--            android:singleLine="true"/>-->
-
-        <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textCapWords|textPersonName"
-            android:imeOptions="actionDone"
-            android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
-            android:maxLines="1"
-            android:singleLine="true"/>
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!--
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button_next"
-        style="@style/Widget.AppCompat.ActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/space_32"
-        android:layout_marginBottom="@dimen/space_32"
-        android:background="@drawable/button_rounded_corners"
-        android:paddingStart="@dimen/space_32"
-        android:paddingEnd="@dimen/space_32"
-        android:text="@string/button_next"
-        android:textColor="@color/white"
-        android:textSize="@dimen/button_text"
-        android:textStyle="bold"
-        app:backgroundTint="@null"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
-        app:layout_constraintRight_toRightOf="@+id/guideline_right"
-        app:layout_constraintTop_toBottomOf="@+id/text_field_name_answer"
-        app:layout_constraintVertical_chainStyle="packed" />
-        -->
-
-    <LinearLayout
-        android:id="@+id/buttons_linear_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/space_32"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:weightSum="4"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
-        app:layout_constraintRight_toRightOf="@+id/guideline_right"
-        app:layout_constraintTop_toBottomOf="@+id/text_field_name_answer"
-        app:layout_constraintVertical_chainStyle="packed">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/button_back"
+        <TextView
+            android:id="@+id/text_question_user_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/space_small"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:paddingStart="@dimen/space_32"
-            android:paddingEnd="@dimen/space_32"
-            app:backgroundTint="@null" />
+            android:layout_marginTop="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/text_user_name_question"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_field_user_name_answer"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed" />
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_field_user_name_answer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:hint="@string/text_name_hint"
+            app:layout_constraintBottom_toTopOf="@+id/text_question_user_email"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_question_user_name">
+
+            <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+                android:id="@+id/edit_text_field_user_name_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
+                android:imeOptions="actionNext"
+                android:inputType="textPersonName"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/text_question_user_email"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/text_user_email_question"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_field_user_email_answer"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_field_user_name_answer" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_field_user_email_answer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:hint="@string/text_email_hint"
+            app:layout_constraintBottom_toTopOf="@+id/text_gender_question"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_question_user_email">
+
+            <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+                android:id="@+id/edit_text_field_user_email_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionNext"
+                android:inputType="textEmailAddress"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/text_gender_question"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/text_gender_question"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/radio_group_question1"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_field_user_email_answer" />
+
+        <RadioGroup
+            android:id="@+id/radio_group_question1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/text_question_is_it_a_boy"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_gender_question">
+
+            <RadioButton
+                android:id="@+id/gender_answer_boy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_boy" />
+
+            <RadioButton
+                android:id="@+id/gender_answer_girl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_girl" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/text_question_is_it_a_boy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/text_child_name_question"
+            android:textAlignment="center"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/text_field_child_name_answer"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/radio_group_question1" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_field_child_name_answer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:hint="@string/text_name_hint"
+            app:layout_constraintBottom_toTopOf="@+id/buttons_linear_layout"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/text_question_is_it_a_boy">
+
+            <!--        <com.google.android.material.textfield.TextInputEditText-->
+            <!--            android:layout_width="match_parent"-->
+            <!--            android:layout_height="wrap_content"-->
+            <!--            android:inputType="textCapWords|textPersonName"-->
+            <!--            android:imeOptions="actionDone"-->
+            <!--            android:maxLines="1"-->
+            <!--            android:singleLine="true"/>-->
+
+            <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+                android:id="@+id/edit_text_field_child_name_answer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
+                android:imeOptions="actionDone"
+                android:inputType="textPersonName"
+                android:maxLines="1"
+                android:singleLine="true" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!--
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_next"
             style="@style/Widget.AppCompat.ActionButton"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/space_small"
-            android:layout_weight="2"
+            android:layout_marginTop="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_32"
             android:background="@drawable/button_rounded_corners"
             android:paddingStart="@dimen/space_32"
             android:paddingEnd="@dimen/space_32"
@@ -168,18 +197,65 @@
             android:textColor="@color/white"
             android:textSize="@dimen/button_text"
             android:textStyle="bold"
-            app:backgroundTint="@null" />
+            app:backgroundTint="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
+            app:layout_constraintRight_toRightOf="@+id/guideline_right"
+            app:layout_constraintTop_toBottomOf="@+id/text_field_name_answer" />
+            -->
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/button_no"
-            style="@style/Widget.AppCompat.ActionButton"
+        <LinearLayout
+            android:id="@+id/buttons_linear_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:paddingStart="@dimen/space_32"
-            android:paddingEnd="@dimen/space_32"
-            app:backgroundTint="@null" />
+            android:layout_marginBottom="@dimen/space_32"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:weightSum="4"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
+            app:layout_constraintRight_toRightOf="@+id/guideline_right"
+            app:layout_constraintTop_toBottomOf="@+id/text_field_child_name_answer">
 
-    </LinearLayout>
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/button_back"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/space_small"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/space_32"
+                android:paddingEnd="@dimen/space_32"
+                app:backgroundTint="@null" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_next"
+                style="@style/Widget.AppCompat.ActionButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/space_small"
+                android:layout_weight="2"
+                android:background="@drawable/button_rounded_corners"
+                android:paddingStart="@dimen/space_32"
+                android:paddingEnd="@dimen/space_32"
+                android:text="@string/button_next"
+                android:textColor="@color/white"
+                android:textSize="@dimen/button_text"
+                android:textStyle="bold"
+                app:backgroundTint="@null" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_no"
+                style="@style/Widget.AppCompat.ActionButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingStart="@dimen/space_32"
+                android:paddingEnd="@dimen/space_32"
+                app:backgroundTint="@null" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

@@ -16,7 +16,7 @@ fun FirebaseUser.toUserPresentation(
     firebaseIsItABoy: String,
     firebaseChildName: String,
     firebaseChildHobby: String,
-    firebaseChildAge: Int,
+//    firebaseChildAge: Int,
     firebaseChildBirthDate: String
 ): UserPresentation = UserPresentation(
     firebaseUid,
@@ -27,7 +27,7 @@ fun FirebaseUser.toUserPresentation(
     firebaseChildName,
     firebaseChildHobby,
     firebaseIsItABoy,
-    firebaseChildAge,
+//    firebaseChildAge,
     firebaseChildBirthDate
 )
 
@@ -39,7 +39,7 @@ fun UserPresentation.toFirestoreMap(): Map<String, Any> {
         UserFirestoreFields.CHILD_IS_IT_A_BOY to this.isItABoy,
         UserFirestoreFields.CHILD_NAME to this.childName,
         UserFirestoreFields.CHILD_HOBBY to this.childHobby,
-        UserFirestoreFields.CHILD_AGE to this.childAge,
+//        UserFirestoreFields.CHILD_AGE to this.childAge,
         UserFirestoreFields.CHILD_BIRTH_DATE to this.childBirthDate
     )
 }
@@ -67,7 +67,7 @@ fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresent
         isItABoy = getString(UserFirestoreFields.CHILD_IS_IT_A_BOY) ?: "",
         childName = getString(UserFirestoreFields.CHILD_NAME) ?: "",
         childHobby = getString(UserFirestoreFields.CHILD_HOBBY) ?: "",
-        childAge = getLong(UserFirestoreFields.CHILD_AGE)?.toInt() ?: 0,
+//        childAge = getLong(UserFirestoreFields.CHILD_AGE)?.toInt() ?: 0,
         childBirthDate = getString(UserFirestoreFields.CHILD_BIRTH_DATE) ?: ""
     )
 }

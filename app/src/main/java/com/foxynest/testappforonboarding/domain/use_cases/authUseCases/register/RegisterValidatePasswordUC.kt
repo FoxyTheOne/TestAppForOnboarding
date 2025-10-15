@@ -1,7 +1,5 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register
 
-import android.content.res.Resources
-import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
 import com.foxynest.testappforonboarding.other.constants.AuthConstants.MIN_PASSWORD_LENGTH
@@ -27,7 +25,7 @@ class RegisterValidatePasswordUC @Inject constructor() : IRegisterValidatePasswo
         if (password.length < MIN_PASSWORD_LENGTH) {
             return ValidationResult(
                 false,
-                ErrorType.EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH
+                ErrorType.PASSWORD_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH
             )
         }
 

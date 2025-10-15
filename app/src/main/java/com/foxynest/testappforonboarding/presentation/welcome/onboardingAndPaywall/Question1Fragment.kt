@@ -1,6 +1,8 @@
 package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +13,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
+import com.foxynest.testappforonboarding.other.utils.EmailUtils
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
@@ -65,38 +70,177 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         }
 
         binding?.buttonNext?.setOnClickListener {
+            val userNameAnswer =
+                binding?.textFieldUserNameAnswer?.editText?.text?.toString()?.trim()
+            val emailAnswer =
+                binding?.textFieldUserEmailAnswer?.editText?.text?.toString()?.trim()?.lowercase()
+            val checkedRadioButtonId = binding?.radioGroupQuestion1?.checkedRadioButtonId
             val radioGenderAnswerBoy = binding?.genderAnswerBoy
             val radioGenderAnswerGirl = binding?.genderAnswerGirl
-            val textFieldCharNameAnswer = binding?.textFieldNameAnswer?.editText?.text
-            val checkedRadioButtonId = binding?.radioGroupQuestion1?.checkedRadioButtonId
+            val childNameAnswer =
+                binding?.textFieldChildNameAnswer?.editText?.text?.toString()?.trim()
 
-            if (checkedRadioButtonId != null && !textFieldCharNameAnswer.isNullOrBlank()) {
-                if (radioGenderAnswerBoy?.isChecked == true || radioGenderAnswerGirl?.isChecked == true) {
+            val areFieldsValid = validateAllFields(
+                userNameAnswer,
+                emailAnswer,
+                checkedRadioButtonId,
+                radioGenderAnswerBoy,
+                radioGenderAnswerGirl,
+                childNameAnswer
+            )
 
-                    val selectedRadioButton: RadioButton? =
-                        binding?.root?.findViewById(checkedRadioButtonId)
+            if (areFieldsValid) {
+//                if (checkedRadioButtonId != null && !childNameAnswer.isNullOrBlank()) {
+//                    if (radioGenderAnswerBoy?.isChecked == true || radioGenderAnswerGirl?.isChecked == true) {
 
+                // Все проверки, в том числе "checkedRadioButtonId == null" должны были быть в areFieldsValid()
+                mainViewModel.saveUserNameAnswer(userNameAnswer ?: "")
+                mainViewModel.saveEmailAnswer(emailAnswer ?: "")
+                checkedRadioButtonId?.let {
+                    val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
                     mainViewModel.saveGenderAnswer(selectedRadioButton?.text.toString())
-                    mainViewModel.saveNameAnswer(textFieldCharNameAnswer.toString())
-
-                    if (this.findNavController().currentDestination?.id == R.id.navigation_question1) {
-                        when {
-                            radioGenderAnswerBoy?.isChecked == true -> this.findNavController()
-                                .navigate(R.id.action_navigation_question1_to_question2Fragment)
-
-                            radioGenderAnswerGirl?.isChecked == true -> this.findNavController()
-                                .navigate(R.id.action_navigation_question1_to_navigation_question3)
-                        }
-                    }
-
-                } else {
-                    Toast.makeText(context, "Пожалуйста, выберите пол ребенка", Toast.LENGTH_SHORT)
-                        .show()
                 }
-            } else {
-                Toast.makeText(context, "Пожалуйста, заполните все поля", Toast.LENGTH_SHORT).show()
+                mainViewModel.saveChildNameAnswer(childNameAnswer ?: "")
+
+                if (this.findNavController().currentDestination?.id == R.id.navigation_question1) {
+                    when {
+                        radioGenderAnswerBoy?.isChecked == true -> this.findNavController()
+                            .navigate(R.id.action_navigation_question1_to_question2Fragment)
+
+                        radioGenderAnswerGirl?.isChecked == true -> this.findNavController()
+                            .navigate(R.id.action_navigation_question1_to_navigation_question3)
+                    }
+                }
+
+//                    } else {
+//                        Toast.makeText(
+//                            context,
+//                            "Пожалуйста, выберите пол ребенка",
+//                            Toast.LENGTH_SHORT
+//                        )
+//                            .show()
+//                    }
+//                } else {
+//                    Toast.makeText(context, "Пожалуйста, заполните все поля", Toast.LENGTH_SHORT)
+//                        .show()
+//                }
             }
         }
+
+        binding?.editTextFieldUserNameAnswer?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                s?.let { editable ->
+                    val text = editable.toString()
+                    validateUserName(text)
+                }
+            }
+        })
+
+        binding?.editTextFieldUserEmailAnswer?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                s?.let { editable ->
+                    val text = editable.toString()
+                    validateEmail(text)
+                }
+            }
+        })
+
+        binding?.editTextFieldChildNameAnswer?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                s?.let { editable ->
+                    val text = editable.toString()
+                    validateChildName(text)
+                }
+            }
+        })
+    }
+
+    private fun validateUserName(userNameAnswer: String?): Boolean {
+        var isValid = true
+        if (userNameAnswer.isNullOrBlank()) {
+            binding?.textFieldUserNameAnswer?.error = "Пожалуйста, введите имя"
+            isValid = false
+        } else {
+            binding?.textFieldUserNameAnswer?.error = null
+        }
+        return isValid
+    }
+
+    private fun validateEmail(emailAnswer: String?): Boolean {
+        var isValid = true
+        if (emailAnswer.isNullOrBlank()) {
+            binding?.textFieldUserEmailAnswer?.error = "Пожалуйста, введите email"
+            isValid = false
+        } else if (!EmailUtils.emailMatches(emailAnswer)) {
+            binding?.textFieldUserEmailAnswer?.error = "Не верный формат"
+            isValid = false
+        } else {
+            binding?.textFieldUserEmailAnswer?.error = null
+        }
+        return isValid
+    }
+
+    private fun validateChildName(childNameAnswer: String?): Boolean {
+        var isValid = true
+        if (childNameAnswer.isNullOrBlank()) {
+            binding?.textFieldChildNameAnswer?.error = "Пожалуйста, введите имя ребенка"
+            isValid = false
+        } else {
+            binding?.textFieldChildNameAnswer?.error = null
+        }
+        return isValid
+    }
+
+    private fun validateAllFields(
+        userNameAnswer: String?,
+        emailAnswer: String?,
+        checkedRadioButtonId: Int?,
+        radioGenderAnswerBoy: RadioButton?,
+        radioGenderAnswerGirl: RadioButton?,
+        childNameAnswer: String?
+    ): Boolean {
+        var isValid = true
+
+        // Каждая функция в отдельном if для того, чтобы проверилась каждая из функций и если нужно, подписало причину error под текстовым полем
+        if (!validateUserName(userNameAnswer)) {
+            isValid = false
+        }
+
+        if (!validateEmail(emailAnswer)) {
+            isValid = false
+        }
+
+        // Проверка RadioButton
+        if (checkedRadioButtonId == null) {
+            Toast.makeText(
+                context,
+                "Пожалуйста, выберите пол ребенка",
+                Toast.LENGTH_SHORT
+            )
+                .show()
+            isValid = false
+        }
+        if (radioGenderAnswerBoy?.isChecked == false && radioGenderAnswerGirl?.isChecked == false) {
+            Toast.makeText(
+                context,
+                "Пожалуйста, выберите пол ребенка",
+                Toast.LENGTH_SHORT
+            )
+                .show()
+            isValid = false
+        }
+
+        if (!validateChildName(childNameAnswer)) {
+            isValid = false
+        }
+
+        return isValid
     }
 
     // VIEW BINDING -> 3. onDestroyView()

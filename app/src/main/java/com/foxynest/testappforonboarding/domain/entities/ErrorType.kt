@@ -5,10 +5,10 @@ import com.foxynest.testappforonboarding.R
 enum class ErrorType(val stringRes: Int) {
     EMAIL_EMPTY_ERROR(R.string.email_empty_error),
     EMAIL_FORMAT_ERROR(R.string.email_format_error),
-    EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH(R.string.email_length_error),
     EMAIL_ALREADY_REGISTERED_ERROR(R.string.email_already_registered_error),
     PASSWORD_EMPTY_ERROR(R.string.password_empty_error),
     PASSWORD_LETTERS_ERROR(R.string.password_letters_error),
+    PASSWORD_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH(R.string.email_length_error),
     PASSWORD_MATCH_ERROR(R.string.password_match_error),
     PASSWORD_TOO_WEAK_ERROR(R.string.password_too_weak_error),
     TERMS_ERROR(R.string.terms_error),
@@ -21,5 +21,14 @@ enum class ErrorType(val stringRes: Int) {
     NOT_AUTHENTICATED_ERROR(R.string.not_authenticated_error),
     INTERNET_ERROR(R.string.internet_error),
     DATA_NOT_SAVED_ERROR(R.string.data_not_saved_error),
-    SENDING_EMAIL_VERIFICATION_ERROR(R.string.sending_email_verification_error)
+    SENDING_EMAIL_VERIFICATION_ERROR(R.string.sending_email_verification_error),
+    UNEXPECTED_ERROR(R.string.unexpected_error),
+    FAILED_TO_SAVE_USER_NAME_LOCAL(R.string.failed_to_save_user_name_local),
+    FAILED_TO_SAVE_EMAIL_LOCAL(R.string.failed_to_save_email_local),
+    FAILED_TO_SAVE_GENDER_LOCAL(R.string.failed_to_save_gender_local),
+    FAILED_TO_SAVE_CHILD_NAME_LOCAL(R.string.failed_to_save_child_name_local),
+    FAILED_TO_SAVE_IS_IT_A_BOY_LOCAL(R.string.failed_to_save_is_it_a_boy_local),
+    FAILED_TO_SAVE_BIRTH_DATE_LOCAL(R.string.failed_to_save_birth_date_local),
+    FAILED_TO_SAVE_CHILD_AGE_LOCAL(R.string.failed_to_save_child_age_local),
+    FAILED_TO_SAVE_HOBBY_LOCAL(R.string.failed_to_save_hobby_local)
 }

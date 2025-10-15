@@ -61,7 +61,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
             isItABoy = "",
             childName = "",
             childHobby = "",
-            childAge = 0,
+//            childAge = 0,
             childBirthDate = ""
         )
         if (arguments != null) {

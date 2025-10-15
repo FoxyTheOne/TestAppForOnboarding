@@ -18,9 +18,17 @@
     <string name="text_gender_question">Укажите пол вашего ребенка</string>
     <string name="text_boy">Мальчик</string>
     <string name="text_girl">Девочка</string>
-    <string name="text_name_question">Как зовут вашего ребенка?</string>
+    <string name="text_child_name_question">Как зовут вашего ребенка?</string>
+    <string name="text_user_name_question">Как вас зовут?</string>
     <string name="text_name_hint">Введите имя</string>
+    <string name="text_user_email_question">Укажите вашу почту</string>
+    <string name="text_email_hint">Введите email</string>
     <string name="text_question2fragment">На этот фрагмент вы должны были попасть только если пол вашего ребенка - мальчик. Нажмите, что это так</string>
+    <string name="text_birth_date_question">Когда родился ваш ребенок?</string>
+    <string name="text_birth_date_hint">ДД.ММ.ГГГГ</string>
+    <string name="text_select_date_hint">Выберите дату рождения ребенка</string>
+    <string name="text_select_date_helper">Нажмите для выбора даты</string>
+    <string name="text_child_age">Полных лет ребенку:</string>
     <string name="text_hobby_question">Чем ваш ребенок любит заниматься, когда он развлекается самостоятельно?</string>
     <string name="text_hobby_hint">Напишите хобби</string>
     <string name="yes">Да</string>
@@ -55,7 +63,7 @@
     <string name="home_title_part1">Чем сегодня</string>
     <string name="home_title_part2_girl">занималась</string>
     <string name="home_title_part2_boy">занимался</string>
-    <string name="home_title_part3">ваш замечательный ребенок?</string>
+    <string name="home_title_part3">ваш замечательный ребенок</string>
     <string name="home_text">Ресурсного вам дня!</string>
     <string name="info_title_empty">Здесь будет разамещена полезная информация для вас</string>
 
@@ -81,6 +89,15 @@
     <string name="internet_error">Проблемы с интернет-соединением</string>
     <string name="data_not_saved_error">Не удалось сохранить данные</string>
     <string name="sending_email_verification_error">Не удалось запрос на верификацию почты</string>
+    <string name="unexpected_error">Произошла непредвиденная ошибка</string>
+    <string name="failed_to_save_user_name_local">Не удалось сохранить ваше имя на вашем телефоне</string>
+    <string name="failed_to_save_email_local">Не удалось сохранить email на вашем телефоне</string>
+    <string name="failed_to_save_gender_local">Не удалось сохранить пол ребенка на вашем телефоне</string>
+    <string name="failed_to_save_child_name_local">Не удалось сохранить имя ребенка на вашем телефоне</string>
+    <string name="failed_to_save_is_it_a_boy_local">Не удалось сохранить is it a boy на вашем телефоне</string>
+    <string name="failed_to_save_birth_date_local">Не удалось сохранить день рождения ребенка на вашем телефоне</string>
+    <string name="failed_to_save_child_age_local">Не удалось сохранить возраст ребенка на вашем телефоне</string>
+    <string name="failed_to_save_hobby_local">Не удалось сохранить хобби на вашем телефоне</string>
 
     <!-- Dialogs -->
     <string name="data_save_error_title">Ошибка сохранения</string>

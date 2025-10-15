@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
@@ -40,22 +39,22 @@ class MainViewModel @Inject constructor(
     }
 
     // ONBOARDING
-    private val _emailLiveData = MutableLiveData<String>() // TODO
-    val emailLiveData: LiveData<String> = _emailLiveData
-    private val _userNameLiveData = MutableLiveData<String>() // TODO
+    private val _userNameLiveData = MutableLiveData<String>()
     val userNameLiveData: LiveData<String> = _userNameLiveData
+    private val _emailLiveData = MutableLiveData<String>()
+    val emailLiveData: LiveData<String> = _emailLiveData
     private val _genderLiveData = MutableLiveData<String>()
     val genderLiveData: LiveData<String> = _genderLiveData
     private val _isItABoyLiveData = MutableLiveData<String>()
     val isItABoyLiveData: LiveData<String> = _isItABoyLiveData
     private val _childNameLiveData = MutableLiveData<String>()
     val childNameLiveData: LiveData<String> = _childNameLiveData
+    private val _childBirthDateLiveData = MutableLiveData<String>()
+    val childBirthDateLiveData: LiveData<String> = _childBirthDateLiveData
+//    private val _childAgeLiveData = MutableLiveData<Int>()
+//    val childAgeLiveData: LiveData<Int> = _childAgeLiveData
     private val _hobbyLiveData = MutableLiveData<String>()
     val hobbyLiveData: LiveData<String> = _hobbyLiveData
-    private val _childAgeLiveData = MutableLiveData<Int>() // TODO
-    val childAgeLiveData: LiveData<Int> = _childAgeLiveData
-    private val _childBirthDateLiveData = MutableLiveData<String>() // TODO
-    val childBirthDateLiveData: LiveData<String> = _childBirthDateLiveData
 
     // Для временного хранения во время заполнения опроса (нужно при возвращении назад по страницам в онбординге)
     private val _answers = mutableMapOf<String, String>()
@@ -155,8 +154,8 @@ class MainViewModel @Inject constructor(
 
     // If smth went wrong
     private val _errorMessageLiveData =
-        MutableLiveData<MyEvent<Resource<Boolean>>>() // It must be private, so that other classes can't change it
-    val errorMessageLiveData: LiveData<MyEvent<Resource<Boolean>>> =
+        MutableLiveData<MyEvent<Resource<ErrorType>>>() // It must be private, so that other classes can't change it
+    val errorMessageLiveData: LiveData<MyEvent<Resource<ErrorType>>> =
         _errorMessageLiveData // And another LiveData, that equals to previous, so that classes can't change it
 
     // Добавляем отдельный LiveData для состояния повторного сохранения
@@ -168,7 +167,7 @@ class MainViewModel @Inject constructor(
 //    }
 //    val text: LiveData<String> = _text
 
-    // ONBOARDING
+    // ONBOARDING - CLEAN
     fun cleanNotReplaceableAnswers() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -213,7 +212,11 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 // Указываем все ответы, которые находятся на третьем фрагменте
+                onboardingUC.saveBirthDate("")
+//                onboardingUC.saveChildAge(0)
                 onboardingUC.saveHobbyAnswer("")
+                saveAnswer(AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString(), "")
+//                saveAnswer(AnswerNames.CHILD_AGE_ANSWER.toString(), "0")
                 saveAnswer(AnswerNames.CHILD_HOBBY_ANSWER.toString(), "")
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -229,18 +232,30 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun saveGenderAnswer(genderAnswer: String) {
+    // ONBOARDING - SAVE
+    fun saveUserNameAnswer(userNameAnswer: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            val trimmedUserNameAnswer = userNameAnswer.trim()
             try {
-                onboardingUC.saveGender(genderAnswer) // Сохраняем в data store
-                saveAnswer(AnswerNames.CHILD_GENDER_ANSWER.toString(), genderAnswer)
+                onboardingUC.saveUserName(trimmedUserNameAnswer) // Сохраняем в data store
+                saveAnswer(AnswerNames.USER_NAME_ANSWER.toString(), trimmedUserNameAnswer)
             } catch (e: IOException) {
-                e.printStackTrace()
+                Log.e(TAG, "Failed to save user name", e)
                 _errorMessageLiveData.postValue(
                     MyEvent(
                         Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
-                            null
+                            "Не удалось сохранить ваше имя на вашем телефоне",
+                            ErrorType.FAILED_TO_SAVE_USER_NAME_LOCAL
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving user name", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
                         )
                     )
                 )
@@ -248,18 +263,89 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun saveNameAnswer(nameAnswer: String) {
+    fun saveEmailAnswer(emailAnswer: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            val trimmedEmailAnswer = emailAnswer.trim()
             try {
-                onboardingUC.saveName(nameAnswer)
-                saveAnswer(AnswerNames.CHILD_NAME_ANSWER.toString(), nameAnswer)
+                onboardingUC.saveEmail(trimmedEmailAnswer) // Сохраняем в data store
+                saveAnswer(AnswerNames.EMAIL_ANSWER.toString(), trimmedEmailAnswer)
             } catch (e: IOException) {
-                e.printStackTrace()
+                Log.e(TAG, "Failed to save email", e)
                 _errorMessageLiveData.postValue(
                     MyEvent(
                         Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
-                            null
+                            "Не удалось сохранить email на вашем телефоне",
+                            ErrorType.FAILED_TO_SAVE_EMAIL_LOCAL
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving email", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    fun saveGenderAnswer(genderAnswer: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val trimmedGenderAnswer = genderAnswer.trim()
+            try {
+                onboardingUC.saveGender(trimmedGenderAnswer) // Сохраняем в data store
+                saveAnswer(AnswerNames.CHILD_GENDER_ANSWER.toString(), trimmedGenderAnswer)
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to save gender", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Не удалось сохранить пол ребенка на вашем телефоне",
+                            ErrorType.FAILED_TO_SAVE_GENDER_LOCAL
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving gender", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    fun saveChildNameAnswer(nameAnswer: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val trimmedNameAnswer = nameAnswer.trim()
+            try {
+                onboardingUC.saveName(trimmedNameAnswer)
+                saveAnswer(AnswerNames.CHILD_NAME_ANSWER.toString(), trimmedNameAnswer)
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to save child name", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Не удалось сохранить имя ребенка на вашем телефоне",
+                            ErrorType.FAILED_TO_SAVE_CHILD_NAME_LOCAL
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving child name", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
                         )
                     )
                 )
@@ -269,35 +355,116 @@ class MainViewModel @Inject constructor(
 
     fun saveIsItABoyAnswer(answer: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            val trimmedAnswer = answer.trim()
             try {
-                onboardingUC.saveIsItABoy(answer)
-                saveAnswer(AnswerNames.IS_IT_A_BOY_ANSWER.toString(), answer)
+                onboardingUC.saveIsItABoy(trimmedAnswer)
+                saveAnswer(AnswerNames.IS_IT_A_BOY_ANSWER.toString(), trimmedAnswer)
             } catch (e: IOException) {
-                e.printStackTrace()
+                Log.e(TAG, "Failed to save is it a boy", e)
                 _errorMessageLiveData.postValue(
                     MyEvent(
                         Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
-                            null
+                            "Не удалось сохранить is it s boy на вашем телефоне",
+                            ErrorType.FAILED_TO_SAVE_IS_IT_A_BOY_LOCAL
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving is it a boy", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
                         )
                     )
                 )
             }
         }
     }
+
+    fun saveBirthDateAnswer(birthDate: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val trimmedBirthDate = birthDate.trim()
+            try {
+                onboardingUC.saveBirthDate(trimmedBirthDate)
+                saveAnswer(AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString(), trimmedBirthDate)
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to save birth date", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Не удалось сохранить день рождения ребенка на вашем телефоне",
+                            ErrorType.FAILED_TO_SAVE_BIRTH_DATE_LOCAL
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving birth date", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+//    fun saveChildAgeAnswer(age: Int) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.saveChildAge(age)
+//                saveAnswer(AnswerNames.CHILD_AGE_ANSWER.toString(), age.toString())
+//            } catch (e: IOException) {
+//                Log.e(TAG, "Failed to save child age", e)
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            "Не удалось сохранить возраст ребенка на вашем телефоне",
+//                            ErrorType.FAILED_TO_SAVE_CHILD_AGE_LOCAL
+//                        )
+//                    )
+//                )
+//            } catch (e: Exception) {
+//                Log.e(TAG, "Unexpected error saving child age", e)
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            "Произошла непредвиденная ошибка",
+//                            ErrorType.UNEXPECTED_ERROR
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     fun saveHobbyAnswer(hobby: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            val trimmedHobbyAnswer = hobby.trim()
             try {
-                onboardingUC.saveHobbyAnswer(hobby)
-                saveAnswer(AnswerNames.CHILD_HOBBY_ANSWER.toString(), hobby)
+                onboardingUC.saveHobbyAnswer(trimmedHobbyAnswer)
+                saveAnswer(AnswerNames.CHILD_HOBBY_ANSWER.toString(), trimmedHobbyAnswer)
             } catch (e: IOException) {
-                e.printStackTrace()
+                Log.e(TAG, "Failed to save hobby", e)
                 _errorMessageLiveData.postValue(
                     MyEvent(
                         Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
-                            null
+                            "Не удалось сохранить хобби на вашем телефоне",
+                            ErrorType.FAILED_TO_SAVE_HOBBY_LOCAL
+                        )
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving hobby", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
                         )
                     )
                 )
@@ -305,6 +472,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    // ONBOARDING - GET
     // Запустить метод для получения этих данных можно, когда открывается PAYWALL FRAGMENT - в этот момент опрос уже точно пройден
     fun getAndUseAnswersFromOnboardind() {
 
@@ -313,9 +481,13 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val currentUser = getCurrentUserUC.execute().data
 
+            getAndUseUserNameAnswer()
+            getAndUseEmailAnswer()
             getAndUseGenderAnswer()
-            getAndUseNameAnswer()
+            getAndUseChildNameAnswer()
             getAndUseIsItABoyAnswer()
+            getAndUseBirthDateAnswer()
+//            getAndUseChildAgeAnswer()
             getAndHobbyAnswer()
 
             if (currentUser != null) {
@@ -372,9 +544,53 @@ class MainViewModel @Inject constructor(
             isItABoy = answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
             childName = answers[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
             childHobby = answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
-            childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
+//            childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
             childBirthDate = answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
         )
+    }
+
+    private fun getAndUseUserNameAnswer() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                onboardingUC.getUserNameFlow().collect { userName ->
+                    userName?.let {
+                        _userNameLiveData.postValue(it)
+                    }
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+                            null
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    private fun getAndUseEmailAnswer() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                onboardingUC.getEmailFlow().collect { email ->
+                    email?.let {
+                        _emailLiveData.postValue(it)
+                    }
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+                            null
+                        )
+                    )
+                )
+            }
+        }
     }
 
     private fun getAndUseGenderAnswer() {
@@ -400,7 +616,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun getAndUseNameAnswer() {
+    private fun getAndUseChildNameAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 onboardingUC.getNameFlow().collect { gender ->
@@ -443,6 +659,50 @@ class MainViewModel @Inject constructor(
             }
         }
     }
+
+    private fun getAndUseBirthDateAnswer() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                onboardingUC.getBirthDateFlow().collect { birthDate ->
+                    birthDate?.let {
+                        _childBirthDateLiveData.postValue(it)
+                    }
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+                            null
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+//    private fun getAndUseChildAgeAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getChildAgeFlow().collect { age ->
+//                    age?.let {
+//                        _childAgeLiveData.postValue(it)
+//                    }
+//                }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     private fun getAndHobbyAnswer() {
         viewModelScope.launch(Dispatchers.IO) {

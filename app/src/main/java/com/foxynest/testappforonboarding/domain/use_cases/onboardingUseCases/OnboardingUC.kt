@@ -14,19 +14,41 @@ import javax.inject.Inject
 class OnboardingUC @Inject constructor(
     private val onboardingRepository: IOnboardingRepository
 ) : IOnboardingUC {
+    // Onboarding state
     override suspend fun saveOnboardingState(isCompleted: Boolean) =
         onboardingRepository.saveOnboardingState(isCompleted)
 
     override fun isOnboardingCompleted(): Flow<Boolean> =
         onboardingRepository.isOnboardingCompleted()
 
+    // SAVE
+    override suspend fun saveUserName(userName: String) =
+        onboardingRepository.saveUserName(userName)
+
+    override suspend fun saveEmail(email: String) = onboardingRepository.saveEmail(email)
     override suspend fun saveGender(gender: String) = onboardingRepository.saveGender(gender)
     override suspend fun saveName(name: String) = onboardingRepository.saveName(name)
     override suspend fun saveIsItABoy(answer: String) = onboardingRepository.saveIsItABoy(answer)
-    override suspend fun saveHobbyAnswer(hobby: String) = onboardingRepository.saveHobbyAnswer(hobby)
+    override suspend fun saveBirthDate(birthDate: String) =
+        onboardingRepository.saveBirthDate(birthDate)
 
+    override suspend fun saveChildAge(age: Int) = onboardingRepository.saveChildAge(age)
+    override suspend fun saveHobbyAnswer(hobby: String) =
+        onboardingRepository.saveHobbyAnswer(hobby)
+
+    // GET
+    override fun getUserNameFlow(): Flow<String?> =
+        onboardingRepository.getUserNameFlow()
+
+    override fun getEmailFlow(): Flow<String?> =
+        onboardingRepository.getEmailFlow()
     override fun getGenderFlow(): Flow<String?> = onboardingRepository.getGenderFlow()
     override fun getNameFlow(): Flow<String?> = onboardingRepository.getNameFlow()
     override fun getIsItABoyFlow(): Flow<String?> = onboardingRepository.getIsItABoyFlow()
+    override fun getBirthDateFlow(): Flow<String?> =
+        onboardingRepository.getBirthDateFlow()
+
+    override fun getChildAgeFlow(): Flow<Int?> =
+        onboardingRepository.getChildAgeFlow()
     override fun getHobbyFlow(): Flow<String?> = onboardingRepository.getHobbyFlow()
 }

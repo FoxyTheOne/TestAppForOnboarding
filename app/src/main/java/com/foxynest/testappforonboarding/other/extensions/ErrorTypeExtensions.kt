@@ -19,7 +19,7 @@ import com.foxynest.testappforonboarding.other.constants.AuthConstants.MIN_PASSW
 
 fun ErrorType?.toErrorMessage(resources: Resources): String? {
     return when (this) {
-        ErrorType.EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH ->
+        ErrorType.PASSWORD_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH ->
             resources.getString(this.stringRes, MIN_PASSWORD_LENGTH)
         null -> null
         else -> resources.getString(this.stringRes)

@@ -2,7 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_left"
@@ -19,10 +22,108 @@
         app:layout_constraintGuide_end="@dimen/space_beforeOrAfterElement" />
 
     <TextView
-        android:id="@+id/text_question_hobby"
+        android:id="@+id/text_question_birth_date"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/space_32"
+        android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+        android:text="@string/text_birth_date_question"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/text_field_birth_date"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+        app:layout_constraintStart_toStartOf="@+id/guideline_left"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <!-- com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_field_birth_date"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/space_32"
+        android:hint="@string/text_birth_date_hint"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+        app:layout_constraintStart_toStartOf="@+id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@+id/text_question_birth_date"
+        app:layout_constraintBottom_toTopOf="@+id/text_child_age_label">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edit_text_birth_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:imeOptions="actionNext"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout -->
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/text_field_birth_date"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/space_32"
+        android:hint="@string/text_birth_date_hint"
+        app:endIconContentDescription="@string/text_select_date_hint"
+        app:helperText="@string/text_select_date_helper"
+        app:helperTextEnabled="true"
+        app:endIconDrawable="@drawable/baseline_calendar_month_24"
+        app:endIconMode="custom"
+        app:layout_constraintBottom_toTopOf="@+id/text_child_age_label"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+        app:layout_constraintStart_toStartOf="@+id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@+id/text_question_birth_date">
+
+        <!-- com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+            android:id="@+id/edit_text_birth_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="date"
+            android:maxLines="1" / -->
+
+        <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+            android:id="@+id/edit_text_birth_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="false"
+            android:cursorVisible="false"
+            android:imeOptions="actionNext"
+            android:inputType="none"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/text_child_age_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+        android:text="@string/text_child_age"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/text_child_age_value"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+        app:layout_constraintStart_toStartOf="@+id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@+id/text_field_birth_date" />
+
+    <!-- Отображение возраста -->
+    <TextView
+        android:id="@+id/text_child_age_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/space_32"
+        android:text="0"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/text_question_hobby"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+        app:layout_constraintStart_toStartOf="@+id/guideline_left"
+        app:layout_constraintTop_toBottomOf="@+id/text_child_age_label" />
+
+    <TextView
+        android:id="@+id/text_question_hobby"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
         android:text="@string/text_hobby_question"
         android:textAlignment="center"
@@ -30,8 +131,7 @@
         app:layout_constraintBottom_toTopOf="@+id/text_field_hobby_answer"
         app:layout_constraintEnd_toEndOf="@+id/guideline_right"
         app:layout_constraintStart_toStartOf="@+id/guideline_left"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toBottomOf="@+id/text_child_age_value" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/text_field_hobby_answer"
@@ -46,13 +146,14 @@
         app:layout_constraintVertical_chainStyle="packed">
 
         <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+            android:id="@+id/edit_text_field_hobby_answer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textCapWords|textPersonName"
-            android:imeOptions="actionDone"
             android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM, ЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
+            android:imeOptions="actionDone"
+            android:inputType="textShortMessage"
             android:maxLines="1"
-            android:singleLine="true"/>
+            android:singleLine="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

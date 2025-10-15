@@ -15,24 +15,41 @@ import javax.inject.Inject
 class OnboardingRepository @Inject constructor(
     private val appDatastorePreferences: IAppDatastorePreferences
 ) : IOnboardingRepository {
+    // Onboarding state
     override suspend fun saveOnboardingState(isCompleted: Boolean) =
         appDatastorePreferences.saveOnboardingState(isCompleted)
 
     override fun isOnboardingCompleted(): Flow<Boolean> =
         appDatastorePreferences.isOnboardingCompleted()
 
+    // SAVE
+    override suspend fun saveUserName(userName: String) =
+        appDatastorePreferences.saveUserName(userName)
+
+    override suspend fun saveEmail(email: String) =
+        appDatastorePreferences.saveEmail(email)
+
     override suspend fun saveGender(gender: String) =
         appDatastorePreferences.saveGender(gender)
 
     override suspend fun saveName(name: String) = appDatastorePreferences.saveName(name)
-
     override suspend fun saveIsItABoy(answer: String) = appDatastorePreferences.saveIsItABoy(answer)
-    override suspend fun saveHobbyAnswer(hobby: String) = appDatastorePreferences.saveHobbyAnswer(hobby)
+    override suspend fun saveBirthDate(birthDate: String) =
+        appDatastorePreferences.saveBirthDate(birthDate)
 
+    override suspend fun saveChildAge(age: Int) =
+        appDatastorePreferences.saveChildAge(age)
+
+    override suspend fun saveHobbyAnswer(hobby: String) =
+        appDatastorePreferences.saveHobbyAnswer(hobby)
+
+    // GET
+    override fun getUserNameFlow(): Flow<String?> = appDatastorePreferences.getUserNameFlow()
+    override fun getEmailFlow(): Flow<String?> = appDatastorePreferences.getEmailFlow()
     override fun getGenderFlow(): Flow<String?> = appDatastorePreferences.getGenderFlow()
-
     override fun getNameFlow(): Flow<String?> = appDatastorePreferences.getNameFlow()
-
     override fun getIsItABoyFlow(): Flow<String?> = appDatastorePreferences.getIsItABoyFlow()
+    override fun getBirthDateFlow(): Flow<String?> = appDatastorePreferences.getBirthDateFlow()
+    override fun getChildAgeFlow(): Flow<Int?> = appDatastorePreferences.getChildAgeFlow()
     override fun getHobbyFlow(): Flow<String?> = appDatastorePreferences.getHobbyFlow()
 }

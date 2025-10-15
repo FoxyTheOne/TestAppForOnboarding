@@ -27,6 +27,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 
 @AndroidEntryPoint
@@ -107,7 +110,7 @@ class ProfileFragment : Fragment() {
                 isItABoy = binding?.textGenderAnswerIsItABoy?.text.toString(),
                 childName = binding?.textChildNameAnswer?.text.toString(),
                 childHobby = binding?.textHobbyAnswer?.text.toString(),
-                childAge = binding?.textChildAgeAnswer?.text.toString().toInt(),
+//                childAge = binding?.textChildAgeAnswer?.text.toString().toInt(),
                 childBirthDate = binding?.textBirthDateAnswer?.text.toString()
             )
             val direction =
@@ -183,7 +186,7 @@ class ProfileFragment : Fragment() {
                                     mainViewModel.isItABoyLiveData.value ?: "",
                                     mainViewModel.childNameLiveData.value ?: "",
                                     mainViewModel.hobbyLiveData.value ?: "",
-                                    mainViewModel.childAgeLiveData.value ?: 0,
+//                                    mainViewModel.childAgeLiveData.value ?: 0,
                                     mainViewModel.childBirthDateLiveData.value ?: ""
                                 )
                             )
@@ -226,7 +229,7 @@ class ProfileFragment : Fragment() {
                         mainViewModel.isItABoyLiveData.value ?: "",
                         mainViewModel.childNameLiveData.value ?: "",
                         mainViewModel.hobbyLiveData.value ?: "",
-                        mainViewModel.childAgeLiveData.value ?: 0,
+//                        mainViewModel.childAgeLiveData.value ?: 0,
                         mainViewModel.childBirthDateLiveData.value ?: ""
                     )
                 )
@@ -359,7 +362,12 @@ class ProfileFragment : Fragment() {
             binding?.textGenderAnswerIsItABoy?.text = user.isItABoy
             binding?.textChildNameAnswer?.text = user.childName
             binding?.textHobbyAnswer?.text = user.childHobby
-            binding?.textChildAgeAnswer?.text = user.childAge.toString()
+
+//            binding?.textChildAgeAnswer?.text = user.childAge.toString()
+            // ВЫЧИСЛЯЕМ возраст из даты рождения
+            val age = calculateAgeFromBirthDate(user.childBirthDate)
+            binding?.textChildAgeAnswer?.text = if (age > 0) age.toString() else ""
+
             binding?.textBirthDateAnswer?.text = user.childBirthDate
             binding?.textEmailAnswer?.text = user.email
 
@@ -374,6 +382,39 @@ class ProfileFragment : Fragment() {
                 binding?.buttonVerifyEmail?.visibility = View.GONE
                 binding?.textEmailNotVerified?.visibility = View.GONE
             }
+        }
+    }
+
+    private fun calculateAgeFromBirthDate(birthDateString: String): Int {
+        if (birthDateString.isBlank()) return 0
+
+        return try {
+            // Парсим дату из формата MM/dd/yyyy
+            val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+            val birthDate = formatter.parse(birthDateString)
+
+            val today = Calendar.getInstance()
+            val birthCalendar = Calendar.getInstance().apply { time = birthDate }
+
+            var age = today.get(Calendar.YEAR) - birthCalendar.get(Calendar.YEAR)
+
+            val todayMonth = today.get(Calendar.MONTH)
+            val birthMonth = birthCalendar.get(Calendar.MONTH)
+
+            if (todayMonth < birthMonth) {
+                age--
+            } else if (todayMonth == birthMonth) {
+                val todayDay = today.get(Calendar.DAY_OF_MONTH)
+                val birthDay = birthCalendar.get(Calendar.DAY_OF_MONTH)
+                if (todayDay < birthDay) {
+                    age--
+                }
+            }
+
+            age
+        } catch (e: Exception) {
+            Log.e(TAG, "Error calculating age from birth date: $birthDateString", e)
+            0
         }
     }
 

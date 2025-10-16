@@ -19,6 +19,7 @@ import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
+import com.foxynest.testappforonboarding.other.extensions.calculateAge
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
@@ -27,8 +28,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 
@@ -286,9 +289,11 @@ class ProfileFragment : Fragment() {
                         // Вышли из аккаунта, провряем состояние user и обновляем UI
                         mainViewModel.checkLoggedInStateGetUser()
                     }
+
                     Status.ERROR -> {
                         Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
                     }
+
                     else -> {
                         Log.d(TAG, "resource.status = ${resourceResult.status} ")
                     }
@@ -303,7 +308,11 @@ class ProfileFragment : Fragment() {
                 Status.SUCCESS -> {
                     Log.d(TAG, "Profile updated")
                     mainViewModel.checkLoggedInStateGetUser() // To automatically update our image view and our edit text
-                    Toast.makeText(requireContext(), R.string.profile_toast_data_updated, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.profile_toast_data_updated,
+                        Toast.LENGTH_SHORT
+                    ).show()
                     // Закрываем диалог если открыт
                     dataSaveErrorDialog?.dismiss()
                     dataSaveErrorDialog = null
@@ -335,18 +344,25 @@ class ProfileFragment : Fragment() {
                     // Показываем индикатор загрузки в диалоге
                     dataSaveErrorDialog?.showLoading()
                 }
+
                 Status.SUCCESS -> {
                     Log.d(TAG, "Retry save successful")
-                    Toast.makeText(requireContext(), R.string.profile_toast_data_updated, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.profile_toast_data_updated,
+                        Toast.LENGTH_SHORT
+                    ).show()
                     // Закрываем диалог если открыт
                     dataSaveErrorDialog?.dismiss()
                     dataSaveErrorDialog = null
                 }
+
                 Status.ERROR -> {
                     Log.d(TAG, "Retry save failed: $messageToShow")
                     // Показываем ошибку в том же диалоге
                     dataSaveErrorDialog?.showError(messageToShow)
                 }
+
                 else -> {
                     // ignore
                 }
@@ -362,13 +378,11 @@ class ProfileFragment : Fragment() {
             binding?.textGenderAnswerIsItABoy?.text = user.isItABoy
             binding?.textChildNameAnswer?.text = user.childName
             binding?.textHobbyAnswer?.text = user.childHobby
-
-//            binding?.textChildAgeAnswer?.text = user.childAge.toString()
             // ВЫЧИСЛЯЕМ возраст из даты рождения
             val age = calculateAgeFromBirthDate(user.childBirthDate)
             binding?.textChildAgeAnswer?.text = if (age > 0) age.toString() else ""
-
-            binding?.textBirthDateAnswer?.text = user.childBirthDate
+            // ФОРМАТИРУЕМ дату для красивого отображения
+            binding?.textBirthDateAnswer?.text = formatBirthDateForDisplay(user.childBirthDate)
             binding?.textEmailAnswer?.text = user.email
 
             // Показываем/скрываем кнопку верификации в зависимости от статуса email
@@ -387,35 +401,35 @@ class ProfileFragment : Fragment() {
 
     private fun calculateAgeFromBirthDate(birthDateString: String): Int {
         if (birthDateString.isBlank()) return 0
+        var birthDate: Date? = null
 
-        return try {
-            // Парсим дату из формата MM/dd/yyyy
-            val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.US)
-            val birthDate = formatter.parse(birthDateString)
+        try {
+            // Парсим из формата хранения (yyyy-MM-dd)
+            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            birthDate = formatter.parse(birthDateString)
+        } catch (e: ParseException) {
+            Log.d(TAG, "Ошибка форматирования даты ${e.printStackTrace()}")
+        }
 
-            val today = Calendar.getInstance()
-            val birthCalendar = Calendar.getInstance().apply { time = birthDate }
 
-            var age = today.get(Calendar.YEAR) - birthCalendar.get(Calendar.YEAR)
+        var age = 0
 
-            val todayMonth = today.get(Calendar.MONTH)
-            val birthMonth = birthCalendar.get(Calendar.MONTH)
+        // TODO перенести в viewmodel
+        val resultAge = birthDate?.calculateAge()
 
-            if (todayMonth < birthMonth) {
-                age--
-            } else if (todayMonth == birthMonth) {
-                val todayDay = today.get(Calendar.DAY_OF_MONTH)
-                val birthDay = birthCalendar.get(Calendar.DAY_OF_MONTH)
-                if (todayDay < birthDay) {
-                    age--
-                }
+        when (resultAge?.status) {
+            Status.SUCCESS -> {
+                age = resultAge.data ?: 0
             }
 
-            age
-        } catch (e: Exception) {
-            Log.e(TAG, "Error calculating age from birth date: $birthDateString", e)
-            0
+            Status.ERROR -> {
+                age = 0
+            } // TODO toast
+
+            else -> {}// nothing
         }
+
+        return age
     }
 
     private fun showLogOutButtons(isUserLoggedIn: Boolean) {
@@ -504,6 +518,29 @@ class ProfileFragment : Fragment() {
             dataSaveErrorDialog?.dialog?.setOnShowListener {
                 dataSaveErrorDialog?.showError(errorMessage)
             }
+        }
+    }
+
+    private fun formatBirthDateForDisplay(birthDateString: String): String {
+        if (birthDateString.isBlank()) return ""
+
+        return try {
+            // Парсим из формата хранения (yyyy-MM-dd)
+            val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val date = inputFormatter.parse(birthDateString)
+
+            if (date != null) {
+                // Форматируем для отображения (19 мая 2020)
+                // TODO ru  - из стрингов
+                val outputFormatter = SimpleDateFormat("d MMMM yyyy", Locale("ru"))
+                outputFormatter.format(date)
+            } else {
+                Log.e(TAG, "Error formatting birth date: $birthDateString, date = null")
+                birthDateString // Возвращаем оригинальную строку в случае ошибки
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error formatting birth date: $birthDateString", e)
+            birthDateString // Возвращаем оригинальную строку в случае ошибки
         }
     }
 

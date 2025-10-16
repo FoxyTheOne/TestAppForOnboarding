@@ -13,6 +13,9 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion3Binding
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.Gender
+import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.other.extensions.calculateAge
+import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToSaveFormat
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import com.google.android.material.datepicker.CalendarConstraints
@@ -87,9 +90,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         // SETUP BUTTONS
         binding?.buttonFinish?.setOnClickListener {
             // Получаем дату в нужном формате для сохранения
-            val birtDateText = selectedDateInMillis?.let { millis ->
-                convertToSaveFormat(millis)
-            }
+            val birtDateText = selectedDateInMillis?.convertDateMillisToSaveFormat()
             val ageText = binding?.textChildAgeValue?.text?.toString()
             val textFieldCharHobbyAnswer =
                 binding?.textFieldHobbyAnswer?.editText?.text?.toString()?.trim()
@@ -145,14 +146,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
             binding?.textFieldBirthDate?.error = null
         }
 
-//        // Проверка возраста (должен быть больше 0)
-//        if (ageText == "0" || ageText.isNullOrBlank()) {
-//            if (isValid) { // Показываем ошибку возраста только если дата валидна
-//                binding?.textFieldBirthDate?.error = "Проверьте дату рождения"
-//            }
-//            isValid = false
-//        }
-
         // Проверка возраста (должен быть больше 0)
         val age = ageText?.toIntOrNull() ?: 0
         if (age <= 0) {
@@ -177,7 +170,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         } else {
             // Очищаем ошибку, если поле заполнено
             binding?.textFieldHobbyAnswer?.error = null
-//            binding?.textFieldHobbyAnswer?.isErrorEnabled = false
             true
         }
     }
@@ -228,64 +220,22 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         calculateAndDisplayAge(Date(selectedDateMillis))
     }
 
-//    private fun calculateAndDisplayAge(birthDate: Date): Int {
-//        val today = Calendar.getInstance()
-//        val birthCalendar = Calendar.getInstance().apply { time = birthDate }
-//
-//        var age = today.get(Calendar.YEAR) - birthCalendar.get(Calendar.YEAR)
-//
-//        // Более точная проверка дня рождения
-//        val todayMonth = today.get(Calendar.MONTH)
-//        val birthMonth = birthCalendar.get(Calendar.MONTH)
-//
-//        if (todayMonth < birthMonth) {
-//            age--
-//        } else if (todayMonth == birthMonth) {
-//            val todayDay = today.get(Calendar.DAY_OF_MONTH)
-//            val birthDay = birthCalendar.get(Calendar.DAY_OF_MONTH)
-//            if (todayDay < birthDay) {
-//                age--
-//            }
-//        }
-//
-//        val ageText = age.toString()
-//        binding?.textChildAgeValue?.text = ageText
-//
-//        // Добавляем текст "лет/год/года" для лучшего UX
-//        val ageTextWithLabel = when {
-//            age % 10 == 1 && age % 100 != 11 -> "$age год"
-//            age % 10 in 2..4 && age % 100 !in 12..14 -> "$age года"
-//            else -> "$age лет"
-//        }
-//        binding?.textChildAgeValue?.text = ageTextWithLabel
-//
-//        // Очищаем ошибку, если возраст стал валидным
-//        if (age > 0) {
-//            binding?.textFieldBirthDate?.error = null
-//            binding?.textFieldBirthDate?.isErrorEnabled = false
-//        }
-//
-//        return age
-//    }
-
     private fun calculateAndDisplayAge(birthDate: Date): Int {
-        val today = Calendar.getInstance()
-        val birthCalendar = Calendar.getInstance().apply { time = birthDate }
+        var age = 0
 
-        var age = today.get(Calendar.YEAR) - birthCalendar.get(Calendar.YEAR)
+        // TODO перенести в viewmodel
+        val resultAge = birthDate.calculateAge()
 
-        // Более точная проверка дня рождения
-        val todayMonth = today.get(Calendar.MONTH)
-        val birthMonth = birthCalendar.get(Calendar.MONTH)
-
-        if (todayMonth < birthMonth) {
-            age--
-        } else if (todayMonth == birthMonth) {
-            val todayDay = today.get(Calendar.DAY_OF_MONTH)
-            val birthDay = birthCalendar.get(Calendar.DAY_OF_MONTH)
-            if (todayDay < birthDay) {
-                age--
+        when (resultAge.status) {
+            Status.SUCCESS -> {
+                age = resultAge.data ?: 0
             }
+
+            Status.ERROR -> {
+                age = 0
+            } // TODO toast
+
+            else -> {}// nothing
         }
 
         // Сохраняем только число для обработки
@@ -300,17 +250,15 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         return age
     }
 
-    private fun convertToSaveFormat(selectedDateMillis: Long): String {
-        return try {
-            val saveFormatter = SimpleDateFormat(
-                "MM/dd/yyyy",
-                Locale.US
-            ) // Используем US локаль для гарантии формата
-            saveFormatter.format(Date(selectedDateMillis))
-        } catch (e: Exception) {
-            ""
-        }
-    }
+//    private fun convertToSaveFormat(selectedDateMillis: Long): String {
+//        return try {
+//            // Используем стандартный ISO-подобный формат для хранения: yyyy-MM-dd
+//            val saveFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+//            saveFormatter.format(Date(selectedDateMillis))
+//        } catch (e: Exception) {
+//            ""
+//        }
+//    }
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {

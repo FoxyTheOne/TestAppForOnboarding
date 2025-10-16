@@ -1,18 +1,23 @@
 <resources>
     <string name="app_name">TestAppForOnboarding</string>
+    <string name="localization">ru</string>
+    <string name="no_notification_permission">У нас нет разрешения показывать уведомления на вашем телефоне</string>
+
+    <!-- Welcome -->
     <string name="welcome_tittle">Приветствуем!</string>
     <string name="welcome_text_onboarding">Для полноценного опыта использования нашего приложения, просим вас пройти небольшой опрос перед первым запуском. Ответы помогут нам настроить приложение под вас.</string>
     <string name="welcome_button_onboarding">Начать опрос</string>
     <string name="welcome_text_login">Уже зарегистрированы?</string>
     <string name="welcome_button_login">Войти</string>
+
+    <!-- Auth -->
     <string name="auth_text_mail">Почта</string>
     <string name="auth_text_password">Пароль</string>
     <string name="auth_text_password2">Повторите пароль</string>
     <string name="register_title">Регистрация</string>
+
+    <!-- Onboarding -->
     <string name="onboarding_tittle">Добро пожаловать!</string>
-    <string name="home_title">Главная</string>
-    <string name="profile_title">Профиль</string>
-    <string name="info_title">Полезное</string>
     <string name="button_next">Дальше</string>
     <string name="button_finish">Готово</string>
     <string name="text_gender_question">Укажите пол вашего ребенка</string>
@@ -33,11 +38,25 @@
     <string name="text_hobby_hint">Напишите хобби</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
+    <string name="error_gender_not_selected">Пожалуйста, выберите пол ребенка</string>
+    <string name="error_child_name_not_selected">Пожалуйста, введите имя ребенка</string>
+    <string name="error_email_not_selected">Пожалуйста, введите email</string>
+    <string name="error_user_name_not_selected">Пожалуйста, введите ваше имя</string>
+    <string name="error_birth_date_not_selected">Пожалуйста, выберите дату рождения</string>
+    <string name="error_birth_date_not_valid">Проверьте дату рождения</string>
+    <string name="error_hobby_not_selected">Пожалуйста, введите хобби</string>
+
+    <!-- Paywall -->
     <string name="paywall_text_analysing">Анализируем ваши ответы</string>
     <string name="paywall_title">Результаты опроса проанализированы</string>
+    <string name="paywall_boy_text">У вас замечательный мальчик</string>
+    <string name="paywall_girl_text">У вас замечательная девочка</string>
     <string name="paywall_text">Для доступа к полному функционалу приложения вы можете оформить подписку</string>
     <string name="paywall_button">Оплатить подписку</string>
     <string name="button_go_to_profile">Перейти в профиль</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Профиль</string>
     <string name="profile_text_title">Ваш профиль</string>
     <string name="profile_title_user_name">Ваше имя:</string>
     <string name="profile_title_gender">Пол вашего ребенка:</string>
@@ -60,14 +79,21 @@
     <string name="profile_button_log_out">Выйти</string>
     <string name="profile_toast_data_updated">Данные успешно сохранены</string>
     <string name="profile_toast_data_updating_error">Данные не сохранены. Вы можете повторить попытку позже</string>
+    <string name="profile_email_verification_send">Верификация почты отправлена</string>
+
+    <!-- Home -->
+    <string name="home_title">Главная</string>
     <string name="home_title_part1">Чем сегодня</string>
     <string name="home_title_part2_girl">занималась</string>
     <string name="home_title_part2_boy">занимался</string>
     <string name="home_title_part3">ваш замечательный ребенок</string>
     <string name="home_text">Ресурсного вам дня!</string>
+
+    <!-- Info -->
+    <string name="info_title">Полезное</string>
     <string name="info_title_empty">Здесь будет разамещена полезная информация для вас</string>
 
-    <!-- Для сообщений об ошибке и проч. Вы можете вставлять другие переменные или форматированный текст в строку, используя символ %s для строк или %d для чисел, а также передавая дополнительные аргументы в метод getString() -->
+    <!-- Для сообщений об ошибке и проч (ErrorType). Вы можете вставлять другие переменные или форматированный текст в строку, используя символ %s для строк или %d для чисел, а также передавая дополнительные аргументы в метод getString() -->
     <string name="email_empty_error">Почта не может быть пустой</string>
     <string name="email_format_error">Не верная почта</string>
     <string name="email_length_error">В пароле должно быть минимум %d символов</string>
@@ -105,12 +131,12 @@
     <string name="data_save_loading_message">Сохранение данных…</string>
     <string name="retry">Повторить</string>
     <string name="cancel">Отмена</string>
-    <string name="dialog_yes">Да</string>
-    <string name="dialog_no">Нет</string>
     <string name="confirm_dialog_title">Подтверждение</string>
     <string name="are_you_sure_confirm">Вы уверены? Текущие ответы будут стёрты и перезаписаны.</string>
     <string name="quit_confirm">Вы уверены, что хотите выйти?</string>
     <string name="local_onboarding_saving_error_title">Ошибка</string>
     <string name="local_onboarding_saving_error_text">Не получилось сохранить статус пройденного опроса на вашем телефоне. Повторить попытку?</string>
     <string name="local_onboarding_saving_error_toast">При следующем запуске программы опрос запустится снова</string>
+
+    <!-- Other -->
 </resources>

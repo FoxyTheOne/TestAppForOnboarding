@@ -34,8 +34,7 @@ class RegistrationViewModel @Inject constructor(
     private val validateEmailInteractor: IRegisterValidateEmailUC,
     private val validatePasswordInteractor: IRegisterValidatePasswordUC,
     private val validateRepeatedPasswordInteractor: IRegisterValidateRepeatedPasswordUC,
-    private val registerUC: RegisterUC,
-    private val getCurrentLogInStateUC: GetCurrentUserUC
+    private val registerUC: RegisterUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "AuthViewModel"
@@ -88,25 +87,6 @@ class RegistrationViewModel @Inject constructor(
         val repeatedPasswordResult = validateRepeatedPasswordInteractor.execute(
             currentState.password, currentState.repeatedPassword
         )
-
-        // Обновляем состояние с ошибками, заменяем поля
-//        _state.value = currentState.copy(
-//            emailError = emailResult.errorMessage.getErrorMessage() emailResult.errorMessage?.let { resources.getString(it.getStringId()) },
-//            passwordError = passwordResult.errorMessage?.let {
-//                if (passwordResult.errorMessage == ErrorType.EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH) {
-//                    String.format(resources.getString(it.getStringId()), MIN_PASSWORD_LENGTH)
-//                } else {
-//                    resources.getString(it.getStringId())
-//                }
-//            },
-//            repeatedPasswordError = repeatedPasswordResult.errorMessage?.let {
-//                if (passwordResult.errorMessage == ErrorType.EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH) {
-//                    String.format(resources.getString(it.getStringId()), MIN_PASSWORD_LENGTH)
-//                } else {
-//                    resources.getString(it.getStringId())
-//                }
-//            }
-//        )
 
         _state.value = currentState.copy(
             emailError = emailResult.errorMessage.toErrorMessage(resources),

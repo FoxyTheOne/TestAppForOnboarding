@@ -13,8 +13,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
-import com.foxynest.testappforonboarding.domain.entities.ErrorType
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
 import com.foxynest.testappforonboarding.other.utils.EmailUtils
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
@@ -51,10 +49,7 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
-        // !!! Перед разветвлением нам нужно удалить те ответы, которые могут не перезаписаться
-        // ОЧИСТКА ОТВЕТОВ первая, важна мне сейчас при тестировании, чтобы каждый запуск был как первый. Потом думаю можно удалить (вторая - при переходе на предыдущие фрагменты, используя кнопку назад)
-        // P.S. А нужно ли удалять? Я вызываю заново опрос, если человек хочет изменить свои ответы
-//        onboardingViewModel.cleanNotReplaceableAnswers()
+        // ОЧИСТКА ОТВЕТОВ, которые не перезапишутся, перед запуском онбординга, чтобы не было конфликтов в собранных данных
         mainViewModel.cleanNotReplaceableAnswers()
 
         initListeners()
@@ -90,9 +85,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
             )
 
             if (areFieldsValid) {
-//                if (checkedRadioButtonId != null && !childNameAnswer.isNullOrBlank()) {
-//                    if (radioGenderAnswerBoy?.isChecked == true || radioGenderAnswerGirl?.isChecked == true) {
-
                 // Все проверки, в том числе "checkedRadioButtonId == null" должны были быть в areFieldsValid()
                 mainViewModel.saveUserNameAnswer(userNameAnswer ?: "")
                 mainViewModel.saveEmailAnswer(emailAnswer ?: "")
@@ -111,19 +103,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
                             .navigate(R.id.action_navigation_question1_to_navigation_question3)
                     }
                 }
-
-//                    } else {
-//                        Toast.makeText(
-//                            context,
-//                            "Пожалуйста, выберите пол ребенка",
-//                            Toast.LENGTH_SHORT
-//                        )
-//                            .show()
-//                    }
-//                } else {
-//                    Toast.makeText(context, "Пожалуйста, заполните все поля", Toast.LENGTH_SHORT)
-//                        .show()
-//                }
             }
         }
 
@@ -164,7 +143,7 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
     private fun validateUserName(userNameAnswer: String?): Boolean {
         var isValid = true
         if (userNameAnswer.isNullOrBlank()) {
-            binding?.textFieldUserNameAnswer?.error = "Пожалуйста, введите имя"
+            binding?.textFieldUserNameAnswer?.error = getString(R.string.error_user_name_not_selected)
             isValid = false
         } else {
             binding?.textFieldUserNameAnswer?.error = null
@@ -175,10 +154,10 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
     private fun validateEmail(emailAnswer: String?): Boolean {
         var isValid = true
         if (emailAnswer.isNullOrBlank()) {
-            binding?.textFieldUserEmailAnswer?.error = "Пожалуйста, введите email"
+            binding?.textFieldUserEmailAnswer?.error = getString(R.string.error_email_not_selected)
             isValid = false
         } else if (!EmailUtils.emailMatches(emailAnswer)) {
-            binding?.textFieldUserEmailAnswer?.error = "Не верный формат"
+            binding?.textFieldUserEmailAnswer?.error = getString(R.string.email_format_error)
             isValid = false
         } else {
             binding?.textFieldUserEmailAnswer?.error = null
@@ -189,7 +168,7 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
     private fun validateChildName(childNameAnswer: String?): Boolean {
         var isValid = true
         if (childNameAnswer.isNullOrBlank()) {
-            binding?.textFieldChildNameAnswer?.error = "Пожалуйста, введите имя ребенка"
+            binding?.textFieldChildNameAnswer?.error = getString(R.string.error_child_name_not_selected)
             isValid = false
         } else {
             binding?.textFieldChildNameAnswer?.error = null
@@ -220,7 +199,7 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         if (checkedRadioButtonId == null) {
             Toast.makeText(
                 context,
-                "Пожалуйста, выберите пол ребенка",
+                getString(R.string.error_gender_not_selected),
                 Toast.LENGTH_SHORT
             )
                 .show()
@@ -229,7 +208,7 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         if (radioGenderAnswerBoy?.isChecked == false && radioGenderAnswerGirl?.isChecked == false) {
             Toast.makeText(
                 context,
-                "Пожалуйста, выберите пол ребенка",
+                getString(R.string.error_gender_not_selected),
                 Toast.LENGTH_SHORT
             )
                 .show()

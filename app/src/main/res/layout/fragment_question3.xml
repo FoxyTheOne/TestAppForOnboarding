@@ -73,7 +73,7 @@
         app:layout_constraintStart_toStartOf="@+id/guideline_left"
         app:layout_constraintTop_toBottomOf="@+id/text_question_birth_date">
 
-        <!-- com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+        <!-- com.foxynest.testappforonboarding.other.utils.BaseTextInputEditText
             android:id="@+id/edit_text_birth_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -81,7 +81,7 @@
             android:inputType="date"
             android:maxLines="1" / -->
 
-        <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+        <com.foxynest.testappforonboarding.other.utils.BaseTextInputEditText
             android:id="@+id/edit_text_birth_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -145,7 +145,7 @@
         app:layout_constraintTop_toBottomOf="@+id/text_question_hobby"
         app:layout_constraintVertical_chainStyle="packed">
 
-        <com.foxynest.testappforonboarding.other.extensions.BaseTextInputEditText
+        <com.foxynest.testappforonboarding.other.utils.BaseTextInputEditText
             android:id="@+id/edit_text_field_hobby_answer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

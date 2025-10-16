@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.other.constants
 
 object CommonConstants {
+    const val PAY_URL = "https://boosty.to/foxynest/donate"
     const val DATASTORE_NAME = "app_datastore_preferences"
     const val FAILED_TO_SAVE_LOCAL = "Failed to save answers to cash"
     const val FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL = "Failed to save onboarding state to cash"

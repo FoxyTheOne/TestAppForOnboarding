@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     private val navController: NavController by lazy {
         findNavController(R.id.nav_host_fragment_activity_main)
     }
-    private val mainViewModel by viewModels<MainViewModel>() // Такую же view model мы зарегистрировали в онбординге и в профиле, куда должны подтягиваться результаты онбординга. Основная ViewModel.
+    private val mainViewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity() {
 
         // Подтягиваем ответы из пройденного ранее онбординга
         mainViewModel.getAndUseAnswersFromOnboardind()
-//        // Firebase: При инициализации Activity проверьте, вошел ли пользователь в систему
 //        mainViewModel.checkLoggedInState() -> проверяем в BaseWelcomeFragmentAbstract при запуске и в каждом фрагменте отдельно
 
         // Уберем Action bar
@@ -61,8 +60,7 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = binding!!.navView
 //        val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
+        // Passing each menu ID as a set of Ids because each menu should be considered as top level destinations.
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_home, R.id.navigation_profile, R.id.navigation_useful_information
@@ -113,7 +111,7 @@ class MainActivity : AppCompatActivity() {
                 if (!isGranted) {
                     Toast.makeText(
                         this,
-                        "We don't have permission to show notifications on your Android",
+                        getString(R.string.no_notification_permission),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -130,13 +128,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-//        initListeners()
         subscribeToObservers()
     }
-
-//    private fun initListeners() {
-//
-//    }
 
     private fun subscribeToObservers() {
         mainViewModel.errorMessageLiveData.observe(this) { event ->
@@ -146,20 +139,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-//        // !!! Всплывающее окно "вы действительно хотите выйти?" перед закрытием приложения вместо запрета слушателя кнопки назад
-//        if (navController.currentDestination?.id == R.id.navigation_welcome ||
-//            navController.currentDestination?.id == R.id.navigation_login ||
-//            navController.currentDestination?.id == R.id.navigation_register ||
-//            navController.currentDestination?.id == R.id.navigation_question1 ||
-//            navController.currentDestination?.id == R.id.navigation_question2 ||
-//            navController.currentDestination?.id == R.id.navigation_question3 ||
-//            navController.currentDestination?.id == R.id.navigation_paywall
-//        ) {
-//            // Запрет возврата с paywall экрана
-//            return
-//        }
-//        super.onBackPressed()
-
         val currentDestination = navController.currentDestination?.id
 
         // Список фрагментов онбординга, где кнопка назад должна быть заблокирована
@@ -197,21 +176,6 @@ class MainActivity : AppCompatActivity() {
                 super.onBackPressed()
             }
         }
-
-//        В онбординге:
-//        Welcome, Login, Register, Question1-3, Paywall - кнопка "Назад" полностью заблокирована
-//        Пользователь не может случайно выйти во время заполнения опроса
-//
-//        В основном приложении:
-//        Home, Profile, Useful Information - кнопка "Назад" показывает диалог подтверждения
-//        Пользователь воспринимает нижнее меню как вкладки, поэтому выход всегда через диалог
-//        Если пользователь нажимает "Да" - приложение закрывается
-//        Если "Нет" - диалог закрывается, пользователь остается в приложении
-//
-//        Особенности реализации:
-//        finishAffinity() - полностью закрывает приложение, а не только активность
-//        Проверка isAdded - предотвращает показ нескольких диалогов одновременно
-//        Обнуление ссылки - после закрытия диалога ссылка обнуляется для предотвращения утечек памяти
     }
 
     private fun showQuitDialog() {

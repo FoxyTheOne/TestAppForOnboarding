@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foxynest.testappforonboarding.di.DispatcherIO
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
@@ -17,22 +18,26 @@ import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import java.io.IOException
 import javax.inject.Inject
 
+// TODO можно ли что-то вынести отсюда в другие классы
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val onboardingUC: IOnboardingUC,
     private val updateProfileUC: IUpdateProfileUC,
     private val getCurrentUserUC: GetCurrentUserUC,
-    private val getAuthStateFlowUC: GetAuthStateFlowUC
+    private val getAuthStateFlowUC: GetAuthStateFlowUC,
+    @DispatcherIO private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
     companion object {
         private const val TAG = "MainViewModel"
@@ -51,8 +56,6 @@ class MainViewModel @Inject constructor(
     val childNameLiveData: LiveData<String> = _childNameLiveData
     private val _childBirthDateLiveData = MutableLiveData<String>()
     val childBirthDateLiveData: LiveData<String> = _childBirthDateLiveData
-//    private val _childAgeLiveData = MutableLiveData<Int>()
-//    val childAgeLiveData: LiveData<Int> = _childAgeLiveData
     private val _hobbyLiveData = MutableLiveData<String>()
     val hobbyLiveData: LiveData<String> = _hobbyLiveData
 
@@ -63,79 +66,10 @@ class MainViewModel @Inject constructor(
     private val _profileUpdatedLiveData = MutableLiveData<Resource<ErrorType>>()
     val profileUpdatedLiveData: LiveData<Resource<ErrorType>> = _profileUpdatedLiveData
 
-//    // REGISTER
-//    // For a toast of registration state
-//    private val _registrationStateFlow = MutableStateFlow<Resource<Unit>>(Resource.init(null))
-//    val registrationStateFlow: StateFlow<Resource<Unit>> = _registrationStateFlow
-
-    // Log in state, returns user
-    // Для такого же метода/лайв даты в фрагменте/viewmodel профиля:
-//    viewModel.userState.onEach { user ->
-//        user?.let {
-//            binding.apply {
-//                etUsername.setText(it.username)
-//                etChildName.setText(it.childName)
-//                etChildAge.setText(it.childAge.toString())
-//                etChildBirthDate.setText(it.childBirthDate)
-//                etEmail.setText(it.email)
-//
-//                if (it.email.isNotEmpty() && !it.isEmailVerified) {
-//                    btnVerifyEmail.visibility = View.VISIBLE
-//                    tvEmailNotVerified.visibility = View.VISIBLE
-//                } else {
-//                    btnVerifyEmail.visibility = View.GONE
-//                    tvEmailNotVerified.visibility = View.GONE
-//                }
-//            }
-//        }
-//    }.launchIn(viewLifecycleOwner.lifecycleScope)
-    // И ИМЕТЬ В ВИДУ:
-    // Status.INIT -> Do nothing,
-    // Status.SUCCESS ->
-    //    if (user == null) {tvLoggedIn.text = "You are not logged in"}
-    //    else {
-    //        tvLoggedIn.text = "You are logged in!"
-    //        etUsername.setText(user.displayName)
-    //        ivProfilePicture.setImageURI(user.photoUrl)
-    //    }
-    //    Status.ERROR, Status.LOADING
-
-    //    binding.btnUpdateProfile.setOnClickListener {
-//        val user = viewModel.userState.value?.copy(
-//            username = binding.etUsername.text.toString(),
-//            childName = binding.etChildName.text.toString(),
-//            childAge = binding.etChildAge.text.toString().toIntOrNull() ?: 0,
-//            childBirthDate = binding.etChildBirthDate.text.toString()
-//        )
-//        user?.let { viewModel.updateProfile(it) }
-//    }
-//
-//    binding.btnVerifyEmail.setOnClickListener {
-//        viewModel.sendVerificationEmail()
-//    }
-//
-//    binding.btnLogout.setOnClickListener {
-//        viewModel.logout()
-//        findNavController().navigate(R.id.action_to_login)
-//    }
-    //
-    // !!!В нашем случае (фрагмент решистрации или логина) после успешной регистрации или авторизации нужно перейти на страницу профиля!!!
-    // In fragment:
-    //         viewModel.registrationState.onEach { resource ->
-    //            when (resource) {
-    //                is Resource.Success -> findNavController().navigate(R.id.action_to_profile)
-    //                is Resource.Error -> showError(resource.message)
-    //                // Обработка других состояний
-    //            }
-    //        }.launchIn(viewLifecycleOwner.lifecycleScope)
     // Разовая проверка состояния в firebase
     private val _checkedUserInfo =
         MutableStateFlow<Resource<UserPresentation?>>(Resource.init(null))
     val checkedUserInfo: StateFlow<Resource<UserPresentation?>> = _checkedUserInfo
-
-    // Подписка на изменение состояния в firebase
-//    private val _userStateFlow = MutableStateFlow<Resource<User?>>(Resource.init(null))
-//    val userStateFlow: StateFlow<Resource<User?>> = _userStateFlow
 
     // Использовать только для проверки состояния auth. User мы получаем другим методом
     private val _authStateFlow = getAuthStateFlowUC.execute()
@@ -152,20 +86,14 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
     val authStateFlow: StateFlow<UserPresentation?> = _authStateFlow
 
-    // If smth went wrong
     private val _errorMessageLiveData =
-        MutableLiveData<MyEvent<Resource<ErrorType>>>() // It must be private, so that other classes can't change it
+        MutableLiveData<MyEvent<Resource<ErrorType>>>()
     val errorMessageLiveData: LiveData<MyEvent<Resource<ErrorType>>> =
-        _errorMessageLiveData // And another LiveData, that equals to previous, so that classes can't change it
+        _errorMessageLiveData
 
     // Добавляем отдельный LiveData для состояния повторного сохранения
     private val _retrySaveState = MutableLiveData<Resource<ErrorType>>()
     val retrySaveState: LiveData<Resource<ErrorType>> = _retrySaveState
-
-//        private val _text = MutableLiveData<String>().apply {
-//        value = "This is Profile Fragment"
-//    }
-//    val text: LiveData<String> = _text
 
     // ONBOARDING - CLEAN
     fun cleanNotReplaceableAnswers() {
@@ -213,10 +141,8 @@ class MainViewModel @Inject constructor(
             try {
                 // Указываем все ответы, которые находятся на третьем фрагменте
                 onboardingUC.saveBirthDate("")
-//                onboardingUC.saveChildAge(0)
                 onboardingUC.saveHobbyAnswer("")
                 saveAnswer(AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString(), "")
-//                saveAnswer(AnswerNames.CHILD_AGE_ANSWER.toString(), "0")
                 saveAnswer(AnswerNames.CHILD_HOBBY_ANSWER.toString(), "")
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -413,35 +339,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-//    fun saveChildAgeAnswer(age: Int) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                onboardingUC.saveChildAge(age)
-//                saveAnswer(AnswerNames.CHILD_AGE_ANSWER.toString(), age.toString())
-//            } catch (e: IOException) {
-//                Log.e(TAG, "Failed to save child age", e)
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            "Не удалось сохранить возраст ребенка на вашем телефоне",
-//                            ErrorType.FAILED_TO_SAVE_CHILD_AGE_LOCAL
-//                        )
-//                    )
-//                )
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Unexpected error saving child age", e)
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            "Произошла непредвиденная ошибка",
-//                            ErrorType.UNEXPECTED_ERROR
-//                        )
-//                    )
-//                )
-//            }
-//        }
-//    }
-
     fun saveHobbyAnswer(hobby: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val trimmedHobbyAnswer = hobby.trim()
@@ -487,24 +384,10 @@ class MainViewModel @Inject constructor(
             getAndUseChildNameAnswer()
             getAndUseIsItABoyAnswer()
             getAndUseBirthDateAnswer()
-//            getAndUseChildAgeAnswer()
             getAndHobbyAnswer()
 
             if (currentUser != null) {
-//                val updatedUser = UserPresentation(
-//                    uid = currentUser.uid,
-//                    email = answers[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
-//                    isEmailVerified = answers[AnswerNames.IS_EMAIL_VERIFIED_ANSWER.toString()].toBoolean(),
-//                    userName = answers[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
-//                    childGender = answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
-//                    isItABoy = answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
-//                    childName = answers[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
-//                    childHobby = answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
-//                    childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
-//                    childBirthDate = answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
-//                )
                 val updatedUser = createUserFromAnswers(currentUser.uid)
-
                 _profileUpdatedLiveData.postValue(updateProfileUC.execute(updatedUser))
             }
         }
@@ -524,7 +407,7 @@ class MainViewModel @Inject constructor(
                 // Отправляем результат в отдельный LiveData для повторных попыток
                 _retrySaveState.postValue(result)
 
-                // Также обновляем основной LiveData для consistency
+                // Также обновляем основной LiveData для согласованности
                 if (result.status == Status.SUCCESS) {
                     _profileUpdatedLiveData.postValue(result)
                 }
@@ -544,7 +427,6 @@ class MainViewModel @Inject constructor(
             isItABoy = answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
             childName = answers[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
             childHobby = answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
-//            childAge = answers[AnswerNames.CHILD_AGE_ANSWER.toString()]?.toInt() ?: 0,
             childBirthDate = answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
         )
     }
@@ -552,7 +434,9 @@ class MainViewModel @Inject constructor(
     private fun getAndUseUserNameAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingUC.getUserNameFlow().collect { userName ->
+                onboardingUC.getUserNameFlow()
+                    .take(1) // Берем только первое значение
+                    .collect { userName ->
                     userName?.let {
                         _userNameLiveData.postValue(it)
                     }
@@ -574,7 +458,9 @@ class MainViewModel @Inject constructor(
     private fun getAndUseEmailAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingUC.getEmailFlow().collect { email ->
+                onboardingUC.getEmailFlow()
+                    .take(1)
+                    .collect { email ->
                     email?.let {
                         _emailLiveData.postValue(it)
                     }
@@ -596,10 +482,11 @@ class MainViewModel @Inject constructor(
     private fun getAndUseGenderAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingUC.getGenderFlow().collect { gender ->
+                onboardingUC.getGenderFlow()
+                    .take(1)
+                    .collect { gender ->
                     gender?.let { notNullGender ->
                         _genderLiveData.postValue(notNullGender)
-//                        _answers["GENDER"] = notNullGender
                     }
                 }
             } catch (e: IOException) {
@@ -619,7 +506,9 @@ class MainViewModel @Inject constructor(
     private fun getAndUseChildNameAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingUC.getNameFlow().collect { gender ->
+                onboardingUC.getNameFlow()
+                    .take(1)
+                    .collect { gender ->
                     gender?.let { notNullGender ->
                         _childNameLiveData.postValue(notNullGender)
                     }
@@ -641,7 +530,9 @@ class MainViewModel @Inject constructor(
     private fun getAndUseIsItABoyAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingUC.getIsItABoyFlow().collect { gender ->
+                onboardingUC.getIsItABoyFlow()
+                    .take(1)
+                    .collect { gender ->
                     gender?.let { notNullGender ->
                         _isItABoyLiveData.postValue(notNullGender)
                     }
@@ -663,7 +554,9 @@ class MainViewModel @Inject constructor(
     private fun getAndUseBirthDateAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingUC.getBirthDateFlow().collect { birthDate ->
+                onboardingUC.getBirthDateFlow()
+                    .take(1)
+                    .collect { birthDate ->
                     birthDate?.let {
                         _childBirthDateLiveData.postValue(it)
                     }
@@ -682,32 +575,12 @@ class MainViewModel @Inject constructor(
         }
     }
 
-//    private fun getAndUseChildAgeAnswer() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                onboardingUC.getChildAgeFlow().collect { age ->
-//                    age?.let {
-//                        _childAgeLiveData.postValue(it)
-//                    }
-//                }
-//            } catch (e: IOException) {
-//                e.printStackTrace()
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-//                            null
-//                        )
-//                    )
-//                )
-//            }
-//        }
-//    }
-
     private fun getAndHobbyAnswer() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onboardingUC.getHobbyFlow().collect { gender ->
+                onboardingUC.getHobbyFlow()
+                    .take(1)
+                    .collect { gender ->
                     gender?.let { notNullGender ->
                         _hobbyLiveData.postValue(notNullGender)
                     }

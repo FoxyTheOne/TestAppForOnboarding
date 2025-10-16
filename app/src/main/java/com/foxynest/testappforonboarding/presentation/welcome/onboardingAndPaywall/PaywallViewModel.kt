@@ -22,11 +22,10 @@ class PaywallViewModel @Inject constructor(
         private const val TAG = "PaywallViewModel"
     }
 
-    // If smth went wrong
     private val _errorMessageLiveData =
-        MutableLiveData<MyEvent<Resource<Boolean>>>() // It must be private, so that other classes can't change it
+        MutableLiveData<MyEvent<Resource<Boolean>>>()
     val errorMessageLiveData: LiveData<MyEvent<Resource<Boolean>>> =
-        _errorMessageLiveData // And another LiveData, that equals to previous, so that classes can't change it
+        _errorMessageLiveData
 
     fun saveOnboardingState(onboardingState: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {

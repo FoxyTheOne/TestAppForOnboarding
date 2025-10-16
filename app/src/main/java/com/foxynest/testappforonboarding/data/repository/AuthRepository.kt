@@ -24,7 +24,6 @@ class AuthRepository @Inject constructor(
         password: String,
         user: UserPresentation
     ): Resource<ErrorType>
-//    = firebaseAuthDataSource.register(email, password, user)
     {
         val result = firebaseAuthDataSource.register(email, password, user)
         return when (result.status) {
@@ -63,7 +62,6 @@ class AuthRepository @Inject constructor(
     }
 
     override suspend fun login(email: String, password: String): Resource<ErrorType>
-//    = firebaseAuthDataSource.login(email, password)
     {
         val result = firebaseAuthDataSource.login(email, password)
         return when (result.status) {

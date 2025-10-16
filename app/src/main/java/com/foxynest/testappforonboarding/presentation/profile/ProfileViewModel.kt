@@ -3,6 +3,7 @@ package com.foxynest.testappforonboarding.presentation.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
@@ -10,17 +11,18 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGe
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.presentation.profile.ProfileFragment.Companion
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val getCurrentLogInStateUC: IGetCurrentUserUC,
-//    private val updateProfileUC: IUpdateProfileUseCase,
     private val sendEmailVerificationUC: ISendEmailVerificationUC,
     private val checkEmailVerifiedUC: ICheckEmailVerifiedUC,
     private val logoutUC: ILogoutUC
@@ -82,10 +84,32 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun formatBirthDateForDisplay(birthDateString: String, localization: String): String {
+        if (birthDateString.isBlank()) return ""
+
+        return try {
+            // Парсим из формата хранения (yyyy-MM-dd)
+            val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val date = inputFormatter.parse(birthDateString)
+
+            if (date != null) {
+                // Форматируем для отображения (19 мая 2020)
+                val outputFormatter =
+                    SimpleDateFormat("d MMMM yyyy", Locale(localization))
+                outputFormatter.format(date)
+            } else {
+                Log.e(TAG, "Error formatting birth date: $birthDateString, date = null")
+                birthDateString // Возвращаем оригинальную строку в случае ошибки
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error formatting birth date: $birthDateString", e)
+            birthDateString // Возвращаем оригинальную строку в случае ошибки
+        }
+    }
+
     fun logout() {
         viewModelScope.launch {
             _logoutStateFlow.value = Resource.loading(null)
-
             _logoutStateFlow.value = logoutUC.execute()
         }
     }

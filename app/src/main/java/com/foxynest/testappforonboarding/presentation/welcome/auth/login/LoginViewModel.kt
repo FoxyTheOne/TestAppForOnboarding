@@ -45,7 +45,7 @@ class LoginViewModel @Inject constructor(
     private val _loginStateFlow = MutableStateFlow<Resource<ErrorType>>(Resource.init(null))
     val loginStateFlow: StateFlow<Resource<ErrorType>> = _loginStateFlow
 
-    // Добавьте computed property для resources
+    // Computed property для resources
     private val resources: Resources
         get() = context.resources
 

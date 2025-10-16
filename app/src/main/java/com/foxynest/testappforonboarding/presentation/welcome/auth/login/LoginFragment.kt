@@ -100,20 +100,6 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
             }
         }
 
-//        // Наблюдаем за событиями валидации
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                loginViewModel.checkRegistrationEvents.collect { event ->
-//                    when (event) {
-//                        // Успешное заполнение
-//                        is LoginViewModel.CheckRegistrationEvent.SuccessCheckRegistration -> {
-//                            showLoginSuccess()
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         // Наблюдаем за событиями входа в аккаунт
         viewLifecycleOwner.lifecycleScope.launch {
             loginViewModel.loginStateFlow.onEach { resource ->
@@ -137,7 +123,6 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
 
                     Status.ERROR -> {
                         val messageToShow = resource.data.toErrorMessage(resources)
-//                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
                         Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
                     }
 

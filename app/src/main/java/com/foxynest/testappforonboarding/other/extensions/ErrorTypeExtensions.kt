@@ -4,19 +4,6 @@ import android.content.res.Resources
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.other.constants.AuthConstants.MIN_PASSWORD_LENGTH
 
-//fun ErrorType.toErrorMessage(resources: Resources): String {
-//    return when (this) {
-//        ErrorType.EMAIL_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH ->
-//            resources.getString(this.stringRes, MIN_PASSWORD_LENGTH)
-//        else -> resources.getString(this.stringRes)
-//    }
-//}
-//
-//// Для nullable ErrorType
-//fun ErrorType?.toErrorMessage(resources: Resources): String? {
-//    return this?.toErrorMessage(resources)
-//}
-
 fun ErrorType?.toErrorMessage(resources: Resources): String? {
     return when (this) {
         ErrorType.PASSWORD_LENGTH_ERROR_NEEDS_MIN_PASSWORD_LENGTH ->

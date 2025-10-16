@@ -4,12 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentWelcomeBinding
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
-import com.foxynest.testappforonboarding.presentation.welcome.auth.registration.RegistrationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -19,9 +17,12 @@ class WelcomeFragment : BaseWelcomeFragmentAbstract() {
     }
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
-    private var binding: FragmentWelcomeBinding? = null
+    private var _binding: FragmentWelcomeBinding? = null
+    // Делаем binding internal для тестов в том же модуле
+    internal val binding: FragmentWelcomeBinding?
+        get() = _binding
 
-    private val registrationViewModel by viewModels<RegistrationViewModel>()
+//    private val registrationViewModel by viewModels<RegistrationViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,8 +30,8 @@ class WelcomeFragment : BaseWelcomeFragmentAbstract() {
         savedInstanceState: Bundle?
     ): View? {
         // VIEW BINDING -> 2. Инициализация
-        binding = FragmentWelcomeBinding.inflate(inflater, container, false)
-        return binding?.root
+        _binding = FragmentWelcomeBinding.inflate(inflater, container, false)
+        return _binding?.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -40,13 +41,13 @@ class WelcomeFragment : BaseWelcomeFragmentAbstract() {
     }
 
     private fun initListeners() {
-        binding?.buttonStartOnboarding?.setOnClickListener {
+        _binding?.buttonStartOnboarding?.setOnClickListener {
             if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
                 findNavController().navigate(R.id.action_welcomeFragment_to_navigation_question1)
             }
         }
 
-        binding?.buttonStartLogin?.setOnClickListener {
+        _binding?.buttonStartLogin?.setOnClickListener {
             if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
                 findNavController().navigate(R.id.action_welcomeFragment_to_loginFragment)
             }
@@ -56,6 +57,6 @@ class WelcomeFragment : BaseWelcomeFragmentAbstract() {
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
         super.onDestroyView()
-        binding = null
+        _binding = null
     }
 }

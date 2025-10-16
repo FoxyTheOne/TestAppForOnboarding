@@ -9,8 +9,10 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
@@ -68,9 +70,6 @@ class ProfileFragment : Fragment() {
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
-//        // Firebase: При инициализации Activity проверьте, вошел ли пользователь в систему
-//        mainViewModel.checkLoggedInStateGetUser()
-
         // ???? На экране профиля под заполненныеми полями кнопки "Сохранить данные на сервер" и "Загрузить данные с сервера (обновить поля)"
         // ???? Но показывать их если поля user != user ? (через || , кроме uid) с подписью "Введенные данные отличаются от сохранённых на сервере, выберите действие:"
         // Не делала потому что при создании фрагмента профиля мы загружаем данные с сервера
@@ -86,7 +85,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun initListeners() {
-        binding?.textGenderAnswerIsItABoy?.text = "Нет"
+        binding?.textGenderAnswerIsItABoy?.text = getString(R.string.no)
 
         binding?.buttonVerifyEmail?.setOnClickListener {
             profileViewModel.sendVerificationEmail()
@@ -104,18 +103,8 @@ class ProfileFragment : Fragment() {
 
         binding?.buttonRegisterAndLogin?.setOnClickListener {
             // Открываем по клику другой фрагмент, передаём туда user
-            val user = UserPresentation(
-                uid = "", // Только для передачи данных для регистрации!
-                email = binding?.textEmailAnswer?.text.toString(),
-                isEmailVerified = false, // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
-                userName = binding?.textUserNameAnswer?.text.toString(),
-                childGender = binding?.textGenderAnswer?.text.toString(),
-                isItABoy = binding?.textGenderAnswerIsItABoy?.text.toString(),
-                childName = binding?.textChildNameAnswer?.text.toString(),
-                childHobby = binding?.textHobbyAnswer?.text.toString(),
-//                childAge = binding?.textChildAgeAnswer?.text.toString().toInt(),
-                childBirthDate = binding?.textBirthDateAnswer?.text.toString()
-            )
+            val user = createUserFromLocalData()
+
             val direction =
                 ProfileFragmentDirections.actionNavigationProfileToRegisterFragment(user)
             if (findNavController().currentDestination?.id == R.id.navigation_profile) {
@@ -135,170 +124,117 @@ class ProfileFragment : Fragment() {
     }
 
     private fun subscribeOnObservers() {
-//        mainViewModel.genderLiveData.observe(viewLifecycleOwner) { gender ->
-//            binding?.textGenderAnswer?.text = gender
-//        }
-//        mainViewModel.isItABoyLiveData.observe(viewLifecycleOwner) { isItABoy ->
-//            binding?.textGenderAnswerIsItABoy?.text = isItABoy.toString()
-//        }
-//        mainViewModel.childNameLiveData.observe(viewLifecycleOwner) { name ->
-//            binding?.textChildNameAnswer?.text = name
-//        }
-//        mainViewModel.hobbyLiveData.observe(viewLifecycleOwner) { hobby ->
-//            binding?.textHobbyAnswer?.text = hobby
-//        }
-
-        // Ответ на разовый запрос, получаем User
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            mainViewModel.checkedUserInfo.collect { resourceUser ->
-//                resourceUser.data?.let { nonNullUser ->
-//                    // Заполняем поля профиля исходя из данных на сервере
-//                    fillFieldsInProfile(nonNullUser)
-//                }
-//            }
-//        }
-
         viewLifecycleOwner.lifecycleScope.launch {
-            mainViewModel.checkedUserInfo.collect { resourceUser ->
-                val user = resourceUser.data
-                if (user != null) {
-                    // Удаляем наблюдатель локальных полей
-                    localFieldsObserver?.let { observer ->
-                        mainViewModel.genderLiveData.removeObserver(observer)
-                        mainViewModel.isItABoyLiveData.removeObserver(observer)
-                        mainViewModel.childNameLiveData.removeObserver(observer)
-                        mainViewModel.hobbyLiveData.removeObserver(observer)
-                        // !!! Удалить остальные наблюдатели, если есть
-                    }
-                    localFieldsObserver = null
-
-                    // Заполняем поля профиля исходя из данных на сервере
-                    fillFieldsInProfile(user)
-                    showLogOutButtons(true)
-                } else {
-                    // Создаем наблюдатель только если его еще нет
-                    if (localFieldsObserver == null) {
-                        localFieldsObserver = Observer<Any> {
-                            fillFieldsInProfile(
-                                UserPresentation(
-                                    "",
-                                    mainViewModel.emailLiveData.value ?: "",
-                                    false,
-                                    mainViewModel.userNameLiveData.value ?: "",
-                                    mainViewModel.genderLiveData.value ?: "",
-                                    mainViewModel.isItABoyLiveData.value ?: "",
-                                    mainViewModel.childNameLiveData.value ?: "",
-                                    mainViewModel.hobbyLiveData.value ?: "",
-//                                    mainViewModel.childAgeLiveData.value ?: 0,
-                                    mainViewModel.childBirthDateLiveData.value ?: ""
-                                )
-                            )
-                            showLogOutButtons(false)
-                        }
-
-                        // Подписываемся на все необходимые LiveData
-                        listOf(
-                            mainViewModel.genderLiveData,
-                            mainViewModel.isItABoyLiveData,
-                            mainViewModel.childNameLiveData,
-                            mainViewModel.hobbyLiveData
-                            // !!! Остальные LiveData, если нужны
-                        ).forEach { liveData ->
-                            liveData.observe(viewLifecycleOwner, localFieldsObserver!!)
-                        }
+            mainViewModel.checkedUserInfo
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { resourceUser ->
+                    val user = resourceUser.data
+                    if (user != null) {
+                        removeLocalObservers()
+                        // Заполняем поля исходя из данных на сервере
+                        fillFieldsInProfile(user)
+                        showLogOutButtons(true)
+                    } else {
+                        // Локальные данные
+                        setupLocalObservers()
                     }
                 }
-            }
         }
 
         // Подписка на состояние AuthState
-        mainViewModel.authStateFlow.onEach { user ->
-            if (user != null) {
-                // Пользователь авторизован:
-                // 1. Обновляем данные профиля в UI
-                mainViewModel.checkLoggedInStateGetUser() // Получаем user и обновляем данные в checkedUserInfo LiveData
-                // 2. Убираем кнопки для авторизации и регистрации, text_warning, text_warning_data, показываем кнопки "log out" и "обновить поля"
-                showLogOutButtons(true)
-            } else {
-                // Пользователь не авторизован:
-                // 1. Показываем данные профиля в UI исходя из пройденного онбординга (data store)
-                fillFieldsInProfile(
-                    UserPresentation(
-                        "",
-                        mainViewModel.emailLiveData.value ?: "",
-                        false,
-                        mainViewModel.userNameLiveData.value ?: "",
-                        mainViewModel.genderLiveData.value ?: "",
-                        mainViewModel.isItABoyLiveData.value ?: "",
-                        mainViewModel.childNameLiveData.value ?: "",
-                        mainViewModel.hobbyLiveData.value ?: "",
-//                        mainViewModel.childAgeLiveData.value ?: 0,
-                        mainViewModel.childBirthDateLiveData.value ?: ""
-                    )
-                )
-                // 2. Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data, убираем кнопки "log out" и "обновить поля"
-                showLogOutButtons(false)
-            }
-        }.launchIn(lifecycleScope)
+        viewLifecycleOwner.lifecycleScope.launch {
+            mainViewModel.authStateFlow
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { user ->
+
+                    if (user != null) {
+                        // Пользователь авторизован:
+                        // 1. Обновляем данные профиля в UI
+                        mainViewModel.checkLoggedInStateGetUser() // Получаем user и обновляем данные в checkedUserInfo LiveData
+                        // 2. Убираем кнопки для авторизации и регистрации, text_warning, text_warning_data, показываем кнопки "log out" и "обновить поля"
+                        showLogOutButtons(true)
+                    } else {
+                        // Пользователь не авторизован:
+                        // 1. Показываем данные профиля в UI исходя из пройденного онбординга (data store)
+                        fillFieldsInProfile(createUserFromLocalData())
+                        // 2. Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data, убираем кнопки "log out" и "обновить поля"
+                        showLogOutButtons(false)
+                    }
+
+                }
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.isVerificationButtonEnabled.collect { isEnabled ->
-                binding?.buttonVerifyEmail?.isEnabled = isEnabled
+            profileViewModel.isVerificationButtonEnabled
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { isEnabled ->
+                    binding?.buttonVerifyEmail?.isEnabled = isEnabled
 
-                context?.let {
-                    val colorGray = ContextCompat.getColor(it, R.color.gray)
-                    val colorWhite = ContextCompat.getColor(it, R.color.white)
+                    context?.let {
+                        val colorGray = ContextCompat.getColor(it, R.color.gray)
+                        val colorWhite = ContextCompat.getColor(it, R.color.white)
 
-                    when (isEnabled) {
-                        true -> binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
-                        false -> binding?.buttonVerifyEmail?.setTextColor(colorWhite) ?: "#FFFFFFFF"
+                        when (isEnabled) {
+                            true -> binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
+                            false -> binding?.buttonVerifyEmail?.setTextColor(colorWhite)
+                                ?: "#FFFFFFFF"
+                        }
                     }
                 }
-            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.isEmailVerificationSent.collect { isSent ->
-                if (isSent) {
-                    Toast.makeText(requireContext(), "Verification email sent", Toast.LENGTH_SHORT)
-                        .show()
+            profileViewModel.isEmailVerificationSent
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { isSent ->
+                    if (isSent) {
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.profile_email_verification_send),
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
                 }
-            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.isEmailVerified.collect { isVerified ->
-                if (isVerified) {
-                    binding?.buttonVerifyEmail?.visibility = View.GONE
-                    binding?.textEmailNotVerified?.visibility = View.GONE
+            profileViewModel.isEmailVerified
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { isVerified ->
+                    if (isVerified) {
+                        binding?.buttonVerifyEmail?.visibility = View.GONE
+                        binding?.textEmailNotVerified?.visibility = View.GONE
 //                    Toast.makeText(
 //                        requireContext(),
 //                        "Email verified successfully",
 //                        Toast.LENGTH_SHORT
 //                    ).show()
+                    }
                 }
-            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.logoutStateFlow.collect { resourceResult ->
-                val messageToShow = resourceResult.data.toErrorMessage(resources)
+            profileViewModel.logoutStateFlow
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { resourceResult ->
+                    val messageToShow = resourceResult.data.toErrorMessage(resources)
 
-                when (resourceResult.status) {
-                    Status.SUCCESS -> {
-                        // Вышли из аккаунта, провряем состояние user и обновляем UI
-                        mainViewModel.checkLoggedInStateGetUser()
-                    }
+                    when (resourceResult.status) {
+                        Status.SUCCESS -> {
+                            // Вышли из аккаунта, провряем состояние user и обновляем UI
+                            mainViewModel.checkLoggedInStateGetUser()
+                        }
 
-                    Status.ERROR -> {
-                        Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
-                    }
+                        Status.ERROR -> {
+                            Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
+                        }
 
-                    else -> {
-                        Log.d(TAG, "resource.status = ${resourceResult.status} ")
+                        else -> {
+                            Log.d(TAG, "resource.status = ${resourceResult.status} ")
+                        }
                     }
                 }
-            }
         }
 
         mainViewModel.profileUpdatedLiveData.observe(viewLifecycleOwner) { resourceResult ->
@@ -319,9 +255,6 @@ class ProfileFragment : Fragment() {
                 }
 
                 Status.ERROR -> {
-//                    Log.d(TAG, "Error while saving data: ${resourceResult.message}")
-//                    showDataSaveErrorDialog()
-
                     Log.d(TAG, "Error while saving data: $messageToShow")
                     // Показываем диалог только если это первая ошибка
                     if (dataSaveErrorDialog == null) {
@@ -370,6 +303,54 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun removeLocalObservers() {
+        // Удаляем наблюдатель локальных полей
+        localFieldsObserver?.let { observer ->
+            mainViewModel.genderLiveData.removeObserver(observer)
+            mainViewModel.isItABoyLiveData.removeObserver(observer)
+            mainViewModel.childNameLiveData.removeObserver(observer)
+            mainViewModel.hobbyLiveData.removeObserver(observer)
+            // Удалить остальные наблюдатели, если есть
+        }
+        localFieldsObserver = null
+    }
+
+    private fun setupLocalObservers() {
+        // Создаем наблюдатель только если его еще нет
+        if (localFieldsObserver == null) {
+            localFieldsObserver = Observer<Any> {
+                fillFieldsInProfile(createUserFromLocalData())
+                showLogOutButtons(false)
+            }
+
+            // Подписываемся на все необходимые LiveData
+            listOf(
+                mainViewModel.genderLiveData,
+                mainViewModel.isItABoyLiveData,
+                mainViewModel.childNameLiveData,
+                mainViewModel.hobbyLiveData
+                // !!! Остальные LiveData, если нужны
+            ).forEach { liveData ->
+                liveData.observe(viewLifecycleOwner, localFieldsObserver!!)
+            }
+        }
+    }
+
+    private fun createUserFromLocalData(): UserPresentation {
+        // Только для передачи данных для регистрации!
+        return UserPresentation(
+            "",
+            mainViewModel.emailLiveData.value ?: "",
+            false, // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
+            mainViewModel.userNameLiveData.value ?: "",
+            mainViewModel.genderLiveData.value ?: "",
+            mainViewModel.isItABoyLiveData.value ?: "",
+            mainViewModel.childNameLiveData.value ?: "",
+            mainViewModel.hobbyLiveData.value ?: "",
+            mainViewModel.childBirthDateLiveData.value ?: ""
+        )
+    }
+
     private fun fillFieldsInProfile(user: UserPresentation) {
         // Проверяем, чтобы userName не был равен "null"
         if (user.userName != "null") {
@@ -382,7 +363,7 @@ class ProfileFragment : Fragment() {
             val age = calculateAgeFromBirthDate(user.childBirthDate)
             binding?.textChildAgeAnswer?.text = if (age > 0) age.toString() else ""
             // ФОРМАТИРУЕМ дату для красивого отображения
-            binding?.textBirthDateAnswer?.text = formatBirthDateForDisplay(user.childBirthDate)
+            binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(user.childBirthDate, getString(R.string.localization))
             binding?.textEmailAnswer?.text = user.email
 
             // Показываем/скрываем кнопку верификации в зависимости от статуса email
@@ -411,25 +392,16 @@ class ProfileFragment : Fragment() {
             Log.d(TAG, "Ошибка форматирования даты ${e.printStackTrace()}")
         }
 
-
-        var age = 0
-
-        // TODO перенести в viewmodel
         val resultAge = birthDate?.calculateAge()
 
-        when (resultAge?.status) {
+        return when (resultAge?.status) {
             Status.SUCCESS -> {
-                age = resultAge.data ?: 0
+                val age: Int = resultAge.data ?: 0
+                age
             }
-
-            Status.ERROR -> {
-                age = 0
-            } // TODO toast
-
-            else -> {}// nothing
+            Status.ERROR -> { 0 } // TODO toast?
+            else -> { 0 } // nothing
         }
-
-        return age
     }
 
     private fun showLogOutButtons(isUserLoggedIn: Boolean) {
@@ -472,25 +444,6 @@ class ProfileFragment : Fragment() {
             .show(parentFragmentManager, ConfirmOnboardingRestartDialog.TAG)
     }
 
-//    private fun showDataSaveErrorDialog() {
-//        DataSaveErrorDialog.newInstance()
-//            .setListeners(
-//                positiveAction = {
-//                    // Пользователь хочет повторить сохранение
-//                    mainViewModel.retryDataSave()
-//                },
-//                negativeAction = {
-//                    // Пользователь отменил - показываем сообщение
-//                    Toast.makeText(
-//                        requireContext(),
-//                        R.string.profile_toast_data_updating_error,
-//                        Toast.LENGTH_LONG
-//                    ).show()
-//                }
-//            )
-//            .show(parentFragmentManager, DataSaveErrorDialog.TAG)
-//    }
-
     private fun showDataSaveErrorDialog(errorMessage: String? = null) {
         dataSaveErrorDialog = DataSaveErrorDialog.newInstance()
             .setListeners(
@@ -518,29 +471,6 @@ class ProfileFragment : Fragment() {
             dataSaveErrorDialog?.dialog?.setOnShowListener {
                 dataSaveErrorDialog?.showError(errorMessage)
             }
-        }
-    }
-
-    private fun formatBirthDateForDisplay(birthDateString: String): String {
-        if (birthDateString.isBlank()) return ""
-
-        return try {
-            // Парсим из формата хранения (yyyy-MM-dd)
-            val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-            val date = inputFormatter.parse(birthDateString)
-
-            if (date != null) {
-                // Форматируем для отображения (19 мая 2020)
-                // TODO ru  - из стрингов
-                val outputFormatter = SimpleDateFormat("d MMMM yyyy", Locale("ru"))
-                outputFormatter.format(date)
-            } else {
-                Log.e(TAG, "Error formatting birth date: $birthDateString, date = null")
-                birthDateString // Возвращаем оригинальную строку в случае ошибки
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error formatting birth date: $birthDateString", e)
-            birthDateString // Возвращаем оригинальную строку в случае ошибки
         }
     }
 

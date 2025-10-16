@@ -21,12 +21,14 @@ import javax.inject.Inject
 class RegisterUC @Inject constructor(
     private val authRepository: AuthRepository
 ) : IRegisterUC {
-
-    override suspend fun execute(email: String, password: String, user: UserPresentation): Resource<ErrorType> {
+    override suspend fun execute(
+        email: String,
+        password: String,
+        user: UserPresentation
+    ): Resource<ErrorType> {
         if (email.isBlank() || password.isBlank()) {
             return Resource.error("Поле не может быть пустым", ErrorType.FIELD_EMPTY_ERROR)
         }
         return authRepository.register(email, password, user)
     }
-
 }

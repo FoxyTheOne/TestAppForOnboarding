@@ -8,6 +8,5 @@ enum class AnswerNames {
     IS_IT_A_BOY_ANSWER,
     CHILD_NAME_ANSWER,
     CHILD_HOBBY_ANSWER,
-    CHILD_AGE_ANSWER,
     CHILD_BIRTH_DATE_ANSWER
 }

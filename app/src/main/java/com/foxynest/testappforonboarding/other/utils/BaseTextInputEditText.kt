@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.other.extensions
+package com.foxynest.testappforonboarding.other.utils
 
 import android.content.Context
 import android.graphics.Rect

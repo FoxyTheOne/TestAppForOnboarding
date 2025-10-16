@@ -81,7 +81,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
             override fun afterTextChanged(s: Editable?) {
                 s?.let { editable ->
                     val text = editable.toString()
-                    // Валидируем и сразу очищаем ошибку если поле заполнено
                     validateHobby(text)
                 }
             }
@@ -102,7 +101,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
                 // Все проверки на null должны были быть в areFieldsValid()
                 mainViewModel.saveHobbyAnswer(textFieldCharHobbyAnswer ?: "")
                 mainViewModel.saveBirthDateAnswer(birtDateText ?: "0")
-//                mainViewModel.saveChildAgeAnswer(ageText?.toInt() ?: 0)
 
                 if (this.findNavController().currentDestination?.id == R.id.navigation_question3) {
                     this.findNavController()
@@ -121,7 +119,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
                     Gender.BOY.genderName -> {
                         findNavController().navigate(R.id.action_navigation_question3_to_navigation_question2)
                     }
-
                     Gender.GIRL.genderName -> {
                         findNavController().navigate(R.id.action_navigation_question3_to_navigation_question1)
                     }
@@ -140,7 +137,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
 
         // Проверка даты рождения
         if (birthDateText.isNullOrBlank() || selectedDateInMillis == null) {
-            binding?.textFieldBirthDate?.error = "Выберите дату рождения"
+            binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_selected)
             isValid = false
         } else {
             binding?.textFieldBirthDate?.error = null
@@ -150,7 +147,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         val age = ageText?.toIntOrNull() ?: 0
         if (age <= 0) {
             if (isValid) { // Показываем ошибку возраста только если дата валидна
-                binding?.textFieldBirthDate?.error = "Проверьте дату рождения"
+                binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_valid)
             }
             isValid = false
         }
@@ -165,7 +162,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
 
     private fun validateHobby(hobbyAnswer: String?): Boolean {
         return if (hobbyAnswer.isNullOrBlank()) {
-            binding?.textFieldHobbyAnswer?.error = "Введите хобби"
+            binding?.textFieldHobbyAnswer?.error = getString(R.string.error_hobby_not_selected)
             false
         } else {
             // Очищаем ошибку, если поле заполнено
@@ -196,7 +193,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         }
 
         val datePicker = MaterialDatePicker.Builder.datePicker()
-            .setTitleText("Выберите дату рождения")
+            .setTitleText(getString(R.string.text_select_date_hint))
             .setSelection(selectedDateInMillis ?: today) // Текущая дата или ранее выбранная
             .setCalendarConstraints(constraintsBuilder.build())
 //            .setTheme(R.style.ThemeOverlay_Material3_DatePicker)
@@ -222,19 +219,15 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
 
     private fun calculateAndDisplayAge(birthDate: Date): Int {
         var age = 0
-
-        // TODO перенести в viewmodel
         val resultAge = birthDate.calculateAge()
 
         when (resultAge.status) {
             Status.SUCCESS -> {
                 age = resultAge.data ?: 0
             }
-
             Status.ERROR -> {
                 age = 0
-            } // TODO toast
-
+            } // TODO toast?
             else -> {}// nothing
         }
 
@@ -249,16 +242,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
 
         return age
     }
-
-//    private fun convertToSaveFormat(selectedDateMillis: Long): String {
-//        return try {
-//            // Используем стандартный ISO-подобный формат для хранения: yyyy-MM-dd
-//            val saveFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-//            saveFormatter.format(Date(selectedDateMillis))
-//        } catch (e: Exception) {
-//            ""
-//        }
-//    }
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {

@@ -55,7 +55,6 @@ class Question2Fragment : BaseWelcomeFragmentAbstract() {
         }
 
         binding?.buttonBack?.setOnClickListener {
-//            onboardingViewModel.cleanFragment2AnswersBeforeBackButton()
             mainViewModel.cleanFragment2AnswersBeforeBackButton()
 
             if (this.findNavController().currentDestination?.id == R.id.navigation_question2) {

@@ -15,7 +15,7 @@ class RepeatSavingOnboardingStateDialog : BaseDialogFragment(){
 
     override fun getMessage(): String = getString(R.string.local_onboarding_saving_error_text)
 
-    override fun getPositiveButtonText(): String = getString(R.string.dialog_yes)
+    override fun getPositiveButtonText(): String = getString(R.string.yes)
 
-    override fun getNegativeButtonText(): String = getString(R.string.dialog_no)
+    override fun getNegativeButtonText(): String = getString(R.string.no)
 }

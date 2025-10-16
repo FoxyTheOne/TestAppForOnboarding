@@ -16,8 +16,7 @@ data class UserPresentation(
     val isItABoy: String = "",
     val childName: String = "",
     val childHobby: String = "",
-//    val childAge: Int = 0,
-    val childBirthDate: String = "" // ISO format
+    val childBirthDate: String = ""
 ) :
     Parcelable
 //{

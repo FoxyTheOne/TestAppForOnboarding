@@ -15,6 +15,7 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
 import com.foxynest.testappforonboarding.domain.entities.VisibilityEnum
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
+import com.foxynest.testappforonboarding.other.constants.CommonConstants.PAY_URL
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.RepeatSavingOnboardingStateDialog
@@ -110,10 +111,6 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
     }
 
     private fun initListeners() {
-//        mainViewModel.text.observe(viewLifecycleOwner) {
-//            binding?.textQuestion1?.text = it
-//        }
-
         binding?.imageClose?.setOnClickListener {
             if (this.findNavController().currentDestination?.id == R.id.navigation_paywall) {
                 this.findNavController()
@@ -130,7 +127,7 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
         binding?.buttonPaywall?.setOnClickListener {
             val browserIntent =
-                Intent(Intent.ACTION_VIEW, Uri.parse("https://boosty.to/foxynest/donate"))
+                Intent(Intent.ACTION_VIEW, Uri.parse(PAY_URL))
             startActivity(browserIntent)
         }
     }
@@ -138,8 +135,8 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
     private fun subscribeOnLiveData() {
         mainViewModel.genderLiveData.observe(viewLifecycleOwner) { gender ->
             when (gender) {
-                "Мальчик" -> binding?.textPaywallAppeal?.text = "У вас замечательный мальчик"
-                "Девочка" -> binding?.textPaywallAppeal?.text = "У вас замечательная девочка"
+                "Мальчик" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
+                "Девочка" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)
                 else -> Unit
             }
         }

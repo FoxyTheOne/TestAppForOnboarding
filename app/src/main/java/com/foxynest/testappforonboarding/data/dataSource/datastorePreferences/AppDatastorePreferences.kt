@@ -20,7 +20,6 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
     private val Context.dataStore by preferencesDataStore(DATASTORE_NAME)
 
     // Ключи для онбординга
-    // val PONY = booleanPreferencesKey("pony")
     object PreferencesKeys {
         val IS_ONBOARDING_COMPLETED = booleanPreferencesKey("is_onboarding_completed")
         val USER_NAME = stringPreferencesKey("user_name")
@@ -62,12 +61,6 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
             preferences[PreferencesKeys.GENDER] = gender
         }
     }
-
-//    override suspend fun saveName(name: Boolean) {
-//        context.dataStore.edit { preferences ->
-//            preferences[PreferencesKeys.PONY] = name
-//        }
-//    }
 
     override suspend fun saveName(name: String) {
         context.dataStore.edit { preferences ->

@@ -15,7 +15,7 @@ class ConfirmOnboardingRestartDialog : BaseDialogFragment() {
 
     override fun getMessage(): String = getString(R.string.are_you_sure_confirm)
 
-    override fun getPositiveButtonText(): String = getString(R.string.dialog_yes)
+    override fun getPositiveButtonText(): String = getString(R.string.yes)
 
-    override fun getNegativeButtonText(): String = getString(R.string.dialog_no)
+    override fun getNegativeButtonText(): String = getString(R.string.no)
 }

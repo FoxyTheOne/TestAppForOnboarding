@@ -61,7 +61,6 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
             isItABoy = "",
             childName = "",
             childHobby = "",
-//            childAge = 0,
             childBirthDate = ""
         )
         if (arguments != null) {
@@ -119,20 +118,6 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
             }
         }
 
-//        // Наблюдаем за событиями валидации
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                registrationViewModel.validationEvents.collect { event ->
-//                    when (event) {
-//                        // Успешное заполнение
-//                        is RegistrationViewModel.ValidationEvent.SuccessValidation -> {
-//                            showRegistrationSuccess()
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         // Наблюдаем за событиями регистрации
         viewLifecycleOwner.lifecycleScope.launch {
             registrationViewModel.registrationStateFlow.onEach { resource ->
@@ -157,7 +142,6 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
                     Status.ERROR -> {
                         // Неудачная регистрация - например, такой email уже зарегистрирован
                         val toastMessage = resource.data.toErrorMessage(resources)
-//                        Toast.makeText(activity, resource.message, Toast.LENGTH_LONG).show()
                         Toast.makeText(activity, toastMessage, Toast.LENGTH_LONG).show()
                     }
 
@@ -175,15 +159,6 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
         binding?.textFieldPassword?.error = state.passwordError
         binding?.textFieldPassword2?.error = state.repeatedPasswordError
     }
-
-//    private fun showRegistrationSuccess() {
-//        // Действия после успешной регистрации
-//        Toast.makeText(
-//            requireContext(),
-//            "Registration successful",
-//            Toast.LENGTH_LONG
-//        ).show()
-//    }
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {

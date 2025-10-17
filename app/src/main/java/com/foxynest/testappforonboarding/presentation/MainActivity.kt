@@ -49,13 +49,52 @@ class MainActivity : AppCompatActivity() {
         val view: View = binding!!.root
         setContentView(view)
 
-        // Подтягиваем ответы из пройденного ранее онбординга
-        mainViewModel.getAndUseAnswersFromOnboardind()
-//        mainViewModel.checkLoggedInState() -> проверяем в BaseWelcomeFragmentAbstract при запуске и в каждом фрагменте отдельно
+        // СНАЧАЛА настраиваем навигацию:
+        setupNavigation()
 
         // Уберем Action bar
         supportActionBar?.hide()
 
+//        // ПОТОМ запрашиваем данные: подтягиваем ответы из пройденного ранее онбординга. Загружаем данные БЕЗ принудительного обновления Firebase
+        mainViewModel.getAndUseAnswersFromOnboarding()
+////        mainViewModel.checkLoggedInState() -> проверяем в BaseWelcomeFragmentAbstract при запуске и в каждом фрагменте отдельно
+
+        // Запрос на разрешение notification
+        val requestPermissionLauncherNotification =
+            registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (!isGranted) {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.no_notification_permission),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Если нет разрешения - вызываем requestPermissionLauncher
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestPermissionLauncherNotification.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        subscribeToObservers()
+    }
+
+    private fun subscribeToObservers() {
+        mainViewModel.errorMessageLiveData.observe(this) { event ->
+            val toastMessage = event.getContentIfNotHandled()?.data?.toErrorMessage(resources)
+            Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun setupNavigation() {
         // Bottom navigation setup
         val navView: BottomNavigationView = binding!!.navView
 //        val navController = findNavController(R.id.nav_host_fragment_activity_main)
@@ -102,40 +141,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-
-        // Запрос на разрешение notification
-        val requestPermissionLauncherNotification =
-            registerForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
-                if (!isGranted) {
-                    Toast.makeText(
-                        this,
-                        getString(R.string.no_notification_permission),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Если нет разрешения - вызываем requestPermissionLauncher
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                requestPermissionLauncherNotification.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-
-        subscribeToObservers()
     }
 
-    private fun subscribeToObservers() {
-        mainViewModel.errorMessageLiveData.observe(this) { event ->
-            val toastMessage = event.getContentIfNotHandled()?.data?.toErrorMessage(resources)
-            Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show()
+    private fun showQuitDialog() {
+        if (quitDialog != null && quitDialog!!.isAdded) {
+            return
         }
+
+        quitDialog = QuitDialog.newInstance()
+            .setListeners(
+                positiveAction = {
+                    finishAffinity()
+                },
+                negativeAction = {
+                    quitDialog = null
+                }
+            )
+
+        quitDialog?.show(supportFragmentManager, QuitDialog.TAG)
     }
 
     override fun onBackPressed() {
@@ -176,24 +199,6 @@ class MainActivity : AppCompatActivity() {
                 super.onBackPressed()
             }
         }
-    }
-
-    private fun showQuitDialog() {
-        if (quitDialog != null && quitDialog!!.isAdded) {
-            return
-        }
-
-        quitDialog = QuitDialog.newInstance()
-            .setListeners(
-                positiveAction = {
-                    finishAffinity()
-                },
-                negativeAction = {
-                    quitDialog = null
-                }
-            )
-
-        quitDialog?.show(supportFragmentManager, QuitDialog.TAG)
     }
 
     override fun onDestroy() {

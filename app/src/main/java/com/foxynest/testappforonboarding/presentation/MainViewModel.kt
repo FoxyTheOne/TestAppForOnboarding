@@ -6,13 +6,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.di.DispatcherIO
-import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.entities.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.UserPresentation
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetAuthStateFlowUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IUpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
@@ -23,10 +23,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
 
@@ -35,9 +36,9 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val onboardingUC: IOnboardingUC,
     private val updateProfileUC: IUpdateProfileUC,
-    private val getCurrentUserUC: GetCurrentUserUC,
-    private val getAuthStateFlowUC: GetAuthStateFlowUC,
-    @DispatcherIO private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val getCurrentUserUC: IGetCurrentUserUC,
+    private val getAuthStateFlowUC: IGetAuthStateFlowUC,
+    @DispatcherIO private val dispatcher: CoroutineDispatcher = Dispatchers.IO // TODO расставить dispatcher или удалить тесты
 ) : ViewModel() {
     companion object {
         private const val TAG = "MainViewModel"
@@ -371,25 +372,77 @@ class MainViewModel @Inject constructor(
 
     // ONBOARDING - GET
     // Запустить метод для получения этих данных можно, когда открывается PAYWALL FRAGMENT - в этот момент опрос уже точно пройден
-    fun getAndUseAnswersFromOnboardind() {
+    fun getAndUseAnswersFromOnboarding(forceUpdate: Boolean = false) {
 
         // Теперь мы вызываем опросник не только при первом запуске, но и если нажали кнопку "обновить поля"
         // Значит, мы можем находиться здесь и для обновления существующих полей. Узнаем, залогинен ли человек, чтобы знать, нужно ли сохранять данные на сервер или использовать их через Data store
         viewModelScope.launch(Dispatchers.IO) {
             val currentUser = getCurrentUserUC.execute().data
 
-            getAndUseUserNameAnswer()
-            getAndUseEmailAnswer()
-            getAndUseGenderAnswer()
-            getAndUseChildNameAnswer()
-            getAndUseIsItABoyAnswer()
-            getAndUseBirthDateAnswer()
-            getAndHobbyAnswer()
+            // ЗАГРУЖАЕМ ДАННЫЕ ИЗ DATASTORE СРАЗУ (синхронно)
+            loadDataFromDatastore()
+
+//            getAndUseUserNameAnswer()
+//            getAndUseEmailAnswer()
+//            getAndUseGenderAnswer()
+//            getAndUseChildNameAnswer()
+//            getAndUseIsItABoyAnswer()
+//            getAndUseBirthDateAnswer()
+//            getAndHobbyAnswer()
 
             if (currentUser != null) {
                 val updatedUser = createUserFromAnswers(currentUser.uid)
                 _profileUpdatedLiveData.postValue(updateProfileUC.execute(updatedUser))
             }
+        }
+    }
+
+    private suspend fun loadDataFromDatastore() {
+        try {
+            // Загружаем все данные параллельно для скорости
+            val userName = withContext(Dispatchers.IO) {
+                onboardingUC.getUserNameFlow().first()
+            }
+            val email = withContext(Dispatchers.IO) {
+                onboardingUC.getEmailFlow().first()
+            }
+            val gender = withContext(Dispatchers.IO) {
+                onboardingUC.getGenderFlow().first()
+            }
+            val childName = withContext(Dispatchers.IO) {
+                onboardingUC.getNameFlow().first()
+            }
+            val isItABoy = withContext(Dispatchers.IO) {
+                onboardingUC.getIsItABoyFlow().first()
+            }
+            val birthDate = withContext(Dispatchers.IO) {
+                onboardingUC.getBirthDateFlow().first()
+            }
+            val hobby = withContext(Dispatchers.IO) {
+                onboardingUC.getHobbyFlow().first()
+            }
+
+            // Обновляем LiveData на главном потоке
+            withContext(Dispatchers.Main) {
+                userName?.let { _userNameLiveData.value = it }
+                email?.let { _emailLiveData.value = it }
+                gender?.let { _genderLiveData.value = it }
+                childName?.let { _childNameLiveData.value = it }
+                isItABoy?.let { _isItABoyLiveData.value = it }
+                birthDate?.let { _childBirthDateLiveData.value = it }
+                hobby?.let { _hobbyLiveData.value = it }
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading data from DataStore", e)
+            _errorMessageLiveData.postValue(
+                MyEvent(
+                    Resource.error(
+                        CommonConstants.FAILED_TO_LOAD_LOCAL,
+                        ErrorType.FAILED_TO_LOAD_LOCAL_DATA
+                    )
+                )
+            )
         }
     }
 
@@ -431,173 +484,173 @@ class MainViewModel @Inject constructor(
         )
     }
 
-    private fun getAndUseUserNameAnswer() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                onboardingUC.getUserNameFlow()
-                    .take(1) // Берем только первое значение
-                    .collect { userName ->
-                    userName?.let {
-                        _userNameLiveData.postValue(it)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
-    }
-
-    private fun getAndUseEmailAnswer() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                onboardingUC.getEmailFlow()
-                    .take(1)
-                    .collect { email ->
-                    email?.let {
-                        _emailLiveData.postValue(it)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
-    }
-
-    private fun getAndUseGenderAnswer() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                onboardingUC.getGenderFlow()
-                    .take(1)
-                    .collect { gender ->
-                    gender?.let { notNullGender ->
-                        _genderLiveData.postValue(notNullGender)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
-    }
-
-    private fun getAndUseChildNameAnswer() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                onboardingUC.getNameFlow()
-                    .take(1)
-                    .collect { gender ->
-                    gender?.let { notNullGender ->
-                        _childNameLiveData.postValue(notNullGender)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
-    }
-
-    private fun getAndUseIsItABoyAnswer() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                onboardingUC.getIsItABoyFlow()
-                    .take(1)
-                    .collect { gender ->
-                    gender?.let { notNullGender ->
-                        _isItABoyLiveData.postValue(notNullGender)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
-    }
-
-    private fun getAndUseBirthDateAnswer() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                onboardingUC.getBirthDateFlow()
-                    .take(1)
-                    .collect { birthDate ->
-                    birthDate?.let {
-                        _childBirthDateLiveData.postValue(it)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
-    }
-
-    private fun getAndHobbyAnswer() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                onboardingUC.getHobbyFlow()
-                    .take(1)
-                    .collect { gender ->
-                    gender?.let { notNullGender ->
-                        _hobbyLiveData.postValue(notNullGender)
-                    }
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
-    }
+//    private fun getAndUseUserNameAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getUserNameFlow()
+//                    .take(1) // Берем только первое значение
+//                    .collect { userName ->
+//                        userName?.let {
+//                            _userNameLiveData.postValue(it)
+//                        }
+//                    }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    private fun getAndUseEmailAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getEmailFlow()
+//                    .take(1)
+//                    .collect { email ->
+//                        email?.let {
+//                            _emailLiveData.postValue(it)
+//                        }
+//                    }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    private fun getAndUseGenderAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getGenderFlow()
+//                    .take(1)
+//                    .collect { gender ->
+//                        gender?.let { notNullGender ->
+//                            _genderLiveData.postValue(notNullGender)
+//                        }
+//                    }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    private fun getAndUseChildNameAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getNameFlow()
+//                    .take(1)
+//                    .collect { gender ->
+//                        gender?.let { notNullGender ->
+//                            _childNameLiveData.postValue(notNullGender)
+//                        }
+//                    }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    private fun getAndUseIsItABoyAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getIsItABoyFlow()
+//                    .take(1)
+//                    .collect { gender ->
+//                        gender?.let { notNullGender ->
+//                            _isItABoyLiveData.postValue(notNullGender)
+//                        }
+//                    }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    private fun getAndUseBirthDateAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getBirthDateFlow()
+//                    .take(1)
+//                    .collect { birthDate ->
+//                        birthDate?.let {
+//                            _childBirthDateLiveData.postValue(it)
+//                        }
+//                    }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
+//
+//    private fun getAndHobbyAnswer() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                onboardingUC.getHobbyFlow()
+//                    .take(1)
+//                    .collect { gender ->
+//                        gender?.let { notNullGender ->
+//                            _hobbyLiveData.postValue(notNullGender)
+//                        }
+//                    }
+//            } catch (e: IOException) {
+//                e.printStackTrace()
+//                _errorMessageLiveData.postValue(
+//                    MyEvent(
+//                        Resource.error(
+//                            CommonConstants.FAILED_TO_LOAD_LOCAL,
+//                            null
+//                        )
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     private fun saveAnswer(questionName: String, answer: String) {
         _answers[questionName] = answer
@@ -610,6 +663,45 @@ class MainViewModel @Inject constructor(
     fun checkLoggedInStateGetUser() {
         viewModelScope.launch {
             _checkedUserInfo.value = getCurrentUserUC.execute()
+        }
+    }
+
+    fun clearUserDataOnLogout() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Очищаем статус онбординга при ВЫХОДЕ ИЗ АККАУНТА
+//                val recourseResult = onboardingUC.saveOnboardingState(false)
+//                if (recourseResult.status == Status.SUCCESS) {
+                onboardingUC.saveOnboardingState(false)
+
+                // Очищаем LiveData
+                withContext(Dispatchers.Main) {
+                    _userNameLiveData.postValue("")
+                    _emailLiveData.postValue("")
+                    _genderLiveData.postValue("")
+                    _isItABoyLiveData.postValue("")
+                    _childNameLiveData.postValue("")
+                    _childBirthDateLiveData.postValue("")
+                    _hobbyLiveData.postValue("")
+                }
+
+                // Очищаем временные ответы
+                _answers.clear()
+
+                // Очищаем проверенного пользователя
+                _checkedUserInfo.value = Resource.init(null)
+//                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing user data on logout", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Ошибка при очистке данных",
+                            ErrorType.FAILED_TO_CLEAR_DATA
+                        )
+                    )
+                )
+            }
         }
     }
 }

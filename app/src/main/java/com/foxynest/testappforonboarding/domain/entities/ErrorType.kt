@@ -29,6 +29,8 @@ enum class ErrorType(val stringRes: Int) {
     FAILED_TO_SAVE_CHILD_NAME_LOCAL(R.string.failed_to_save_child_name_local),
     FAILED_TO_SAVE_IS_IT_A_BOY_LOCAL(R.string.failed_to_save_is_it_a_boy_local),
     FAILED_TO_SAVE_BIRTH_DATE_LOCAL(R.string.failed_to_save_birth_date_local),
-    FAILED_TO_SAVE_CHILD_AGE_LOCAL(R.string.failed_to_save_child_age_local),
-    FAILED_TO_SAVE_HOBBY_LOCAL(R.string.failed_to_save_hobby_local)
+    FAILED_TO_SAVE_HOBBY_LOCAL(R.string.failed_to_save_hobby_local),
+    FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL(R.string.failed_to_save_onboarding_state_local),
+    FAILED_TO_CLEAR_DATA(R.string.failed_to_clear_data),
+    FAILED_TO_LOAD_LOCAL_DATA(R.string.failed_to_load_local_data),
 }

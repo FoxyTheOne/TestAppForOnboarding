@@ -74,8 +74,14 @@ class ProfileFragment : Fragment() {
         // ???? Но показывать их если поля user != user ? (через || , кроме uid) с подписью "Введенные данные отличаются от сохранённых на сервере, выберите действие:"
         // Не делала потому что при создании фрагмента профиля мы загружаем данные с сервера
 
-        initListeners()
+        // СНАЧАЛА подписываемся на observers
         subscribeOnObservers()
+
+        // ПОТОМ инициализируем listeners
+        initListeners()
+
+        // И принудительно проверяем текущие данные
+        checkCurrentData()
     }
 
     // Firebase будет держать user зарегистрированным даже после того, как он закроет программу и откроет заново. Поэтому нам нужно переписать метод onStart(), чтобы проверять, is user logged in in firebase or not
@@ -137,6 +143,12 @@ class ProfileFragment : Fragment() {
                     } else {
                         // Локальные данные
                         setupLocalObservers()
+                        // Принудительно обновляем из локальных данных
+                        val localUser = createUserFromLocalData()
+                        if (shouldShowLocalData(localUser)) {
+                            fillFieldsInProfile(localUser)
+                            showLogOutButtons(false)
+                        }
                     }
                 }
         }
@@ -156,7 +168,11 @@ class ProfileFragment : Fragment() {
                     } else {
                         // Пользователь не авторизован:
                         // 1. Показываем данные профиля в UI исходя из пройденного онбординга (data store)
-                        fillFieldsInProfile(createUserFromLocalData())
+//                        fillFieldsInProfile(createUserFromLocalData())
+                        val localUser = createUserFromLocalData()
+                        if (shouldShowLocalData(localUser)) {
+                            fillFieldsInProfile(localUser)
+                        }
                         // 2. Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data, убираем кнопки "log out" и "обновить поля"
                         showLogOutButtons(false)
                     }
@@ -175,9 +191,16 @@ class ProfileFragment : Fragment() {
                         val colorWhite = ContextCompat.getColor(it, R.color.white)
 
                         when (isEnabled) {
-                            true -> binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
-                            false -> binding?.buttonVerifyEmail?.setTextColor(colorWhite)
-                                ?: "#FFFFFFFF"
+                            false -> {
+                                binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
+                                binding?.textEmailNotVerified?.text = getString(R.string.profile_email_verification_send)
+                            }
+
+                            true -> {
+                                binding?.buttonVerifyEmail?.setTextColor(colorWhite)
+                                    ?: "#FFFFFFFF"
+                                binding?.textEmailNotVerified?.text = getString(R.string.profile_email_not_verified)
+                            }
                         }
                     }
                 }
@@ -224,6 +247,14 @@ class ProfileFragment : Fragment() {
                         Status.SUCCESS -> {
                             // Вышли из аккаунта, провряем состояние user и обновляем UI
                             mainViewModel.checkLoggedInStateGetUser()
+
+                            // Очистка данных (ВКЛЮЧАЯ сброс онбординга)
+                            mainViewModel.clearUserDataOnLogout()
+
+                            // И возвращаемся на WelcomeFragment
+                            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
+                                findNavController().navigate(R.id.action_navigation_profile_to_navigation_welcome2)
+                            }
                         }
 
                         Status.ERROR -> {
@@ -244,11 +275,11 @@ class ProfileFragment : Fragment() {
                 Status.SUCCESS -> {
                     Log.d(TAG, "Profile updated")
                     mainViewModel.checkLoggedInStateGetUser() // To automatically update our image view and our edit text
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.profile_toast_data_updated,
-                        Toast.LENGTH_SHORT
-                    ).show()
+//                    Toast.makeText(
+//                        requireContext(),
+//                        R.string.profile_toast_data_updated,
+//                        Toast.LENGTH_SHORT
+//                    ).show()
                     // Закрываем диалог если открыт
                     dataSaveErrorDialog?.dismiss()
                     dataSaveErrorDialog = null
@@ -303,6 +334,12 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun shouldShowLocalData(user: UserPresentation): Boolean {
+        return user.userName.isNotBlank() ||
+                user.email.isNotBlank() ||
+                user.childName.isNotBlank()
+    }
+
     private fun removeLocalObservers() {
         // Удаляем наблюдатель локальных полей
         localFieldsObserver?.let { observer ->
@@ -344,11 +381,27 @@ class ProfileFragment : Fragment() {
             false, // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
             mainViewModel.userNameLiveData.value ?: "",
             mainViewModel.genderLiveData.value ?: "",
-            mainViewModel.isItABoyLiveData.value ?: "",
+            mainViewModel.isItABoyLiveData.value ?: getString(R.string.no),
             mainViewModel.childNameLiveData.value ?: "",
             mainViewModel.hobbyLiveData.value ?: "",
             mainViewModel.childBirthDateLiveData.value ?: ""
         )
+    }
+
+    private fun checkCurrentData() {
+        // Проверяем, есть ли уже данные в LiveData
+        val currentUser = mainViewModel.checkedUserInfo.value?.data
+        if (currentUser != null) {
+            fillFieldsInProfile(currentUser)
+            showLogOutButtons(true)
+        } else {
+            // Если данных нет, создаем из локальных LiveData
+            val localUser = createUserFromLocalData()
+            if (localUser.userName.isNotBlank() || localUser.email.isNotBlank()) {
+                fillFieldsInProfile(localUser)
+                showLogOutButtons(false)
+            }
+        }
     }
 
     private fun fillFieldsInProfile(user: UserPresentation) {
@@ -363,7 +416,10 @@ class ProfileFragment : Fragment() {
             val age = calculateAgeFromBirthDate(user.childBirthDate)
             binding?.textChildAgeAnswer?.text = if (age > 0) age.toString() else ""
             // ФОРМАТИРУЕМ дату для красивого отображения
-            binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(user.childBirthDate, getString(R.string.localization))
+            binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(
+                user.childBirthDate,
+                getString(R.string.localization)
+            )
             binding?.textEmailAnswer?.text = user.email
 
             // Показываем/скрываем кнопку верификации в зависимости от статуса email
@@ -399,8 +455,13 @@ class ProfileFragment : Fragment() {
                 val age: Int = resultAge.data ?: 0
                 age
             }
-            Status.ERROR -> { 0 } // TODO toast?
-            else -> { 0 } // nothing
+
+            Status.ERROR -> {
+                0
+            } // TODO toast?
+            else -> {
+                0
+            } // nothing
         }
     }
 
@@ -476,6 +537,10 @@ class ProfileFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+
+        // При возвращении на фрагмент проверяем данные
+        checkCurrentData()
+
         // При возвращении на экран проверяем статус верификации
         profileViewModel.checkEmailVerificationStatus()
     }

@@ -1,8 +1,11 @@
 package com.foxynest.testappforonboarding.data.repository
 
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
+import com.foxynest.testappforonboarding.other.Resource
 import kotlinx.coroutines.flow.Flow
+import java.io.IOException
 import javax.inject.Inject
 
 /**
@@ -16,8 +19,14 @@ class OnboardingRepository @Inject constructor(
     private val appDatastorePreferences: IAppDatastorePreferences
 ) : IOnboardingRepository {
     // Onboarding state
-    override suspend fun saveOnboardingState(isCompleted: Boolean) =
-        appDatastorePreferences.saveOnboardingState(isCompleted)
+    override suspend fun saveOnboardingState(isCompleted: Boolean) : Resource<ErrorType>{
+        return try {
+            appDatastorePreferences.saveOnboardingState(isCompleted)
+            Resource.success(null)
+        } catch (e: IOException){
+            Resource.error("Ошибка при сохранении статуса онбординга", ErrorType.FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL)
+        }
+    }
 
     override fun isOnboardingCompleted(): Flow<Boolean> =
         appDatastorePreferences.isOnboardingCompleted()

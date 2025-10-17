@@ -1,9 +1,11 @@
 package com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases
 
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.other.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface IOnboardingUC {
-    suspend fun saveOnboardingState(isCompleted: Boolean)
+    suspend fun saveOnboardingState(isCompleted: Boolean): Resource<ErrorType>
     fun isOnboardingCompleted(): Flow<Boolean>
 
     suspend fun saveUserName(userName: String)

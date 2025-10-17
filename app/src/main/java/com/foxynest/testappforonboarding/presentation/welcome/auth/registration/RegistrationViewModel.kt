@@ -12,6 +12,7 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateRepeatedPasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterUC
 import com.foxynest.testappforonboarding.other.Resource
+import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -116,8 +117,18 @@ class RegistrationViewModel @Inject constructor(
         viewModelScope.launch {
             _registrationStateFlow.value = Resource.loading(null)
 
-            _registrationStateFlow.value =
-                registerUC.execute(currentState.email, currentState.password, user)
+            val result = registerUC.execute(currentState.email, currentState.password, user)
+            _registrationStateFlow.value = result
+
+            // ДОБАВЛЯЕМ: Обновляем состояние формы при ошибке
+            if (result.status == Status.ERROR) {
+                // Определяем какое поле нужно подсветить ошибкой
+                _state.value = _state.value.copy(
+                    emailError = result.data.toErrorMessage(resources),
+                    passwordError = result.data.toErrorMessage(resources),
+                    repeatedPasswordError = result.data.toErrorMessage(resources)
+                )
+            }
         }
     }
 }

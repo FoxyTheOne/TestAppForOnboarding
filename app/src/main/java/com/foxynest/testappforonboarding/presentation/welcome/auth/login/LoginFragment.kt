@@ -21,6 +21,7 @@ import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
@@ -56,6 +57,7 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
 
         initListeners()
         observeViewModel()
+        subscribeOnObservers()
     }
 
     private fun initListeners() {
@@ -99,7 +101,9 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
                 }
             }
         }
+    }
 
+    private fun subscribeOnObservers() {
         // Наблюдаем за событиями входа в аккаунт
         viewLifecycleOwner.lifecycleScope.launch {
             loginViewModel.loginStateFlow.onEach { resource ->
@@ -117,7 +121,7 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
 
                         // Переходим в профиль
                         if (findNavController().currentDestination?.id == R.id.navigation_login) {
-                            findNavController().navigate(R.id.action_registerFragment_to_navigation_profile)
+                            findNavController().navigate(R.id.action_loginFragment_to_navigation_profile)
                         }
                     }
 
@@ -130,7 +134,7 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
                         Log.d(TAG, "resource.status = ${resource.status} ")
                     }
                 }
-            }
+            }.collect()
         }
     }
 

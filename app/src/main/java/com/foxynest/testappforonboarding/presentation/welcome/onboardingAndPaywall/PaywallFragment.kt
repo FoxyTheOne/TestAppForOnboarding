@@ -56,8 +56,8 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
         paywallViewModel.saveOnboardingState(true)
         showProgressBarAnimationBeforeShowingContent()
 
-        // Подтягиваем ответы из пройденного только что опросника. В дальнейшем метод будет вызываться в activity при запуске программы
-        mainViewModel.getAndUseAnswersFromOnboardind()
+        // Подтягиваем ответы из пройденного только что опросника. ПРИНУДИТЕЛЬНО обновляем Firebase после онбординга. В дальнейшем метод будет вызываться в activity при запуске программы
+        mainViewModel.getAndUseAnswersFromOnboarding(forceUpdate = true)
 
         initListeners()
         subscribeOnLiveData()

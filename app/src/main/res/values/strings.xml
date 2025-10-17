@@ -95,7 +95,7 @@
 
     <!-- Для сообщений об ошибке и проч (ErrorType). Вы можете вставлять другие переменные или форматированный текст в строку, используя символ %s для строк или %d для чисел, а также передавая дополнительные аргументы в метод getString() -->
     <string name="email_empty_error">Почта не может быть пустой</string>
-    <string name="email_format_error">Не верная почта</string>
+    <string name="email_format_error">Не верный формат почты</string>
     <string name="email_length_error">В пароле должно быть минимум %d символов</string>
     <string name="email_already_registered_error">Указанный email уже зарегистрирован</string>
     <string name="password_empty_error">Пароль не может быть пустой</string>
@@ -122,8 +122,10 @@
     <string name="failed_to_save_child_name_local">Не удалось сохранить имя ребенка на вашем телефоне</string>
     <string name="failed_to_save_is_it_a_boy_local">Не удалось сохранить is it a boy на вашем телефоне</string>
     <string name="failed_to_save_birth_date_local">Не удалось сохранить день рождения ребенка на вашем телефоне</string>
-    <string name="failed_to_save_child_age_local">Не удалось сохранить возраст ребенка на вашем телефоне</string>
     <string name="failed_to_save_hobby_local">Не удалось сохранить хобби на вашем телефоне</string>
+    <string name="failed_to_save_onboarding_state_local">Не удалось сохранить статус онбординга вашем телефоне</string>
+    <string name="failed_to_clear_data">Ошибка при очистке данных</string>
+    <string name="failed_to_load_local_data">Не удалось загрузить данные свашего телефона</string>
 
     <!-- Dialogs -->
     <string name="data_save_error_title">Ошибка сохранения</string>

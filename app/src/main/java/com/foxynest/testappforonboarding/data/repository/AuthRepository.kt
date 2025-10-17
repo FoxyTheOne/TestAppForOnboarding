@@ -23,8 +23,7 @@ class AuthRepository @Inject constructor(
         email: String,
         password: String,
         user: UserPresentation
-    ): Resource<ErrorType>
-    {
+    ): Resource<ErrorType> {
         val result = firebaseAuthDataSource.register(email, password, user)
         return when (result.status) {
             Status.SUCCESS -> Resource.success(null)
@@ -61,8 +60,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    override suspend fun login(email: String, password: String): Resource<ErrorType>
-    {
+    override suspend fun login(email: String, password: String): Resource<ErrorType> {
         val result = firebaseAuthDataSource.login(email, password)
         return when (result.status) {
             Status.SUCCESS -> Resource.success(null)
@@ -72,27 +70,30 @@ class AuthRepository @Inject constructor(
                 var errorType: ErrorType? = null
                 when {
                     result.message?.contains("invalid-credential") == true -> {
-                        userFriendlyMessage = "Invalid email or password"
+                        userFriendlyMessage = "Неверный email или пароль"
                         errorType = ErrorType.AUTH_DATA_ERROR
                     }
 
                     result.message?.contains("user-not-found") == true -> {
-                        userFriendlyMessage = "Invalid email or password"
+                        userFriendlyMessage = "Пользователь с таким email не найден"
                         errorType = ErrorType.AUTH_DATA_ERROR
                     }
 
                     result.message?.contains("wrong-password") == true -> {
-                        userFriendlyMessage = "Invalid email or password"
+                        userFriendlyMessage = "Неверный пароль"
                         errorType = ErrorType.AUTH_DATA_ERROR
                     }
 
                     result.message?.contains("too-many-requests") == true -> {
-                        userFriendlyMessage = "Too many attempts. Try again later"
+                        userFriendlyMessage = "Слишком много попыток. Попробуйте позже"
                         errorType = ErrorType.TOO_MANY_ATTEMPTS_ERROR
                     }
-
+                    result.message?.contains("network") == true -> {
+                        userFriendlyMessage = "Проблемы с интернет-соединением"
+                        errorType = ErrorType.INTERNET_ERROR
+                    }
                     else -> {
-                        userFriendlyMessage = result.message ?: "Login failed"
+                        userFriendlyMessage = result.message ?: "Ошибка входа"
                         errorType = ErrorType.LOGIN_FAILED_ERROR
                     }
                 }

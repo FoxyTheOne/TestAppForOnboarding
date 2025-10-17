@@ -30,7 +30,7 @@ class PaywallViewModel @Inject constructor(
     fun saveOnboardingState(onboardingState: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                //
+                // Сохраняет статус онбординга, как пройденный
                 onboardingInteractor.saveOnboardingState(onboardingState)
             } catch (e: IOException) {
                 e.printStackTrace()

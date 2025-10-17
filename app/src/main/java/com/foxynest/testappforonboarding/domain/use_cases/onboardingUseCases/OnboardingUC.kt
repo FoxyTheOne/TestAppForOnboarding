@@ -1,6 +1,8 @@
 package com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases
 
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
+import com.foxynest.testappforonboarding.other.Resource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -15,7 +17,7 @@ class OnboardingUC @Inject constructor(
     private val onboardingRepository: IOnboardingRepository
 ) : IOnboardingUC {
     // Onboarding state
-    override suspend fun saveOnboardingState(isCompleted: Boolean) =
+    override suspend fun saveOnboardingState(isCompleted: Boolean) : Resource<ErrorType> =
         onboardingRepository.saveOnboardingState(isCompleted)
 
     override fun isOnboardingCompleted(): Flow<Boolean> =

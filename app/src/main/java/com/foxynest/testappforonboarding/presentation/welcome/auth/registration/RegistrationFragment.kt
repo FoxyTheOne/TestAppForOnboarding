@@ -23,6 +23,7 @@ import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
@@ -75,6 +76,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
 
         initListeners()
         observeViewModel()
+        subscribeOnObservers()
     }
 
     // Bundle
@@ -117,7 +119,9 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
                 }
             }
         }
+    }
 
+    private fun subscribeOnObservers() {
         // Наблюдаем за событиями регистрации
         viewLifecycleOwner.lifecycleScope.launch {
             registrationViewModel.registrationStateFlow.onEach { resource ->
@@ -149,7 +153,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
                         Log.d(TAG, "resource.status = ${resource.status} ")
                     }
                 }
-            }
+            }.collect()
         }
     }
 

@@ -21,6 +21,7 @@ import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
 import com.foxynest.testappforonboarding.other.extensions.calculateAge
 import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
+import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
@@ -99,7 +100,8 @@ class ProfileFragment : Fragment() {
 
         binding?.buttonRegisterAndLogin?.setOnClickListener {
             // Открываем по клику другой фрагмент, передаём туда user
-            val user = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
+            val user =
+                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
 
             val direction =
                 ProfileFragmentDirections.actionNavigationProfileToRegisterFragment(user)
@@ -132,11 +134,14 @@ class ProfileFragment : Fragment() {
                         // Локальные данные
                         setupLocalObservers()
                         // Принудительно обновляем из локальных данных
-                        val localUser = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
-                        if (shouldShowLocalData(localUser)) {
+                        val localUser =
+                            mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+                                activity
+                            )
+                        if (localUser.isUserDataValid()) {
                             fillFieldsInProfile(localUser)
-                            showLogOutButtons(false)
                         }
+                        showLogOutButtons(false)
                     }
                 }
         }
@@ -157,8 +162,11 @@ class ProfileFragment : Fragment() {
                         // Пользователь не авторизован:
                         // 1. Показываем данные профиля в UI исходя из пройденного онбординга (data store)
 //                        fillFieldsInProfile(createUserFromLocalData())
-                        val localUser = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
-                        if (shouldShowLocalData(localUser)) {
+                        val localUser =
+                            mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+                                activity
+                            )
+                        if (localUser.isUserDataValid()) {
                             fillFieldsInProfile(localUser)
                         }
                         // 2. Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data, убираем кнопки "log out" и "обновить поля"
@@ -242,7 +250,10 @@ class ProfileFragment : Fragment() {
                             mainViewModel.clearUserDataOnLogout()
 
                             // И возвращаемся на WelcomeFragment
-                            safeNavigate(R.id.navigation_profile, R.id.action_navigation_profile_to_navigation_welcome2)
+                            safeNavigate(
+                                R.id.navigation_profile,
+                                R.id.action_navigation_profile_to_navigation_welcome2
+                            )
                         }
 
                         Status.ERROR -> {
@@ -322,11 +333,11 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun shouldShowLocalData(user: UserPresentation): Boolean {
-        return user.userName.isNotBlank() ||
-                user.email.isNotBlank() ||
-                user.childName.isNotBlank()
-    }
+//    private fun shouldShowLocalData(user: UserPresentation): Boolean {
+//        return user.userName.isNotBlank() ||
+//                user.email.isNotBlank() ||
+//                user.childName.isNotBlank()
+//    }
 
     private fun removeLocalObservers() {
         // Удаляем наблюдатель локальных полей
@@ -341,7 +352,11 @@ class ProfileFragment : Fragment() {
         removeLocalObservers()
 
         localFieldsObserver = Observer<Any> {
-            fillFieldsInProfile(mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity))
+            fillFieldsInProfile(
+                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+                    activity
+                )
+            )
             showLogOutButtons(false)
         }
 
@@ -357,11 +372,12 @@ class ProfileFragment : Fragment() {
             showLogOutButtons(true)
         } else {
             // Если данных нет, создаем из локальных LiveData
-            val localUser = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
-            if (localUser.userName.isNotBlank() || localUser.email.isNotBlank()) {
+            val localUser =
+                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
+            if (localUser.isUserDataValid()) {
                 fillFieldsInProfile(localUser)
-                showLogOutButtons(false)
             }
+            showLogOutButtons(false)
         }
     }
 
@@ -381,13 +397,13 @@ class ProfileFragment : Fragment() {
                 user.childBirthDate,
                 getString(R.string.localization)
             )
-            binding?.textEmailAnswer?.text = user.email
+            // Email для профиля (изменяемый)
+            binding?.textDisplayEmailAnswer?.text = user.displayEmail
+            // Email для входа (НЕ изменяемый)
+            binding?.textAuthEmailAnswer?.text = user.authEmail
 
             // Показываем/скрываем кнопку верификации в зависимости от статуса email
-            if (user.email.isEmpty()
-                || user.email.isBlank()
-                || !user.isEmailVerified
-            ) {
+            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
                 binding?.buttonVerifyEmail?.visibility = View.VISIBLE
                 binding?.textEmailNotVerified?.visibility = View.VISIBLE
             } else {

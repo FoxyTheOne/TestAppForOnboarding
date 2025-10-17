@@ -138,9 +138,49 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    // Email
     override suspend fun sendEmailVerification(): Resource<ErrorType> =
         firebaseAuthDataSource.sendEmailVerification()
 
     override suspend fun checkEmailVerified(): Boolean =
         firebaseAuthDataSource.checkEmailVerified()
+
+//    override suspend fun updateEmail(newEmail: String, password: String): Resource<ErrorType> {
+//        return try {
+//            val currentUser = firebaseAuthDataSource.getCurrentUser().data
+//                ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
+//
+//            // 1. Реаутентификация (требуется для смены email в Firebase)
+//            val credential = EmailAuthProvider.getCredential(currentUser.email ?: "", password)
+//            currentUser.reauthenticate(credential).await()
+//
+//            // 2. Обновление email в Firebase Auth
+//            currentUser.updateEmail(newEmail).await()
+//
+//            // 3. Обновление email в Firestore
+//            val userData = mapOf(
+//                UserFirestoreFields.EMAIL to newEmail.lowercase().trim()
+//            )
+//            firestore.collection(USERS_COLLECTION)
+//                .document(currentUser.uid)
+//                .update(userData)
+//                .await()
+//
+//            // 4. Отправка верификации для нового email
+//            currentUser.sendEmailVerification().await()
+//
+//            Resource.success(null)
+//        } catch (e: Exception) {
+//            when (e) {
+//                is FirebaseAuthInvalidCredentialsException ->
+//                    Resource.error("Invalid password", ErrorType.AUTH_DATA_ERROR)
+//                is FirebaseAuthInvalidUserException ->
+//                    Resource.error("User not found", ErrorType.AUTH_DATA_ERROR)
+//                is FirebaseAuthWeakPasswordException ->
+//                    Resource.error("Weak password", ErrorType.PASSWORD_TOO_WEAK_ERROR)
+//                else ->
+//                    Resource.error(e.message ?: "Failed to update email", ErrorType.DATA_NOT_SAVED_ERROR)
+//            }
+//        }
+//    }
 }

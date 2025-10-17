@@ -39,23 +39,23 @@ class FirebaseAuthDataSource @Inject constructor(
     // await() - это часть библиотеки kotlinx-coroutines-play-services, которая предоставляет suspend-функции для Firebase операций
     // Код с await() более читаемый и легче поддерживается. Позволяет избежать "callback hell" (вложенных колбэков). Лучше интегрируется с архитектурой приложения на корутинах
     suspend fun register(
-        email: String,
+        authEmail: String,
         password: String,
         user: UserPresentation
     ): Resource<ErrorType> {
         return try {
-            val emailLowerCase = email.lowercase().trim()
-            val result = auth.createUserWithEmailAndPassword(emailLowerCase, password).await()
+            val authEmailLowerCase = authEmail.lowercase().trim()
+            val result = auth.createUserWithEmailAndPassword(authEmailLowerCase, password).await()
 
             // Создаем документ пользователя в Firestore; uid создаётся автоматически, верификацтю почты тоже настраивать будем позже
             result.user?.let { nonNullFirebaseUser ->
-                val userEmailLowerCase = nonNullFirebaseUser.email?.lowercase()?.trim() ?: ""
+//                val userEmailLowerCase = nonNullFirebaseUser.email?.lowercase()?.trim() ?: ""
 
                 val userData = user.toFirestoreMapWithCreationTimestamp()
                     .toMutableMap()
-                    .apply {
-                        put(UserFirestoreFields.EMAIL, userEmailLowerCase)
-                    }
+//                    .apply {
+//                        put(UserFirestoreFields.EMAIL, userEmailLowerCase)
+//                    }
 
                 firestore
                     .collection(USERS_COLLECTION)
@@ -141,7 +141,7 @@ class FirebaseAuthDataSource @Inject constructor(
                     Resource.error(
                         e.message ?: "Current user failure", UserPresentation(
                             uid = firebaseUser.uid,
-                            email = firebaseUser.email ?: "",
+                            authEmail = firebaseUser.email ?: "",
                             isEmailVerified = firebaseUser.isEmailVerified,
                             userName = firebaseUser.displayName ?: ""
                         )

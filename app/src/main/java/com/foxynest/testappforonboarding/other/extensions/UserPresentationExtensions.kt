@@ -1,6 +1,5 @@
 package com.foxynest.testappforonboarding.other.extensions
 
-import android.app.Activity
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
 import com.foxynest.testappforonboarding.R
@@ -13,31 +12,42 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 
 // Extension функции для UserPresentation
-fun FirebaseUser.toUserPresentation(
-    firebaseUid: String,
-    firebaseEmail: String,
-    firebaseIsEmailVerified: Boolean,
-    firebaseUserName: String,
-    firebaseChildGender: String,
-    firebaseIsItABoy: String,
-    firebaseChildName: String,
-    firebaseChildHobby: String,
-    firebaseChildBirthDate: String
-): UserPresentation = UserPresentation(
-    firebaseUid,
-    firebaseEmail,
-    firebaseIsEmailVerified,
-    firebaseUserName,
-    firebaseChildGender,
-    firebaseChildName,
-    firebaseChildHobby,
-    firebaseIsItABoy,
-    firebaseChildBirthDate
-)
+//fun FirebaseUser.toUserPresentation(
+//    firebaseUid: String,
+//    firebaseEmail: String,
+//    firebaseIsEmailVerified: Boolean,
+//    firebaseUserName: String,
+//    firebaseChildGender: String,
+//    firebaseIsItABoy: String,
+//    firebaseChildName: String,
+//    firebaseChildHobby: String,
+//    firebaseChildBirthDate: String
+//): UserPresentation = UserPresentation(
+//    firebaseUid,
+//    firebaseEmail,
+//    firebaseIsEmailVerified,
+//    firebaseUserName,
+//    firebaseChildGender,
+//    firebaseChildName,
+//    firebaseChildHobby,
+//    firebaseIsItABoy,
+//    firebaseChildBirthDate
+//)
 
+//fun UserPresentation.toFirestoreMap(): Map<String, Any> {
+//    return mapOf(
+//        UserFirestoreFields.EMAIL to this.email.lowercase().trim(),
+//        UserFirestoreFields.USERNAME to this.userName,
+//        UserFirestoreFields.CHILD_GENDER to this.childGender,
+//        UserFirestoreFields.CHILD_IS_IT_A_BOY to this.isItABoy,
+//        UserFirestoreFields.CHILD_NAME to this.childName,
+//        UserFirestoreFields.CHILD_HOBBY to this.childHobby,
+//        UserFirestoreFields.CHILD_BIRTH_DATE to this.childBirthDate
+//    )
+//}
 fun UserPresentation.toFirestoreMap(): Map<String, Any> {
     return mapOf(
-        UserFirestoreFields.EMAIL to this.email.lowercase().trim(),
+        UserFirestoreFields.DISPLAY_EMAIL to this.displayEmail, // ⚠️ Только display email!
         UserFirestoreFields.USERNAME to this.userName,
         UserFirestoreFields.CHILD_GENDER to this.childGender,
         UserFirestoreFields.CHILD_IS_IT_A_BOY to this.isItABoy,
@@ -60,11 +70,25 @@ fun UserPresentation.toFirestoreMapWithCreationTimestamp(): Map<String, Any> {
 }
 
 // Extension функция для DocumentSnapshot
+//fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresentation {
+//    return UserPresentation(
+//        uid = firebaseUser.uid,
+//        email = getString(UserFirestoreFields.EMAIL) ?: firebaseUser.email ?: "",
+//        isEmailVerified = firebaseUser.isEmailVerified,
+//        userName = getString(UserFirestoreFields.USERNAME) ?: "",
+//        childGender = getString(UserFirestoreFields.CHILD_GENDER) ?: "",
+//        isItABoy = getString(UserFirestoreFields.CHILD_IS_IT_A_BOY) ?: "",
+//        childName = getString(UserFirestoreFields.CHILD_NAME) ?: "",
+//        childHobby = getString(UserFirestoreFields.CHILD_HOBBY) ?: "",
+//        childBirthDate = getString(UserFirestoreFields.CHILD_BIRTH_DATE) ?: ""
+//    )
+//}
 fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresentation {
     return UserPresentation(
         uid = firebaseUser.uid,
-        email = getString(UserFirestoreFields.EMAIL) ?: firebaseUser.email ?: "",
-        isEmailVerified = firebaseUser.isEmailVerified,
+        authEmail = firebaseUser.email ?: "", // Email для входа
+        isEmailVerified = firebaseUser.isEmailVerified, // Верификация для входа
+        displayEmail = getString(UserFirestoreFields.DISPLAY_EMAIL) ?: "", // Email для профиля
         userName = getString(UserFirestoreFields.USERNAME) ?: "",
         childGender = getString(UserFirestoreFields.CHILD_GENDER) ?: "",
         isItABoy = getString(UserFirestoreFields.CHILD_IS_IT_A_BOY) ?: "",
@@ -74,15 +98,16 @@ fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresent
     )
 }
 
-fun UserPresentation.isValidToSaveToFirebase(): Boolean =
+fun UserPresentation.isUserDataValid(): Boolean =
     this.userName.isNotBlank() && this.childName.isNotBlank() && this.childHobby.isNotBlank() && this.childBirthDate.isNotBlank()
 
 fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: FragmentActivity?): UserPresentation {
     // Только для передачи данных для регистрации! Не для передачи в firebase
     return UserPresentation(
         "",
-        this.value?.email ?: "",
+        "",
         false, // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
+        this.value?.displayEmail ?: "",
         this.value?.userName ?: "",
         this.value?.childGender ?: "",
         this.value?.isItABoy ?: activity?.getString(R.string.no) ?: "",
@@ -93,11 +118,12 @@ fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: Frag
 }
 
 // Для answers: Map<String, String> в MainViewModel
-fun Map<String, String>.createUserFromAnswersInViewModel(currentUserUid: String): UserPresentation {
+fun Map<String, String>.createUpdatedUserFromAnswersInViewModel(currentUser: UserPresentation): UserPresentation {
     return UserPresentation(
-        uid = currentUserUid,
-        email = this[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
+        uid = currentUser.uid,
+        authEmail = currentUser.authEmail,
         isEmailVerified = this[AnswerNames.IS_EMAIL_VERIFIED_ANSWER.toString()].toBoolean(),
+        displayEmail = this[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
         userName = this[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
         childGender = this[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
         isItABoy = this[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",

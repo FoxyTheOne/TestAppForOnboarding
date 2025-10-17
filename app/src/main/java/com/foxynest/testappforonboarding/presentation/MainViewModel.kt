@@ -6,20 +6,21 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.di.DispatcherIO
-import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IUpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateProfileUC
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
-import com.foxynest.testappforonboarding.other.extensions.createUserFromAnswersInViewModel
-import com.foxynest.testappforonboarding.other.extensions.isValidToSaveToFirebase
+import com.foxynest.testappforonboarding.other.extensions.createUpdatedUserFromAnswersInViewModel
+import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +42,7 @@ class MainViewModel @Inject constructor(
     private val updateProfileUC: IUpdateProfileUC,
     private val getCurrentUserUC: IGetCurrentUserUC,
     private val getAuthStateFlowUC: IGetAuthStateFlowUC,
+    private val loginValidateEmailUC: ILoginValidateEmailUC,
     @DispatcherIO private val dispatcher: CoroutineDispatcher = Dispatchers.IO // TODO расставить dispatcher или удалить тесты
 ) : ViewModel() {
     companion object {
@@ -70,7 +72,7 @@ class MainViewModel @Inject constructor(
             firebaseUser?.let {
                 UserPresentation(
                     uid = firebaseUser.uid,
-                    email = firebaseUser.email ?: "",
+                    authEmail = firebaseUser.email ?: "",
                     isEmailVerified = firebaseUser.isEmailVerified,
                     userName = firebaseUser.displayName ?: ""
                 )
@@ -166,7 +168,7 @@ class MainViewModel @Inject constructor(
                 onboardingUC.saveOnboardingState(false)
 
                 val answers = OnboardingAnswers(
-                    email = "",
+                    displayEmail = "",
                     userName = "",
                     childGender = "",
                     isItABoy = "",
@@ -218,7 +220,7 @@ class MainViewModel @Inject constructor(
             AnswerNames.EMAIL_ANSWER,
             ErrorType.FAILED_TO_SAVE_EMAIL_LOCAL
         )
-        updateOnboardingAnswers { it.copy(email = emailAnswer.trim()) }
+        updateOnboardingAnswers { it.copy(displayEmail = emailAnswer.trim()) }
     }
 
     fun saveGenderAnswer(genderAnswer: String) {
@@ -279,7 +281,7 @@ class MainViewModel @Inject constructor(
             val currentUser = getCurrentUserUC.execute().data
             if (currentUser != null) {
                 // Повторно собираем данные для сохранения
-                val updatedUser = answers.createUserFromAnswersInViewModel(currentUser.uid)
+                val updatedUser = answers.createUpdatedUserFromAnswersInViewModel(currentUser)
                 val result = updateProfileUC.execute(updatedUser)
 
                 // Отправляем результат в отдельный LiveData для повторных попыток
@@ -308,10 +310,10 @@ class MainViewModel @Inject constructor(
             // Сохранение в firebase только если осуществлён ли вход, чтобы обновить поля
             if (currentUser != null) {
                 // Создаём UserPresentation на основе пройденного опроса
-                val updatedUser = answers.createUserFromAnswersInViewModel(currentUser.uid)
+                val updatedUser = answers.createUpdatedUserFromAnswersInViewModel(currentUser)
 
                 // Проверяем, что данные не пустые перед сохранением в Firebase
-                val hasDataToSave = updatedUser.isValidToSaveToFirebase()
+                val hasDataToSave = updatedUser.isUserDataValid()
 
                 if (hasDataToSave) {
                     // Если всё хорошо - сохранение данных в firestore и в _profileUpdatedLiveData
@@ -319,6 +321,26 @@ class MainViewModel @Inject constructor(
                 } else {
                     Log.w(TAG, "No data to save to Firebase - skipping update")
                 }
+            }
+        }
+    }
+
+    // OTHER
+    fun updateDisplayEmail(newDisplayEmail: String) {
+        viewModelScope.launch {
+            val validationResult  = loginValidateEmailUC.execute(newDisplayEmail)
+            when (validationResult.successful) {
+                true -> {
+                    // Получить текущего пользователя
+                    val currentUser = getCurrentUserUC.execute().data
+                    if (currentUser != null) {
+                        // Обновляем только display email
+                        val updatedUser = currentUser.copy(displayEmail = newDisplayEmail)
+                        // Используем существующий updateProfileUC
+                        _profileUpdatedLiveData.value = updateProfileUC.execute(updatedUser)
+                    }
+                }
+                false -> {}// TODO Показать ошибку
             }
         }
     }
@@ -378,7 +400,7 @@ class MainViewModel @Inject constructor(
             val childHobby = onboardingUC.getHobbyFlow().first() ?: ""
 
             val answers = OnboardingAnswers(
-                email = email,
+                displayEmail = email,
                 userName = userName,
                 childGender = childGender,
                 isItABoy = isItABoy,

@@ -1,7 +1,5 @@
 package com.foxynest.testappforonboarding.di
 
-import android.content.Context
-import android.content.res.Resources
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.AppDatastorePreferences
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
@@ -16,17 +14,18 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGe
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IUpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateProfileUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LogoutUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.UpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateProfileUC
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -92,4 +91,9 @@ abstract class SingletonModule {
     abstract fun bindsUpdateProfileInteractor(
         updateProfileInteractor: UpdateProfileUC
     ): IUpdateProfileUC
+
+    @Binds
+    abstract fun bindsUpdateEmailUCInteractor(
+        updateEmailUC: UpdateEmailUC
+    ): IUpdateEmailUC
 }

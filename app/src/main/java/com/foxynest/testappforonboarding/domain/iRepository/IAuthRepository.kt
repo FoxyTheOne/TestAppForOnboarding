@@ -13,6 +13,8 @@ interface IAuthRepository {
     suspend fun getCurrentUser(): Resource<UserPresentation?>
     fun getAuthState(): Flow<FirebaseUser?>
     suspend fun updateProfile(user: UserPresentation): Resource<ErrorType>
+    // Email
     suspend fun sendEmailVerification(): Resource<ErrorType>
     suspend fun checkEmailVerified(): Boolean
+//    suspend fun updateEmail(newEmail: String, password: String): Resource<ErrorType>
 }

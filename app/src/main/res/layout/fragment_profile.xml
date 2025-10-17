@@ -204,25 +204,78 @@
             android:layout_marginStart="@dimen/space_32"
             android:layout_marginBottom="@dimen/space_32"
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_email_title"
+            app:layout_constraintBottom_toTopOf="@+id/text_display_email_title"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
             app:layout_constraintTop_toBottomOf="@+id/text_birth_date_title" />
 
         <TextView
-            android:id="@+id/text_email_title"
+            android:id="@+id/text_display_email_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
-            android:text="@string/profile_title_email"
+            android:text="@string/profile_title_display_email"
             android:textSize="20sp"
-            app:layout_constraintBottom_toTopOf="@+id/linear_email_answer"
+            app:layout_constraintBottom_toTopOf="@+id/linear_display_email_answer"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
             app:layout_constraintTop_toBottomOf="@+id/text_birth_date_answer" />
 
         <LinearLayout
-            android:id="@+id/linear_email_answer"
+            android:id="@+id/linear_display_email_answer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_beforeOrAfterElement"
+            android:layout_marginEnd="@dimen/space_beforeOrAfterElement"
+            android:layout_marginBottom="@dimen/space_32"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:textSize="16sp"
+            android:weightSum="2"
+            app:layout_constraintBottom_toTopOf="@+id/text_auth_email_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_display_email_title">
+
+            <TextView
+                android:id="@+id/text_display_email_answer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:textColor="@color/purple_200" />
+
+            <Button
+                android:id="@+id/button_change_display_email"
+                style="@style/Widget.AppCompat.ActionButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/button_rounded_corners"
+                android:paddingStart="@dimen/space_32"
+                android:paddingEnd="@dimen/space_32"
+                android:text="@string/profile_change_email"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/button_text"
+                android:textStyle="bold"
+                app:backgroundTint="@null" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/text_auth_email_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_beforeOrAfterElement"
+            android:text="@string/profile_title_auth_email"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@+id/linear_auth_email_answer"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintStart_toStartOf="@+id/guideline_left"
+            app:layout_constraintTop_toBottomOf="@+id/linear_display_email_answer" />
+
+        <LinearLayout
+            android:id="@+id/linear_auth_email_answer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/space_beforeOrAfterElement"
@@ -235,10 +288,10 @@
             app:layout_constraintBottom_toTopOf="@+id/linear_email_verification"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_email_title">
+            app:layout_constraintTop_toBottomOf="@+id/text_auth_email_title">
 
             <TextView
-                android:id="@+id/text_email_answer"
+                android:id="@+id/text_auth_email_answer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -246,7 +299,7 @@
                 android:textColor="@color/purple_200" />
 
             <Button
-                android:id="@+id/button_change_email"
+                android:id="@+id/button_change_auth_email"
                 style="@style/Widget.AppCompat.ActionButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -276,7 +329,7 @@
             app:layout_constraintBottom_toTopOf="@+id/button_save_fields_to_server"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linear_email_answer">
+            app:layout_constraintTop_toBottomOf="@+id/linear_auth_email_answer">
 
             <TextView
                 android:id="@+id/text_email_not_verified"

@@ -1,10 +1,10 @@
-package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
+package com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases
 
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
-import com.foxynest.testappforonboarding.other.extensions.isValidToSaveToFirebase
+import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import javax.inject.Inject
 
 /**
@@ -23,7 +23,7 @@ class UpdateProfileUC @Inject constructor(
     private val authRepository: AuthRepository
 ) : IUpdateProfileUC {
     override suspend fun execute(user: UserPresentation): Resource<ErrorType> {
-        return if (user.isValidToSaveToFirebase()) {
+        return if (user.isUserDataValid()) {
             authRepository.updateProfile(user)
         } else {
             Resource.error(

@@ -3,15 +3,14 @@ package com.foxynest.testappforonboarding.presentation.profile
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
-import com.foxynest.testappforonboarding.presentation.profile.ProfileFragment.Companion
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +24,7 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val sendEmailVerificationUC: ISendEmailVerificationUC,
     private val checkEmailVerifiedUC: ICheckEmailVerifiedUC,
-    private val logoutUC: ILogoutUC
+    private val logoutUC: ILogoutUC,
 ) : ViewModel() {
     companion object {
         private const val TAG = "ProfileViewModel"

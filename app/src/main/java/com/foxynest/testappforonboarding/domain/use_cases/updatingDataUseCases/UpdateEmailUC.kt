@@ -1,0 +1,14 @@
+package com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases
+
+import com.foxynest.testappforonboarding.data.repository.AuthRepository
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.other.Resource
+import javax.inject.Inject
+
+class UpdateEmailUC @Inject constructor(
+    private val authRepository: AuthRepository
+) : IUpdateEmailUC {
+//    override suspend fun execute(newEmail: String, password: String): Resource<ErrorType> {
+//        return authRepository.updateEmail(newEmail, password)
+//    }
+}

@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
+package com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases
 
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation

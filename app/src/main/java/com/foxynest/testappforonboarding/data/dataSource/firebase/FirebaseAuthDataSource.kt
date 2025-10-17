@@ -1,8 +1,8 @@
 package com.foxynest.testappforonboarding.data.dataSource.firebase
 
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
-import com.foxynest.testappforonboarding.domain.entities.UserFirestoreFields
-import com.foxynest.testappforonboarding.domain.entities.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.UserFirestoreFields
+import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.USERS_COLLECTION
 import com.foxynest.testappforonboarding.other.extensions.toFirestoreMapWithCreationTimestamp

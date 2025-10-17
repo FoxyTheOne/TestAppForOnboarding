@@ -139,7 +139,7 @@
             <!-- Передаём UserPresentation на следующий фрагмент для запроса списка станций -->
             <argument
                 android:name="user_presentation"
-                app:argType="com.foxynest.testappforonboarding.domain.entities.UserPresentation" />
+                app:argType="com.foxynest.testappforonboarding.domain.entities.user.UserPresentation" />
         </action>
 
         <action

@@ -11,11 +11,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion3Binding
-import com.foxynest.testappforonboarding.domain.entities.AnswerNames
+import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.extensions.calculateAge
 import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToSaveFormat
+import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import com.google.android.material.datepicker.CalendarConstraints
@@ -102,10 +103,11 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
                 mainViewModel.saveHobbyAnswer(textFieldCharHobbyAnswer ?: "")
                 mainViewModel.saveBirthDateAnswer(birtDateText ?: "0")
 
-                if (this.findNavController().currentDestination?.id == R.id.navigation_question3) {
-                    this.findNavController()
-                        .navigate(R.id.action_navigation_question3_to_paywallFragment)
-                }
+//                if (this.findNavController().currentDestination?.id == R.id.navigation_question3) {
+//                    this.findNavController()
+//                        .navigate(R.id.action_navigation_question3_to_paywallFragment)
+//                }
+                safeNavigate(R.id.navigation_question3, R.id.action_navigation_question3_to_paywallFragment)
             }
         }
 
@@ -145,7 +147,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
 
         // Проверка возраста (должен быть больше 0)
         val age = ageText?.toIntOrNull() ?: 0
-        if (age <= 0) {
+        if (age < 0) {
             if (isValid) { // Показываем ошибку возраста только если дата валидна
                 binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_valid)
             }
@@ -235,7 +237,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         binding?.textChildAgeValue?.text = age.toString()
 
         // Очищаем ошибку, если возраст стал валидным
-        if (age > 0) {
+        if (age >= 0) {
             binding?.textFieldBirthDate?.error = null
             binding?.textFieldBirthDate?.isErrorEnabled = false
         }

@@ -2,7 +2,7 @@ package com.foxynest.testappforonboarding.data.repository
 
 import com.foxynest.testappforonboarding.data.dataSource.firebase.FirebaseAuthDataSource
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
-import com.foxynest.testappforonboarding.domain.entities.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status

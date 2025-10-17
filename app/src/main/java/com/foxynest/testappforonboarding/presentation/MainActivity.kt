@@ -56,8 +56,8 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
 //        // ПОТОМ запрашиваем данные: подтягиваем ответы из пройденного ранее онбординга. Загружаем данные БЕЗ принудительного обновления Firebase
-        mainViewModel.getAndUseAnswersFromOnboarding()
-////        mainViewModel.checkLoggedInState() -> проверяем в BaseWelcomeFragmentAbstract при запуске и в каждом фрагменте отдельно
+//        mainViewModel.getAndUseAnswersFromOnboarding()
+        mainViewModel.checkLoggedInStateGetUser() // -> проверяем в каждом фрагменте отдельно (home, profile, info)
 
         // Запрос на разрешение notification
         val requestPermissionLauncherNotification =

@@ -2,8 +2,9 @@ package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
-import com.foxynest.testappforonboarding.domain.entities.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
+import com.foxynest.testappforonboarding.other.extensions.isValidToSaveToFirebase
 import javax.inject.Inject
 
 /**
@@ -22,6 +23,13 @@ class UpdateProfileUC @Inject constructor(
     private val authRepository: AuthRepository
 ) : IUpdateProfileUC {
     override suspend fun execute(user: UserPresentation): Resource<ErrorType> {
-        return authRepository.updateProfile(user)
+        return if (user.isValidToSaveToFirebase()) {
+            authRepository.updateProfile(user)
+        } else {
+            Resource.error(
+                "Данные не валидны для сохранения - есть пустые поля",
+                ErrorType.NOT_VALID_USER_DATA_FOR_SAVING_TO_FIREBASE
+            )
+        }
     }
 }

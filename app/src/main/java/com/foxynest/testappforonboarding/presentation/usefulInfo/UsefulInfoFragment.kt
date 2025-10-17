@@ -8,14 +8,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.foxynest.testappforonboarding.databinding.FragmentUsefulInfoBinding
-import com.foxynest.testappforonboarding.domain.entities.UserPresentation
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class UsefulInfoFragment : Fragment() {

@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.domain.entities
+package com.foxynest.testappforonboarding.domain.entities.onboarding
 
 enum class AnswerNames {
     EMAIL_ANSWER,

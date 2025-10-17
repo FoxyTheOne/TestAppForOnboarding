@@ -14,25 +14,22 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentProfileBinding
-import com.foxynest.testappforonboarding.domain.entities.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Status
-import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
 import com.foxynest.testappforonboarding.other.extensions.calculateAge
+import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
+import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -102,20 +99,22 @@ class ProfileFragment : Fragment() {
                 PROFILE_DESTINATION
             )
 
-            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-                findNavController().navigate(direction)
-            }
+//            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
+//                findNavController().navigate(direction)
+//            }
+            safeNavigate(R.id.navigation_profile, direction)
         }
 
         binding?.buttonRegisterAndLogin?.setOnClickListener {
             // Открываем по клику другой фрагмент, передаём туда user
-            val user = createUserFromLocalData()
+            val user = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
 
             val direction =
                 ProfileFragmentDirections.actionNavigationProfileToRegisterFragment(user)
-            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-                findNavController().navigate(direction)
-            }
+//            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
+//                findNavController().navigate(direction)
+//            }
+            safeNavigate(R.id.navigation_profile, direction)
         }
 
         binding?.buttonLogOut?.setOnClickListener {
@@ -144,7 +143,7 @@ class ProfileFragment : Fragment() {
                         // Локальные данные
                         setupLocalObservers()
                         // Принудительно обновляем из локальных данных
-                        val localUser = createUserFromLocalData()
+                        val localUser = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
                         if (shouldShowLocalData(localUser)) {
                             fillFieldsInProfile(localUser)
                             showLogOutButtons(false)
@@ -169,7 +168,7 @@ class ProfileFragment : Fragment() {
                         // Пользователь не авторизован:
                         // 1. Показываем данные профиля в UI исходя из пройденного онбординга (data store)
 //                        fillFieldsInProfile(createUserFromLocalData())
-                        val localUser = createUserFromLocalData()
+                        val localUser = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
                         if (shouldShowLocalData(localUser)) {
                             fillFieldsInProfile(localUser)
                         }
@@ -193,13 +192,15 @@ class ProfileFragment : Fragment() {
                         when (isEnabled) {
                             false -> {
                                 binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
-                                binding?.textEmailNotVerified?.text = getString(R.string.profile_email_verification_send)
+                                binding?.textEmailNotVerified?.text =
+                                    getString(R.string.profile_email_verification_send)
                             }
 
                             true -> {
                                 binding?.buttonVerifyEmail?.setTextColor(colorWhite)
                                     ?: "#FFFFFFFF"
-                                binding?.textEmailNotVerified?.text = getString(R.string.profile_email_not_verified)
+                                binding?.textEmailNotVerified?.text =
+                                    getString(R.string.profile_email_not_verified)
                             }
                         }
                     }
@@ -252,9 +253,10 @@ class ProfileFragment : Fragment() {
                             mainViewModel.clearUserDataOnLogout()
 
                             // И возвращаемся на WelcomeFragment
-                            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-                                findNavController().navigate(R.id.action_navigation_profile_to_navigation_welcome2)
-                            }
+//                            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
+//                                findNavController().navigate(R.id.action_navigation_profile_to_navigation_welcome2)
+//                            }
+                            safeNavigate(R.id.navigation_profile, R.id.action_navigation_profile_to_navigation_welcome2)
                         }
 
                         Status.ERROR -> {
@@ -343,49 +345,22 @@ class ProfileFragment : Fragment() {
     private fun removeLocalObservers() {
         // Удаляем наблюдатель локальных полей
         localFieldsObserver?.let { observer ->
-            mainViewModel.genderLiveData.removeObserver(observer)
-            mainViewModel.isItABoyLiveData.removeObserver(observer)
-            mainViewModel.childNameLiveData.removeObserver(observer)
-            mainViewModel.hobbyLiveData.removeObserver(observer)
+            mainViewModel.onboardingAnswersLiveData.removeObserver(observer)
             // Удалить остальные наблюдатели, если есть
         }
         localFieldsObserver = null
     }
 
     private fun setupLocalObservers() {
-        // Создаем наблюдатель только если его еще нет
-        if (localFieldsObserver == null) {
-            localFieldsObserver = Observer<Any> {
-                fillFieldsInProfile(createUserFromLocalData())
-                showLogOutButtons(false)
-            }
+        removeLocalObservers()
 
-            // Подписываемся на все необходимые LiveData
-            listOf(
-                mainViewModel.genderLiveData,
-                mainViewModel.isItABoyLiveData,
-                mainViewModel.childNameLiveData,
-                mainViewModel.hobbyLiveData
-                // !!! Остальные LiveData, если нужны
-            ).forEach { liveData ->
-                liveData.observe(viewLifecycleOwner, localFieldsObserver!!)
-            }
+        localFieldsObserver = Observer<Any> {
+            fillFieldsInProfile(mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity))
+            showLogOutButtons(false)
         }
-    }
 
-    private fun createUserFromLocalData(): UserPresentation {
-        // Только для передачи данных для регистрации!
-        return UserPresentation(
-            "",
-            mainViewModel.emailLiveData.value ?: "",
-            false, // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
-            mainViewModel.userNameLiveData.value ?: "",
-            mainViewModel.genderLiveData.value ?: "",
-            mainViewModel.isItABoyLiveData.value ?: getString(R.string.no),
-            mainViewModel.childNameLiveData.value ?: "",
-            mainViewModel.hobbyLiveData.value ?: "",
-            mainViewModel.childBirthDateLiveData.value ?: ""
-        )
+        // Подписываемся на все необходимые LiveData
+        mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner, localFieldsObserver!!)
     }
 
     private fun checkCurrentData() {
@@ -396,7 +371,7 @@ class ProfileFragment : Fragment() {
             showLogOutButtons(true)
         } else {
             // Если данных нет, создаем из локальных LiveData
-            val localUser = createUserFromLocalData()
+            val localUser = mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
             if (localUser.userName.isNotBlank() || localUser.email.isNotBlank()) {
                 fillFieldsInProfile(localUser)
                 showLogOutButtons(false)
@@ -414,7 +389,7 @@ class ProfileFragment : Fragment() {
             binding?.textHobbyAnswer?.text = user.childHobby
             // ВЫЧИСЛЯЕМ возраст из даты рождения
             val age = calculateAgeFromBirthDate(user.childBirthDate)
-            binding?.textChildAgeAnswer?.text = if (age > 0) age.toString() else ""
+            binding?.textChildAgeAnswer?.text = if (age >= 0) age.toString() else ""
             // ФОРМАТИРУЕМ дату для красивого отображения
             binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(
                 user.childBirthDate,
@@ -494,9 +469,10 @@ class ProfileFragment : Fragment() {
             .setListeners(
                 positiveAction = {
                     // Пользователь подтвердил - запускаем заново онбординг, проходим его и в конце сохраняем результаты на сервер
-                    if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-                        findNavController().navigate(R.id.navigation_question1)
-                    }
+//                    if (findNavController().currentDestination?.id == R.id.navigation_profile) {
+//                        findNavController().navigate(R.id.navigation_question1)
+//                    }
+                    safeNavigate(R.id.navigation_profile, R.id.navigation_question1)
                 },
                 negativeAction = {
                     // Пользователь отменил - ничего не делаем

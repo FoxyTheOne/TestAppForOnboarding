@@ -33,4 +33,5 @@ enum class ErrorType(val stringRes: Int) {
     FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL(R.string.failed_to_save_onboarding_state_local),
     FAILED_TO_CLEAR_DATA(R.string.failed_to_clear_data),
     FAILED_TO_LOAD_LOCAL_DATA(R.string.failed_to_load_local_data),
+    NOT_VALID_USER_DATA_FOR_SAVING_TO_FIREBASE(R.string.not_valid_user_data_for_saving_to_firebase)
 }

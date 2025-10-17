@@ -16,6 +16,7 @@ import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
 import com.foxynest.testappforonboarding.domain.entities.VisibilityEnum
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PAY_URL
+import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.RepeatSavingOnboardingStateDialog
@@ -57,7 +58,7 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
         showProgressBarAnimationBeforeShowingContent()
 
         // Подтягиваем ответы из пройденного только что опросника. ПРИНУДИТЕЛЬНО обновляем Firebase после онбординга. В дальнейшем метод будет вызываться в activity при запуске программы
-        mainViewModel.getAndUseAnswersFromOnboarding(forceUpdate = true)
+        mainViewModel.getAnswersFromOnboardingSaveToFirebaseAndUse()
 
         initListeners()
         subscribeOnLiveData()
@@ -112,17 +113,19 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
     private fun initListeners() {
         binding?.imageClose?.setOnClickListener {
-            if (this.findNavController().currentDestination?.id == R.id.navigation_paywall) {
-                this.findNavController()
-                    .navigate(R.id.action_navigation_paywall_to_navigation_profile)
-            }
+//            if (this.findNavController().currentDestination?.id == R.id.navigation_paywall) {
+//                this.findNavController()
+//                    .navigate(R.id.action_navigation_paywall_to_navigation_profile)
+//            }
+            safeNavigate(R.id.navigation_paywall, R.id.action_navigation_paywall_to_navigation_profile)
         }
 
         binding?.buttonGoToProfile?.setOnClickListener {
-            if (this.findNavController().currentDestination?.id == R.id.navigation_paywall) {
-                this.findNavController()
-                    .navigate(R.id.action_navigation_paywall_to_navigation_profile)
-            }
+//            if (this.findNavController().currentDestination?.id == R.id.navigation_paywall) {
+//                this.findNavController()
+//                    .navigate(R.id.action_navigation_paywall_to_navigation_profile)
+//            }
+            safeNavigate(R.id.navigation_paywall, R.id.action_navigation_paywall_to_navigation_profile)
         }
 
         binding?.buttonPaywall?.setOnClickListener {
@@ -133,8 +136,8 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
     }
 
     private fun subscribeOnLiveData() {
-        mainViewModel.genderLiveData.observe(viewLifecycleOwner) { gender ->
-            when (gender) {
+        mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner) { answers ->
+            when (answers.childGender) {
                 "Мальчик" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
                 "Девочка" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)
                 else -> Unit

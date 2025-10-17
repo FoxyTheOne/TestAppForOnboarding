@@ -16,12 +16,10 @@ import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentHomeBinding
 import com.foxynest.testappforonboarding.domain.entities.Gender
-import com.foxynest.testappforonboarding.domain.entities.UserPresentation
-import com.foxynest.testappforonboarding.other.constants.CommonConstants
+import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
+import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -100,7 +98,7 @@ class HomeFragment : Fragment() {
                         mainViewModel.checkLoggedInStateGetUser()
                     } else {
                         // Пользователь не авторизован:
-                        showHelloInHome(createUserFromLocalData())
+                        showHelloInHome(mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity))
                     }
 
                 }
@@ -116,7 +114,7 @@ class HomeFragment : Fragment() {
     private fun removeLocalObservers() {
         // Удаляем наблюдатель локальных полей
         localFieldsObserver?.let { observer ->
-            mainViewModel.childNameLiveData.removeObserver(observer)
+            mainViewModel.onboardingAnswersLiveData.removeObserver(observer)
             // Удалить остальные наблюдатели, если есть
         }
         localFieldsObserver = null
@@ -125,31 +123,12 @@ class HomeFragment : Fragment() {
     private fun setupLocalObservers() {
         if (localFieldsObserver == null) {
             localFieldsObserver = Observer<Any> {
-                showHelloInHome(createUserFromLocalData())
+                showHelloInHome(mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity))
             }
 
             // Подписываемся на все необходимые LiveData
-            listOf(
-                mainViewModel.childNameLiveData
-                // остальные LiveData, если нужны
-            ).forEach { liveData ->
-                liveData.observe(viewLifecycleOwner, localFieldsObserver!!)
-            }
+            mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner, localFieldsObserver!!)
         }
-    }
-
-    private fun createUserFromLocalData(): UserPresentation {
-        return UserPresentation(
-            "",
-            mainViewModel.emailLiveData.value ?: "",
-            false,
-            mainViewModel.userNameLiveData.value ?: "",
-            mainViewModel.genderLiveData.value ?: "",
-            mainViewModel.isItABoyLiveData.value ?: getString(R.string.no),
-            mainViewModel.childNameLiveData.value ?: "",
-            mainViewModel.hobbyLiveData.value ?: "",
-            mainViewModel.childBirthDateLiveData.value ?: ""
-        )
     }
 
     // Делаем метод тестируемым

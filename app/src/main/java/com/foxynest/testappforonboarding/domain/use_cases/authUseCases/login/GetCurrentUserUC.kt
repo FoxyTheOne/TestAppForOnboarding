@@ -1,7 +1,7 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
-import com.foxynest.testappforonboarding.domain.entities.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
 

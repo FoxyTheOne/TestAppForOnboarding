@@ -113,18 +113,10 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
     private fun initListeners() {
         binding?.imageClose?.setOnClickListener {
-//            if (this.findNavController().currentDestination?.id == R.id.navigation_paywall) {
-//                this.findNavController()
-//                    .navigate(R.id.action_navigation_paywall_to_navigation_profile)
-//            }
             safeNavigate(R.id.navigation_paywall, R.id.action_navigation_paywall_to_navigation_profile)
         }
 
         binding?.buttonGoToProfile?.setOnClickListener {
-//            if (this.findNavController().currentDestination?.id == R.id.navigation_paywall) {
-//                this.findNavController()
-//                    .navigate(R.id.action_navigation_paywall_to_navigation_profile)
-//            }
             safeNavigate(R.id.navigation_paywall, R.id.action_navigation_paywall_to_navigation_profile)
         }
 

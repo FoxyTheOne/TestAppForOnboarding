@@ -52,21 +52,6 @@ class MainViewModel @Inject constructor(
     private val _onboardingAnswersLiveData = MutableLiveData<OnboardingAnswers>(OnboardingAnswers())
     val onboardingAnswersLiveData: LiveData<OnboardingAnswers> = _onboardingAnswersLiveData
 
-//    private val _userNameLiveData = MutableLiveData<String>()
-//    val userNameLiveData: LiveData<String> = _userNameLiveData
-//    private val _emailLiveData = MutableLiveData<String>()
-//    val emailLiveData: LiveData<String> = _emailLiveData
-//    private val _genderLiveData = MutableLiveData<String>()
-//    val genderLiveData: LiveData<String> = _genderLiveData
-//    private val _isItABoyLiveData = MutableLiveData<String>()
-//    val isItABoyLiveData: LiveData<String> = _isItABoyLiveData
-//    private val _childNameLiveData = MutableLiveData<String>()
-//    val childNameLiveData: LiveData<String> = _childNameLiveData
-//    private val _childBirthDateLiveData = MutableLiveData<String>()
-//    val childBirthDateLiveData: LiveData<String> = _childBirthDateLiveData
-//    private val _hobbyLiveData = MutableLiveData<String>()
-//    val hobbyLiveData: LiveData<String> = _hobbyLiveData
-
     // Для временного хранения во время заполнения опроса (нужно при возвращении назад по страницам в онбординге)
     private val _answers = mutableMapOf<String, String>()
     val answers: Map<String, String> get() = _answers
@@ -243,7 +228,7 @@ class MainViewModel @Inject constructor(
             AnswerNames.CHILD_GENDER_ANSWER,
             ErrorType.FAILED_TO_SAVE_GENDER_LOCAL
         )
-        updateOnboardingAnswers { it.copy(email = genderAnswer.trim()) }
+        updateOnboardingAnswers { it.copy(childGender = genderAnswer.trim()) }
     }
 
     fun saveChildNameAnswer(nameAnswer: String) {
@@ -253,7 +238,7 @@ class MainViewModel @Inject constructor(
             AnswerNames.CHILD_NAME_ANSWER,
             ErrorType.FAILED_TO_SAVE_CHILD_NAME_LOCAL
         )
-        updateOnboardingAnswers { it.copy(email = nameAnswer.trim()) }
+        updateOnboardingAnswers { it.copy(childName = nameAnswer.trim()) }
     }
 
     fun saveIsItABoyAnswer(answer: String) {
@@ -263,7 +248,7 @@ class MainViewModel @Inject constructor(
             AnswerNames.IS_IT_A_BOY_ANSWER,
             ErrorType.FAILED_TO_SAVE_IS_IT_A_BOY_LOCAL
         )
-        updateOnboardingAnswers { it.copy(email = answer.trim()) }
+        updateOnboardingAnswers { it.copy(isItABoy = answer.trim()) }
     }
 
     fun saveBirthDateAnswer(birthDate: String) {
@@ -273,7 +258,7 @@ class MainViewModel @Inject constructor(
             AnswerNames.CHILD_BIRTH_DATE_ANSWER,
             ErrorType.FAILED_TO_SAVE_BIRTH_DATE_LOCAL
         )
-        updateOnboardingAnswers { it.copy(email = birthDate.trim()) }
+        updateOnboardingAnswers { it.copy(childBirthDate = birthDate.trim()) }
     }
 
     fun saveHobbyAnswer(hobby: String) {
@@ -283,7 +268,7 @@ class MainViewModel @Inject constructor(
             AnswerNames.CHILD_HOBBY_ANSWER,
             ErrorType.FAILED_TO_SAVE_HOBBY_LOCAL
         )
-        updateOnboardingAnswers { it.copy(email = hobby.trim()) }
+        updateOnboardingAnswers { it.copy(childHobby = hobby.trim()) }
     }
 
     fun retryDataSave() {
@@ -383,52 +368,50 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun loadDataFromDatastore() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val email = onboardingUC.getEmailFlow().first() ?: ""
-                val userName = onboardingUC.getUserNameFlow().first() ?: ""
-                val childGender = onboardingUC.getGenderFlow().first() ?: ""
-                val isItABoy = onboardingUC.getIsItABoyFlow().first() ?: ""
-                val childName = onboardingUC.getNameFlow().first() ?: ""
-                val birthDate = onboardingUC.getBirthDateFlow().first() ?: ""
-                val childHobby = onboardingUC.getHobbyFlow().first() ?: ""
+        try {
+            val email = onboardingUC.getEmailFlow().first() ?: ""
+            val userName = onboardingUC.getUserNameFlow().first() ?: ""
+            val childGender = onboardingUC.getGenderFlow().first() ?: ""
+            val isItABoy = onboardingUC.getIsItABoyFlow().first() ?: ""
+            val childName = onboardingUC.getNameFlow().first() ?: ""
+            val birthDate = onboardingUC.getBirthDateFlow().first() ?: ""
+            val childHobby = onboardingUC.getHobbyFlow().first() ?: ""
 
-                val answers = OnboardingAnswers(
-                    email = email,
-                    userName = userName,
-                    childGender = childGender,
-                    isItABoy = isItABoy,
-                    childName = childName,
-                    childBirthDate = birthDate,
-                    childHobby = childHobby
-                )
+            val answers = OnboardingAnswers(
+                email = email,
+                userName = userName,
+                childGender = childGender,
+                isItABoy = isItABoy,
+                childName = childName,
+                childBirthDate = birthDate,
+                childHobby = childHobby
+            )
 
-                // Обновляем LiveData на главном потоке
-                withContext(Dispatchers.Main) {
-                    _onboardingAnswersLiveData.postValue(answers)
-                }
+            // Обновляем LiveData на главном потоке
+            withContext(Dispatchers.Main) {
+                _onboardingAnswersLiveData.postValue(answers)
+            }
 
-                // Также обновляем временные ответы для совместимости
-                _answers.clear()
-                _answers[AnswerNames.EMAIL_ANSWER.toString()] = email
-                _answers[AnswerNames.USER_NAME_ANSWER.toString()] = userName
-                _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = childGender
-                _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = isItABoy
-                _answers[AnswerNames.CHILD_NAME_ANSWER.toString()] = childName
-                _answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] = birthDate
-                _answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] = childHobby
+            // Также обновляем временные ответы для совместимости
+            _answers.clear()
+            _answers[AnswerNames.EMAIL_ANSWER.toString()] = email
+            _answers[AnswerNames.USER_NAME_ANSWER.toString()] = userName
+            _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = childGender
+            _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = isItABoy
+            _answers[AnswerNames.CHILD_NAME_ANSWER.toString()] = childName
+            _answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] = birthDate
+            _answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] = childHobby
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Error loading data from DataStore", e)
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_LOAD_LOCAL,
-                            ErrorType.FAILED_TO_LOAD_LOCAL_DATA
-                        )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error loading data from DataStore", e)
+            _errorMessageLiveData.postValue(
+                MyEvent(
+                    Resource.error(
+                        CommonConstants.FAILED_TO_LOAD_LOCAL,
+                        ErrorType.FAILED_TO_LOAD_LOCAL_DATA
                     )
                 )
-            }
+            )
         }
     }
 

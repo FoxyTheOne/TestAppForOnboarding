@@ -103,10 +103,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
                 mainViewModel.saveHobbyAnswer(textFieldCharHobbyAnswer ?: "")
                 mainViewModel.saveBirthDateAnswer(birtDateText ?: "0")
 
-//                if (this.findNavController().currentDestination?.id == R.id.navigation_question3) {
-//                    this.findNavController()
-//                        .navigate(R.id.action_navigation_question3_to_paywallFragment)
-//                }
                 safeNavigate(R.id.navigation_question3, R.id.action_navigation_question3_to_paywallFragment)
             }
         }

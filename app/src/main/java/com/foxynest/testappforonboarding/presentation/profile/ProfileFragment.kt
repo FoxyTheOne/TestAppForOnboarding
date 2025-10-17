@@ -67,10 +67,6 @@ class ProfileFragment : Fragment() {
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
-        // ???? На экране профиля под заполненныеми полями кнопки "Сохранить данные на сервер" и "Загрузить данные с сервера (обновить поля)"
-        // ???? Но показывать их если поля user != user ? (через || , кроме uid) с подписью "Введенные данные отличаются от сохранённых на сервере, выберите действие:"
-        // Не делала потому что при создании фрагмента профиля мы загружаем данные с сервера
-
         // СНАЧАЛА подписываемся на observers
         subscribeOnObservers()
 
@@ -98,10 +94,6 @@ class ProfileFragment : Fragment() {
             val direction = ProfileFragmentDirections.actionNavigationProfileToLoginFragment(
                 PROFILE_DESTINATION
             )
-
-//            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-//                findNavController().navigate(direction)
-//            }
             safeNavigate(R.id.navigation_profile, direction)
         }
 
@@ -111,9 +103,6 @@ class ProfileFragment : Fragment() {
 
             val direction =
                 ProfileFragmentDirections.actionNavigationProfileToRegisterFragment(user)
-//            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-//                findNavController().navigate(direction)
-//            }
             safeNavigate(R.id.navigation_profile, direction)
         }
 
@@ -253,9 +242,6 @@ class ProfileFragment : Fragment() {
                             mainViewModel.clearUserDataOnLogout()
 
                             // И возвращаемся на WelcomeFragment
-//                            if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-//                                findNavController().navigate(R.id.action_navigation_profile_to_navigation_welcome2)
-//                            }
                             safeNavigate(R.id.navigation_profile, R.id.action_navigation_profile_to_navigation_welcome2)
                         }
 
@@ -469,9 +455,6 @@ class ProfileFragment : Fragment() {
             .setListeners(
                 positiveAction = {
                     // Пользователь подтвердил - запускаем заново онбординг, проходим его и в конце сохраняем результаты на сервер
-//                    if (findNavController().currentDestination?.id == R.id.navigation_profile) {
-//                        findNavController().navigate(R.id.navigation_question1)
-//                    }
                     safeNavigate(R.id.navigation_profile, R.id.navigation_question1)
                 },
                 negativeAction = {

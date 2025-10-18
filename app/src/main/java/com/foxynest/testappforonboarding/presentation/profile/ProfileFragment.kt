@@ -506,7 +506,6 @@ class ProfileFragment : Fragment() {
         changeEmailDialog = ChangeDisplayEmailDialog.newInstance(currentEmail)
         changeEmailDialog
             ?.setOnSaveClickListener { newEmail ->
-//                changeEmailDialog?.showLoading()
                 mainViewModel.updateDisplayEmail(newEmail)
             }
             ?.show(parentFragmentManager, ChangeDisplayEmailDialog.TAG)

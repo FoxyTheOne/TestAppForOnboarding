@@ -145,6 +145,10 @@ class AuthRepository @Inject constructor(
     override suspend fun checkEmailVerified(): Boolean =
         firebaseAuthDataSource.checkEmailVerified()
 
+    override suspend fun updateDisplayEmail(newEmail: String): Resource<ErrorType> {
+        return firebaseAuthDataSource.updateDisplayEmail(newEmail)
+    }
+
 //    override suspend fun updateEmail(newEmail: String, password: String): Resource<ErrorType> {
 //        return try {
 //            val currentUser = firebaseAuthDataSource.getCurrentUser().data

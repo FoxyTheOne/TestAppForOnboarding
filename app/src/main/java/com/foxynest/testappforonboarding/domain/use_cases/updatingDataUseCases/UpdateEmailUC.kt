@@ -8,7 +8,7 @@ import javax.inject.Inject
 class UpdateEmailUC @Inject constructor(
     private val authRepository: AuthRepository
 ) : IUpdateEmailUC {
-//    override suspend fun execute(newEmail: String, password: String): Resource<ErrorType> {
-//        return authRepository.updateEmail(newEmail, password)
-//    }
+    override suspend fun updateDisplayEmail(newEmail: String): Resource<ErrorType> {
+        return authRepository.updateDisplayEmail(newEmail)
+    }
 }

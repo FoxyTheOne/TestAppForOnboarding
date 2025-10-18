@@ -225,4 +225,29 @@ class FirebaseAuthDataSource @Inject constructor(
             false
         }
     }
+
+    suspend fun updateDisplayEmail(newEmail: String): Resource<ErrorType> {
+        return try {
+            val currentUser = auth.currentUser
+                ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
+
+            // Обновляем только display email в Firestore
+            val userData = mapOf(
+                UserFirestoreFields.DISPLAY_EMAIL to newEmail,
+                UserFirestoreFields.UPDATED_AT to FieldValue.serverTimestamp()
+            )
+
+            firestore.collection(USERS_COLLECTION)
+                .document(currentUser.uid)
+                .update(userData)
+                .await()
+
+            Resource.success(null)
+        } catch (e: Exception) {
+            Resource.error(
+                e.message ?: "Failed to update display email",
+                ErrorType.DATA_NOT_SAVED_ERROR
+            )
+        }
+    }
 }

@@ -201,8 +201,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroy() {
-        binding = null // VIEW BINDING -> 3. onDestroyView()
+        binding = null
         super.onDestroy()
     }
 }

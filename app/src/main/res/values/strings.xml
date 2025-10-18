@@ -78,9 +78,14 @@
     <string name="profile_button_log_in">У меня уже есть аккаунт **</string>
     <string name="profile_text_warning_data">** Введенные сейчас данные заменятся на те, которые сохранены на аккаунте.</string>
     <string name="profile_button_log_out">Выйти</string>
+    <string name="change_display_email_title">Изменить почту для связи</string>
+    <string name="change_auth_email_title">Изменить почту для входа</string>
+    <string name="save">Сохранить</string>
+    <string name="display_email_updated_successfully">Почта для связи успешно обновлена</string>
+    <string name="auth_email_updated_successfully">Почта для входа успешно обновлена</string>
     <string name="profile_toast_data_updated">Данные успешно сохранены</string>
     <string name="profile_toast_data_updating_error">Данные не сохранены. Вы можете повторить попытку позже</string>
-    <string name="profile_email_verification_send">Верификация почты отправлена</string>
+    <string name="profile_email_verification_send">Верификация почты отправлена. Пожалуйста, проверьте почтовый ящик</string>
 
     <!-- Home -->
     <string name="home_title">Главная</string>

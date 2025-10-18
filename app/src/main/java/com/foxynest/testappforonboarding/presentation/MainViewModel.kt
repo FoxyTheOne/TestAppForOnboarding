@@ -14,6 +14,7 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGe
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateProfileUC
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
@@ -43,6 +44,7 @@ class MainViewModel @Inject constructor(
     private val getCurrentUserUC: IGetCurrentUserUC,
     private val getAuthStateFlowUC: IGetAuthStateFlowUC,
     private val loginValidateEmailUC: ILoginValidateEmailUC,
+    private val updateEmailUC: IUpdateEmailUC,
     @DispatcherIO private val dispatcher: CoroutineDispatcher = Dispatchers.IO // TODO расставить dispatcher или удалить тесты
 ) : ViewModel() {
     companion object {
@@ -60,6 +62,10 @@ class MainViewModel @Inject constructor(
 
     private val _profileUpdatedLiveData = MutableLiveData<Resource<ErrorType>>()
     val profileUpdatedLiveData: LiveData<Resource<ErrorType>> = _profileUpdatedLiveData
+
+    // Изменение email в профиле по кнопке "изменить"
+    private val _displayEmailUpdateState = MutableLiveData<Resource<ErrorType>>()
+    val displayEmailUpdateState: LiveData<Resource<ErrorType>> = _displayEmailUpdateState
 
     // Разовая проверка состояния в firebase
     private val _checkedUserInfo =
@@ -89,12 +95,6 @@ class MainViewModel @Inject constructor(
     // Добавляем отдельный LiveData для состояния повторного сохранения
     private val _retrySaveState = MutableLiveData<Resource<ErrorType>>()
     val retrySaveState: LiveData<Resource<ErrorType>> = _retrySaveState
-
-    fun checkLoggedInStateGetUser() {
-        viewModelScope.launch {
-            _checkedUserInfo.value = getCurrentUserUC.execute()
-        }
-    }
 
     // ONBOARDING - CLEAN
     fun cleanNotReplaceableAnswers() {
@@ -297,6 +297,49 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun updateDisplayEmail(newDisplayEmail: String) {
+        viewModelScope.launch {
+            // Валидация email
+            val trimmedLowercaseEmail = newDisplayEmail.lowercase().trim()
+            val validationResult = loginValidateEmailUC.execute(trimmedLowercaseEmail)
+
+            when (validationResult.successful) {
+                true -> {
+                    _displayEmailUpdateState.value = Resource.loading(null)
+
+                    val result = updateEmailUC.updateDisplayEmail(trimmedLowercaseEmail)
+                    _displayEmailUpdateState.value = result
+
+                    // Обновить данные в случае успешного изменения в firebase:
+                    if (result.status == Status.SUCCESS) {
+                        // Обновляем локальные данные
+                        updateOnboardingAnswers { it.copy(displayEmail = trimmedLowercaseEmail) }
+                        // Обновляем временные ответы
+                        saveAnswerToMainViewModel(AnswerNames.EMAIL_ANSWER.toString(), trimmedLowercaseEmail)
+
+                        // Принудительно обновляем данные пользователя с сервера
+                        checkLoggedInStateGetUser()
+                    }
+//                    // Получить текущего пользователя
+//                    val currentUser = getCurrentUserUC.execute().data
+//                    if (currentUser != null) {
+//                        // Обновляем только display email
+//                        val updatedUser = currentUser.copy(displayEmail = newDisplayEmail)
+//                        // Используем существующий updateProfileUC
+//                        _profileUpdatedLiveData.value = updateProfileUC.execute(updatedUser)
+//                    }
+                }
+
+                false -> {
+                    // Эта ошибка не должна происходить, так как валидация уже прошла в диалоге
+                    // Но на всякий случай обработаем
+                    _displayEmailUpdateState.value =
+                        Resource.error("Не верный адрес", validationResult.errorMessage)
+                }
+            }
+        }
+    }
+
     // ONBOARDING - GET FROM DATA AND SAVE TO FIREBASE
     // Запустить метод для получения этих данных можно, когда открывается PAYWALL FRAGMENT - в этот момент опрос уже точно пройден
     fun getAnswersFromOnboardingSaveToFirebaseAndUse() {
@@ -326,22 +369,9 @@ class MainViewModel @Inject constructor(
     }
 
     // OTHER
-    fun updateDisplayEmail(newDisplayEmail: String) {
+    fun checkLoggedInStateGetUser() {
         viewModelScope.launch {
-            val validationResult  = loginValidateEmailUC.execute(newDisplayEmail)
-            when (validationResult.successful) {
-                true -> {
-                    // Получить текущего пользователя
-                    val currentUser = getCurrentUserUC.execute().data
-                    if (currentUser != null) {
-                        // Обновляем только display email
-                        val updatedUser = currentUser.copy(displayEmail = newDisplayEmail)
-                        // Используем существующий updateProfileUC
-                        _profileUpdatedLiveData.value = updateProfileUC.execute(updatedUser)
-                    }
-                }
-                false -> {}// TODO Показать ошибку
-            }
+            _checkedUserInfo.value = getCurrentUserUC.execute()
         }
     }
 

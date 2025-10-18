@@ -25,8 +25,9 @@ import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
-import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
+import com.foxynest.testappforonboarding.presentation.dialogs.ChangeDisplayEmailDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.ParseException
@@ -43,6 +44,7 @@ class ProfileFragment : Fragment() {
 
     private var localFieldsObserver: Observer<Any>? = null
     private var dataSaveErrorDialog: DataSaveErrorDialog? = null
+    private var changeEmailDialog: ChangeDisplayEmailDialog? = null
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentProfileBinding? = null
@@ -116,6 +118,10 @@ class ProfileFragment : Fragment() {
 
         binding?.buttonRefillFields?.setOnClickListener {
             showConfirmOnboardingRestartDialog()
+        }
+
+        binding?.buttonChangeDisplayEmail?.setOnClickListener {
+            showChangeDisplayEmailDialog()
         }
     }
 
@@ -331,13 +337,41 @@ class ProfileFragment : Fragment() {
                 }
             }
         }
-    }
 
-//    private fun shouldShowLocalData(user: UserPresentation): Boolean {
-//        return user.userName.isNotBlank() ||
-//                user.email.isNotBlank() ||
-//                user.childName.isNotBlank()
-//    }
+        mainViewModel.displayEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
+            val messageToShow = resourceResult.data.toErrorMessage(resources)
+
+            when (resourceResult.status) {
+                Status.LOADING -> {
+                    // Прогресс уже показывается в диалоге через showLoading()
+                }
+
+                Status.SUCCESS -> {
+                    changeEmailDialog?.showSuccess()
+                    changeEmailDialog = null
+
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.display_email_updated_successfully),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    // Данные автоматически обновятся через checkedUserInfo observer
+                }
+
+                Status.ERROR -> {
+                    // Показываем ошибку от сервера в диалоге
+                    changeEmailDialog?.showError(
+                        messageToShow ?: getString(R.string.unexpected_error)
+                    )
+                    // Не обнуляем dialog, чтобы пользователь мог попробовать снова
+                }
+
+                else -> {
+                    // ignore
+                }
+            }
+        }
+    }
 
     private fun removeLocalObservers() {
         // Удаляем наблюдатель локальных полей
@@ -466,6 +500,18 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun showChangeDisplayEmailDialog() {
+        val currentEmail = binding?.textDisplayEmailAnswer?.text?.toString() ?: ""
+
+        changeEmailDialog = ChangeDisplayEmailDialog.newInstance(currentEmail)
+        changeEmailDialog
+            ?.setOnSaveClickListener { newEmail ->
+//                changeEmailDialog?.showLoading()
+                mainViewModel.updateDisplayEmail(newEmail)
+            }
+            ?.show(parentFragmentManager, ChangeDisplayEmailDialog.TAG)
+    }
+
     private fun showConfirmOnboardingRestartDialog() {
         ConfirmOnboardingRestartDialog.newInstance()
             .setListeners(
@@ -522,7 +568,9 @@ class ProfileFragment : Fragment() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        super.onDestroyView()
+        changeEmailDialog?.dismiss()
+        changeEmailDialog = null
         binding = null
+        super.onDestroyView()
     }
 }

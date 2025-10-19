@@ -1,6 +1,5 @@
 package com.foxynest.testappforonboarding.presentation.dialogs
 
-import androidx.appcompat.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
@@ -9,10 +8,11 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.foxynest.testappforonboarding.R
-import com.foxynest.testappforonboarding.databinding.DialogChangeEmailBinding
+import com.foxynest.testappforonboarding.databinding.DialogChangeDisplayEmailBinding
 import com.foxynest.testappforonboarding.other.utils.EmailUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -31,13 +31,13 @@ class ChangeDisplayEmailDialog : DialogFragment() {
     }
 
     private var onSaveClickListener: ((String) -> Unit)? = null
-    private lateinit var binding: DialogChangeEmailBinding
+    private lateinit var binding: DialogChangeDisplayEmailBinding
     private var isLoading = false
     private var positiveButton: Button? = null
     private var negativeButton: Button? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        binding = DialogChangeEmailBinding.inflate(layoutInflater)
+        binding = DialogChangeDisplayEmailBinding.inflate(layoutInflater)
 
         val currentEmail = arguments?.getString(CURRENT_EMAIL_KEY) ?: ""
         binding.textInputEditText.setText(currentEmail)
@@ -114,7 +114,8 @@ class ChangeDisplayEmailDialog : DialogFragment() {
 
         // Убираем фокус и клавиатуру при загрузке
         binding.textInputEditText.clearFocus()
-        val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val inputMethodManager =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(binding.textInputEditText.windowToken, 0)
     }
 
@@ -147,8 +148,12 @@ class ChangeDisplayEmailDialog : DialogFragment() {
         binding.textInputEditText.requestFocus()
         binding.textInputEditText.selectAll() // Выделяем весь текст для удобства исправления
 
-        val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.showSoftInput(binding.textInputEditText, InputMethodManager.SHOW_IMPLICIT)
+        val inputMethodManager =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.showSoftInput(
+            binding.textInputEditText,
+            InputMethodManager.SHOW_IMPLICIT
+        )
     }
 
     fun showSuccess() {

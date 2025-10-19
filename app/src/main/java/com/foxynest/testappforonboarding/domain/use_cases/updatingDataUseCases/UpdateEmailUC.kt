@@ -11,4 +11,7 @@ class UpdateEmailUC @Inject constructor(
     override suspend fun updateDisplayEmail(newEmail: String): Resource<ErrorType> {
         return authRepository.updateDisplayEmail(newEmail)
     }
+    override suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType> {
+        return authRepository.updateAuthEmail(newEmail, password)
+    }
 }

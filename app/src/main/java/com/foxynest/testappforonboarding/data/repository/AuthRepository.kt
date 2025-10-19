@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.data.repository
 
+import android.util.Log
 import com.foxynest.testappforonboarding.data.dataSource.firebase.FirebaseAuthDataSource
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
@@ -88,10 +89,12 @@ class AuthRepository @Inject constructor(
                         userFriendlyMessage = "Слишком много попыток. Попробуйте позже"
                         errorType = ErrorType.TOO_MANY_ATTEMPTS_ERROR
                     }
+
                     result.message?.contains("network") == true -> {
                         userFriendlyMessage = "Проблемы с интернет-соединением"
                         errorType = ErrorType.INTERNET_ERROR
                     }
+
                     else -> {
                         userFriendlyMessage = result.message ?: "Ошибка входа"
                         errorType = ErrorType.LOGIN_FAILED_ERROR
@@ -149,42 +152,210 @@ class AuthRepository @Inject constructor(
         return firebaseAuthDataSource.updateDisplayEmail(newEmail)
     }
 
-//    override suspend fun updateEmail(newEmail: String, password: String): Resource<ErrorType> {
-//        return try {
-//            val currentUser = firebaseAuthDataSource.getCurrentUser().data
-//                ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
+//    override suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType> {
+//        val result = firebaseAuthDataSource.updateAuthEmail(newEmail, password)
+//        return when (result.status) {
+//            Status.SUCCESS -> Resource.success(null)
+//            Status.ERROR -> {
+//                var userFriendlyMessage = ""
+//                var errorType: ErrorType? = null
 //
-//            // 1. Реаутентификация (требуется для смены email в Firebase)
-//            val credential = EmailAuthProvider.getCredential(currentUser.email ?: "", password)
-//            currentUser.reauthenticate(credential).await()
+//                when {
+//                    result.message?.contains("invalid-credential") == true -> {
+//                        userFriendlyMessage = "Wrong password"
+//                        errorType = ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR
+//                    }
 //
-//            // 2. Обновление email в Firebase Auth
-//            currentUser.updateEmail(newEmail).await()
+//                    result.message?.contains("requires-recent-login") == true -> {
+//                        userFriendlyMessage = "Reauthentication required"
+//                        errorType = ErrorType.LOGIN_FAILED_ERROR
+//                    }
 //
-//            // 3. Обновление email в Firestore
-//            val userData = mapOf(
-//                UserFirestoreFields.EMAIL to newEmail.lowercase().trim()
-//            )
-//            firestore.collection(USERS_COLLECTION)
-//                .document(currentUser.uid)
-//                .update(userData)
-//                .await()
+//                    result.message?.contains("email-already-in-use") == true -> {
+//                        userFriendlyMessage = "Email already in use"
+//                        errorType = ErrorType.EMAIL_ALREADY_REGISTERED_ERROR
+//                    }
 //
-//            // 4. Отправка верификации для нового email
-//            currentUser.sendEmailVerification().await()
+//                    result.message?.contains("invalid-email") == true -> {
+//                        userFriendlyMessage = "Invalid email format"
+//                        errorType = ErrorType.EMAIL_FORMAT_ERROR
+//                    }
 //
-//            Resource.success(null)
-//        } catch (e: Exception) {
-//            when (e) {
-//                is FirebaseAuthInvalidCredentialsException ->
-//                    Resource.error("Invalid password", ErrorType.AUTH_DATA_ERROR)
-//                is FirebaseAuthInvalidUserException ->
-//                    Resource.error("User not found", ErrorType.AUTH_DATA_ERROR)
-//                is FirebaseAuthWeakPasswordException ->
-//                    Resource.error("Weak password", ErrorType.PASSWORD_TOO_WEAK_ERROR)
-//                else ->
-//                    Resource.error(e.message ?: "Failed to update email", ErrorType.DATA_NOT_SAVED_ERROR)
+//                    else -> {
+//                        userFriendlyMessage = result.message ?: "Failed to update email"
+//                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+//                    }
+//                }
+//
+//                Resource.error(userFriendlyMessage, errorType)
 //            }
+//
+//            else -> result
 //        }
 //    }
+
+//    override suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType> {
+//        val result = firebaseAuthDataSource.updateAuthEmail(newEmail, password)
+//
+//        // Детальное логирование
+//        Log.d("AuthRepository", "updateAuthEmail result: status=${result.status}, message=${result.message}, errorType=${result.data}")
+//
+//        return when (result.status) {
+//            Status.SUCCESS -> {
+//                Log.d("AuthRepository", "Auth email update completed successfully")
+//                Resource.success(null)
+//            }
+//            Status.ERROR -> {
+//                var userFriendlyMessage = ""
+//                var errorType: ErrorType? = null
+//
+//                // Логируем оригинальное сообщение для отладки
+//                Log.d("AuthRepository", "Original error message: ${result.message}")
+//
+//                when {
+//                    result.message?.contains("invalid-credential") == true -> {
+//                        userFriendlyMessage = "Wrong password"
+//                        errorType = ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR
+//                    }
+//                    result.message?.contains("requires-recent-login") == true -> {
+//                        userFriendlyMessage = "Reauthentication required"
+//                        errorType = ErrorType.LOGIN_FAILED_ERROR
+//                    }
+//                    result.message?.contains("email-already-in-use") == true -> {
+//                        userFriendlyMessage = "Email already in use"
+//                        errorType = ErrorType.EMAIL_ALREADY_REGISTERED_ERROR
+//                    }
+//                    result.message?.contains("invalid-email") == true -> {
+//                        userFriendlyMessage = "Invalid email format"
+//                        errorType = ErrorType.EMAIL_FORMAT_ERROR
+//                    }
+//                    result.message?.contains("Failed to update email in database") == true -> {
+//                        userFriendlyMessage = "Failed to update email in database"
+//                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+//                    }
+//                    else -> {
+//                        userFriendlyMessage = result.message ?: "Failed to update email"
+//                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+//                    }
+//                }
+//
+//                Log.d("AuthRepository", "Processed error: $userFriendlyMessage, type: $errorType")
+//                Resource.error(userFriendlyMessage, errorType)
+//            }
+//            else -> result
+//        }
+//    }
+
+//    override suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType> {
+//        val result = firebaseAuthDataSource.updateAuthEmail(newEmail, password)
+//
+//        Log.d("AuthRepository", "updateAuthEmail result: status=${result.status}, message=${result.message}, errorType=${result.data}")
+//
+//        return when (result.status) {
+//            Status.SUCCESS -> {
+//                Log.d("AuthRepository", "Auth email update completed successfully")
+//                Resource.success(null)
+//            }
+//            Status.ERROR -> {
+//                var userFriendlyMessage = ""
+//                var errorType: ErrorType? = null
+//
+//                Log.d("AuthRepository", "Original error message: ${result.message}")
+//
+//                when {
+//                    result.message?.contains("invalid-credential") == true -> {
+//                        userFriendlyMessage = "Wrong password"
+//                        errorType = ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR
+//                    }
+//                    result.message?.contains("requires-recent-login") == true -> {
+//                        userFriendlyMessage = "Reauthentication required"
+//                        errorType = ErrorType.LOGIN_FAILED_ERROR
+//                    }
+//                    result.message?.contains("email-already-in-use") == true -> {
+//                        userFriendlyMessage = "Email already in use"
+//                        errorType = ErrorType.EMAIL_ALREADY_REGISTERED_ERROR
+//                    }
+//                    result.message?.contains("invalid-email") == true -> {
+//                        userFriendlyMessage = "Invalid email format"
+//                        errorType = ErrorType.EMAIL_FORMAT_ERROR
+//                    }
+//                    result.message?.contains("This operation is not allowed") == true -> {
+//                        // Специальная обработка для случая, когда нужна верификация
+//                        userFriendlyMessage = "A verification email has been sent to your new email address. Please verify it before continuing."
+//                        errorType = ErrorType.EMAIL_VERIFICATION_NEEDED
+//                    }
+//                    result.message?.contains("Failed to update email in database") == true -> {
+//                        userFriendlyMessage = "Failed to update email in database"
+//                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+//                    }
+//                    else -> {
+//                        userFriendlyMessage = result.message ?: "Failed to update email"
+//                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+//                    }
+//                }
+//
+//                Log.d("AuthRepository", "Processed error: $userFriendlyMessage, type: $errorType")
+//                Resource.error(userFriendlyMessage, errorType)
+//            }
+//            else -> result
+//        }
+//    }
+
+    override suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType> {
+        val result = firebaseAuthDataSource.updateAuthEmail(newEmail, password)
+
+        Log.d("AuthRepository", "updateAuthEmail result: status=${result.status}, message=${result.message}, errorType=${result.data}")
+
+        return when (result.status) {
+            Status.SUCCESS -> {
+                Log.d("AuthRepository", "Auth email update completed successfully")
+                Resource.success(null)
+            }
+            Status.ERROR -> {
+                var userFriendlyMessage = ""
+                var errorType: ErrorType? = null
+
+                Log.d("AuthRepository", "Original error message: ${result.message}")
+
+                when {
+                    result.message?.contains("invalid-credential") == true -> {
+                        userFriendlyMessage = "Wrong password"
+                        errorType = ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR
+                    }
+                    result.message?.contains("requires-recent-login") == true -> {
+                        userFriendlyMessage = "Reauthentication required"
+                        errorType = ErrorType.LOGIN_FAILED_ERROR
+                    }
+                    result.message?.contains("email-already-in-use") == true -> {
+                        userFriendlyMessage = "Email already in use"
+                        errorType = ErrorType.EMAIL_ALREADY_REGISTERED_ERROR
+                    }
+                    result.message?.contains("invalid-email") == true -> {
+                        userFriendlyMessage = "Invalid email format"
+                        errorType = ErrorType.EMAIL_FORMAT_ERROR
+                    }
+                    result.message?.contains("current email address is not verified") == true -> {
+                        userFriendlyMessage = "Your current email address is not verified. Please verify your current email before changing it."
+                        errorType = ErrorType.CURRENT_EMAIL_NOT_VERIFIED
+                    }
+                    result.message?.contains("This operation is not allowed") == true -> {
+                        userFriendlyMessage = "A verification email has been sent to your new email address. Please verify it before continuing."
+                        errorType = ErrorType.EMAIL_VERIFICATION_NEEDED
+                    }
+                    result.message?.contains("Failed to update email in database") == true -> {
+                        userFriendlyMessage = "Failed to update email in database"
+                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+                    }
+                    else -> {
+                        userFriendlyMessage = result.message ?: "Failed to update email"
+                        errorType = ErrorType.DATA_NOT_SAVED_ERROR
+                    }
+                }
+
+                Log.d("AuthRepository", "Processed error: $userFriendlyMessage, type: $errorType")
+                Resource.error(userFriendlyMessage, errorType)
+            }
+            else -> result
+        }
+    }
 }

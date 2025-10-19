@@ -66,6 +66,8 @@ class MainViewModel @Inject constructor(
     // Изменение email в профиле по кнопке "изменить"
     private val _displayEmailUpdateState = MutableLiveData<Resource<ErrorType>>()
     val displayEmailUpdateState: LiveData<Resource<ErrorType>> = _displayEmailUpdateState
+    private val _authEmailUpdateState = MutableLiveData<Resource<ErrorType>>()
+    val authEmailUpdateState: LiveData<Resource<ErrorType>> = _authEmailUpdateState
 
     // Разовая проверка состояния в firebase
     private val _checkedUserInfo =
@@ -315,19 +317,14 @@ class MainViewModel @Inject constructor(
                         // Обновляем локальные данные
                         updateOnboardingAnswers { it.copy(displayEmail = trimmedLowercaseEmail) }
                         // Обновляем временные ответы
-                        saveAnswerToMainViewModel(AnswerNames.EMAIL_ANSWER.toString(), trimmedLowercaseEmail)
+                        saveAnswerToMainViewModel(
+                            AnswerNames.EMAIL_ANSWER.toString(),
+                            trimmedLowercaseEmail
+                        )
 
                         // Принудительно обновляем данные пользователя с сервера
                         checkLoggedInStateGetUser()
                     }
-//                    // Получить текущего пользователя
-//                    val currentUser = getCurrentUserUC.execute().data
-//                    if (currentUser != null) {
-//                        // Обновляем только display email
-//                        val updatedUser = currentUser.copy(displayEmail = newDisplayEmail)
-//                        // Используем существующий updateProfileUC
-//                        _profileUpdatedLiveData.value = updateProfileUC.execute(updatedUser)
-//                    }
                 }
 
                 false -> {
@@ -335,6 +332,29 @@ class MainViewModel @Inject constructor(
                     // Но на всякий случай обработаем
                     _displayEmailUpdateState.value =
                         Resource.error("Не верный адрес", validationResult.errorMessage)
+                }
+            }
+        }
+    }
+
+    fun updateAuthEmail(newAuthEmail: String, password: String) {
+        viewModelScope.launch {
+            // Валидация email
+            val trimmedLowercaseEmail = newAuthEmail.lowercase().trim()
+            val validationResult = loginValidateEmailUC.execute(trimmedLowercaseEmail)
+
+            when (validationResult.successful) {
+                true -> {
+                    _authEmailUpdateState.value = Resource.loading(null)
+
+                    val result = updateEmailUC.updateAuthEmail(trimmedLowercaseEmail, password)
+                    _authEmailUpdateState.value = result
+                }
+
+                false -> {
+                    _authEmailUpdateState.value = Resource.error(
+                        "Не верный адрес", validationResult.errorMessage
+                    )
                 }
             }
         }

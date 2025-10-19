@@ -80,6 +80,8 @@
     <string name="profile_button_log_out">Выйти</string>
     <string name="change_display_email_title">Изменить почту для связи</string>
     <string name="change_auth_email_title">Изменить почту для входа</string>
+    <string name="text_new_email_hint">Введите новый email</string>
+    <string name="text_password_hint">Введите ваш пароль</string>
     <string name="save">Сохранить</string>
     <string name="display_email_updated_successfully">Почта для связи успешно обновлена</string>
     <string name="auth_email_updated_successfully">Почта для входа успешно обновлена</string>
@@ -133,6 +135,11 @@
     <string name="failed_to_clear_data">Ошибка при очистке данных</string>
     <string name="failed_to_load_local_data">Не удалось загрузить данные свашего телефона</string>
     <string name="not_valid_user_data_for_saving_to_firebase">Данные не валидны для сохранения - есть пустые поля</string>
+    <string name="current_email_not_verified">Текущий email не верифицирован</string>
+    <string name="email_verification_needed">A verification email has been sent to your new email address. Please verify it before continuing.</string>
+    <string name="verification_email_sent_explanation">Verification email sent. Your login email will be updated automatically after verification.</string>
+    <string name="auth_email_updated_successfully_please_verify">Почта для входа успешно обновлена. Верификация выслана нам на почту</string>
+    <string name="wrong_password_while_changing_email">Не верный пароль</string>
 
     <!-- Dialogs -->
     <string name="data_save_error_title">Ошибка сохранения</string>

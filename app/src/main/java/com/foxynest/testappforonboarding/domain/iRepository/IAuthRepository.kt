@@ -17,4 +17,5 @@ interface IAuthRepository {
     suspend fun sendEmailVerification(): Resource<ErrorType>
     suspend fun checkEmailVerified(): Boolean
     suspend fun updateDisplayEmail(newEmail: String): Resource<ErrorType>
+    suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType>
 }

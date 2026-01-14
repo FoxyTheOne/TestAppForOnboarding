@@ -57,7 +57,7 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
             uid = "",
             authEmail = "",
             isEmailVerified = false,
-            displayEmail = "",
+//            displayEmail = "",
             userName = "",
             childGender = "",
             isItABoy = "",

@@ -38,6 +38,8 @@ class MainViewModelTests {
             updateProfileUC = updateProfileUC,
             getCurrentUserUC = mockk(),
             getAuthStateFlowUC = mockk(),
+            loginValidateEmailUC = mockk(),
+            updateEmailUC = mockk(),
             dispatcher = testDispatcher // Нужно добавить в конструктор
         )
     }

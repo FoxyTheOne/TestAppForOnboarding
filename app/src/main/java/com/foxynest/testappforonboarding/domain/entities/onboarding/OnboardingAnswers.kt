@@ -5,7 +5,7 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class OnboardingAnswers(
-    val displayEmail: String = "",
+//    val displayEmail: String = "",
     val userName: String = "",
     val childGender: String = "",
     val isItABoy: String = "",

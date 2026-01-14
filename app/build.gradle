@@ -181,3 +181,7 @@ dependencies {
 //    // Дополнит. настройка, чтобы hilt показывал корректные сообщения об ошибке во время компиляции
 //    correctErrorTypes = true
 //}
+
+// OLD JAVA_HOME path C:\Program Files\ojdkbuild\java-11-openjdk-11.0.12-1\
+// C:\Program Files\ojdkbuild\java-11-openjdk-11.0.12-1\
+// C:\Users\User\.jdks\ms-17.0.15\

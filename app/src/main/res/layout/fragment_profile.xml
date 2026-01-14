@@ -204,12 +204,12 @@
             android:layout_marginStart="@dimen/space_32"
             android:layout_marginBottom="@dimen/space_32"
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/text_display_email_title"
+            app:layout_constraintBottom_toTopOf="@+id/text_auth_email_title"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
             app:layout_constraintTop_toBottomOf="@+id/text_birth_date_title" />
 
-        <TextView
+        <!-- TextView
             android:id="@+id/text_display_email_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -219,9 +219,9 @@
             app:layout_constraintBottom_toTopOf="@+id/linear_display_email_answer"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/text_birth_date_answer" />
+            app:layout_constraintTop_toBottomOf="@+id/text_birth_date_answer" / -->
 
-        <LinearLayout
+        <!-- LinearLayout
             android:id="@+id/linear_display_email_answer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -260,7 +260,7 @@
                 android:textSize="@dimen/button_text"
                 android:textStyle="bold"
                 app:backgroundTint="@null" />
-        </LinearLayout>
+        </LinearLayout -->
 
         <TextView
             android:id="@+id/text_auth_email_title"
@@ -272,7 +272,7 @@
             app:layout_constraintBottom_toTopOf="@+id/linear_auth_email_answer"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@+id/linear_display_email_answer" />
+            app:layout_constraintTop_toBottomOf="@+id/text_birth_date_answer" />
 
         <LinearLayout
             android:id="@+id/linear_auth_email_answer"

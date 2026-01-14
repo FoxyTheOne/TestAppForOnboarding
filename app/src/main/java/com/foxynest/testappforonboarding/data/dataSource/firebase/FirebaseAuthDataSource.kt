@@ -229,30 +229,30 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
-    suspend fun updateDisplayEmail(newEmail: String): Resource<ErrorType> {
-        return try {
-            val currentUser = auth.currentUser
-                ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
-
-            // Обновляем только display email в Firestore
-            val userData = mapOf(
-                UserFirestoreFields.DISPLAY_EMAIL to newEmail,
-                UserFirestoreFields.UPDATED_AT to FieldValue.serverTimestamp()
-            )
-
-            firestore.collection(USERS_COLLECTION)
-                .document(currentUser.uid)
-                .update(userData)
-                .await()
-
-            Resource.success(null)
-        } catch (e: Exception) {
-            Resource.error(
-                e.message ?: "Failed to update display email",
-                ErrorType.DATA_NOT_SAVED_ERROR
-            )
-        }
-    }
+//    suspend fun updateDisplayEmail(newEmail: String): Resource<ErrorType> {
+//        return try {
+//            val currentUser = auth.currentUser
+//                ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
+//
+//            // Обновляем только display email в Firestore
+//            val userData = mapOf(
+//                UserFirestoreFields.DISPLAY_EMAIL to newEmail,
+//                UserFirestoreFields.UPDATED_AT to FieldValue.serverTimestamp()
+//            )
+//
+//            firestore.collection(USERS_COLLECTION)
+//                .document(currentUser.uid)
+//                .update(userData)
+//                .await()
+//
+//            Resource.success(null)
+//        } catch (e: Exception) {
+//            Resource.error(
+//                e.message ?: "Failed to update display email",
+//                ErrorType.DATA_NOT_SAVED_ERROR
+//            )
+//        }
+//    }
 
 //    suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType> {
 //        return try {
@@ -505,17 +505,17 @@ class FirebaseAuthDataSource @Inject constructor(
             user.verifyBeforeUpdateEmail(newEmail).await()
             Log.d(TAG, "Verification email sent to new email")
 
-            // 4. Обновляем displayEmail в Firestore
-            val updateData = mapOf(
-                UserFirestoreFields.DISPLAY_EMAIL to newEmail,
-                UserFirestoreFields.UPDATED_AT to FieldValue.serverTimestamp()
-            )
+//            // 4. Обновляем displayEmail в Firestore
+//            val updateData = mapOf(
+//                UserFirestoreFields.DISPLAY_EMAIL to newEmail,
+//                UserFirestoreFields.UPDATED_AT to FieldValue.serverTimestamp()
+//            )
 
-            firestore.collection(USERS_COLLECTION)
-                .document(user.uid)
-                .update(updateData)
-                .await()
-            Log.d(TAG, "Display email updated in Firestore")
+//            firestore.collection(USERS_COLLECTION)
+//                .document(user.uid)
+//                .update(updateData)
+//                .await()
+//            Log.d(TAG, "Display email updated in Firestore")
 
             Resource.success(null)
         } catch (e: Exception) {

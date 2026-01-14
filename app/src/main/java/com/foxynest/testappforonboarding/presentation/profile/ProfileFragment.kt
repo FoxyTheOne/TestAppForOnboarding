@@ -48,7 +48,7 @@ class ProfileFragment : Fragment() {
 
     private var localFieldsObserver: Observer<Any>? = null
     private var dataSaveErrorDialog: DataSaveErrorDialog? = null
-    private var changeDisplayEmailDialog: ChangeDisplayEmailDialog? = null
+//    private var changeDisplayEmailDialog: ChangeDisplayEmailDialog? = null
     private var changeAuthEmailDialog: ChangeAuthEmailDialog? = null
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
@@ -125,9 +125,9 @@ class ProfileFragment : Fragment() {
             showConfirmOnboardingRestartDialog()
         }
 
-        binding?.buttonChangeDisplayEmail?.setOnClickListener {
-            showChangeDisplayEmailDialog()
-        }
+//        binding?.buttonChangeDisplayEmail?.setOnClickListener {
+//            showChangeDisplayEmailDialog()
+//        }
 
         binding?.buttonChangeAuthEmail?.setOnClickListener {
             showChangeAuthEmailDialog()
@@ -347,39 +347,39 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        mainViewModel.displayEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-            val messageToShow = resourceResult.data.toErrorMessage(resources)
-
-            when (resourceResult.status) {
-                Status.LOADING -> {
-                    // Прогресс уже показывается в диалоге через showLoading()
-                }
-
-                Status.SUCCESS -> {
-                    this.changeDisplayEmailDialog?.showSuccess()
-                    this.changeDisplayEmailDialog = null
-
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.display_email_updated_successfully),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    // Данные автоматически обновятся через checkedUserInfo observer
-                }
-
-                Status.ERROR -> {
-                    // Показываем ошибку от сервера в диалоге
-                    this.changeDisplayEmailDialog?.showError(
-                        messageToShow ?: getString(R.string.unexpected_error)
-                    )
-                    // Не обнуляем dialog, чтобы пользователь мог попробовать снова
-                }
-
-                else -> {
-                    // ignore
-                }
-            }
-        }
+//        mainViewModel.displayEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
+//            val messageToShow = resourceResult.data.toErrorMessage(resources)
+//
+//            when (resourceResult.status) {
+//                Status.LOADING -> {
+//                    // Прогресс уже показывается в диалоге через showLoading()
+//                }
+//
+//                Status.SUCCESS -> {
+//                    this.changeDisplayEmailDialog?.showSuccess()
+//                    this.changeDisplayEmailDialog = null
+//
+//                    Toast.makeText(
+//                        requireContext(),
+//                        getString(R.string.display_email_updated_successfully),
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                    // Данные автоматически обновятся через checkedUserInfo observer
+//                }
+//
+//                Status.ERROR -> {
+//                    // Показываем ошибку от сервера в диалоге
+//                    this.changeDisplayEmailDialog?.showError(
+//                        messageToShow ?: getString(R.string.unexpected_error)
+//                    )
+//                    // Не обнуляем dialog, чтобы пользователь мог попробовать снова
+//                }
+//
+//                else -> {
+//                    // ignore
+//                }
+//            }
+//        }
 
 //        mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
 //            val message = resourceResult.data.toErrorMessage(resources)
@@ -856,19 +856,25 @@ class ProfileFragment : Fragment() {
                 user.childBirthDate,
                 getString(R.string.localization)
             )
-            // Email для профиля (изменяемый)
-            binding?.textDisplayEmailAnswer?.text = user.displayEmail
+//            // Email для профиля (изменяемый)
+//            binding?.textDisplayEmailAnswer?.text = user.displayEmail
             // Email для входа (НЕ изменяемый)
             binding?.textAuthEmailAnswer?.text = user.authEmail
 
-            // Показываем/скрываем кнопку верификации в зависимости от статуса email
-            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
-                binding?.buttonVerifyEmail?.visibility = View.VISIBLE
-                binding?.textEmailNotVerified?.visibility = View.VISIBLE
-            } else {
-                binding?.buttonVerifyEmail?.visibility = View.GONE
-                binding?.textEmailNotVerified?.visibility = View.GONE
-            }
+//            // Показываем/скрываем почту и кнопку верификации в зависимости от статуса email
+//            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
+//                binding?.textAuthEmailTitle?.visibility = View.VISIBLE
+//                binding?.linearAuthEmailAnswer?.visibility = View.VISIBLE
+//                binding?.linearEmailVerification?.visibility = View.VISIBLE
+////                binding?.buttonVerifyEmail?.visibility = View.VISIBLE
+////                binding?.textEmailNotVerified?.visibility = View.VISIBLE
+//            } else {
+//                binding?.textAuthEmailTitle?.visibility = View.GONE
+//                binding?.linearAuthEmailAnswer?.visibility = View.GONE
+//                binding?.linearEmailVerification?.visibility = View.GONE
+////                binding?.buttonVerifyEmail?.visibility = View.GONE
+////                binding?.textEmailNotVerified?.visibility = View.GONE
+//            }
         }
     }
 
@@ -911,6 +917,9 @@ class ProfileFragment : Fragment() {
             // Показываем кнопки "log out" и "обновить поля", button_verify_email
             binding?.buttonLogOut?.visibility = View.VISIBLE
 //            binding?.buttonUpdateFields?.visibility = View.VISIBLE
+            // Показываем поля с почтой
+            binding?.textAuthEmailTitle?.visibility = View.VISIBLE
+            binding?.linearAuthEmailAnswer?.visibility = View.VISIBLE
             binding?.linearEmailVerification?.visibility = View.VISIBLE
         } else {
             // Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data
@@ -921,21 +930,24 @@ class ProfileFragment : Fragment() {
             // Убираем кнопки "log out" и "обновить поля", button_verify_email
             binding?.buttonLogOut?.visibility = View.GONE
 //            binding?.buttonUpdateFields?.visibility = View.GONE
+            // Показываем поля с почтой
+            binding?.textAuthEmailTitle?.visibility = View.GONE
+            binding?.linearAuthEmailAnswer?.visibility = View.GONE
             binding?.linearEmailVerification?.visibility = View.GONE
         }
     }
 
-    private fun showChangeDisplayEmailDialog() {
-        val currentEmail = binding?.textDisplayEmailAnswer?.text?.toString() ?: ""
-
-        this.changeDisplayEmailDialog = ChangeDisplayEmailDialog.newInstance(currentEmail)
-        this.changeDisplayEmailDialog
-            ?.setOnSaveClickListener { newEmail ->
-//            changeDisplayEmailDialog?.showLoading()
-                mainViewModel.updateDisplayEmail(newEmail)
-            }
-            ?.show(parentFragmentManager, ChangeDisplayEmailDialog.TAG)
-    }
+//    private fun showChangeDisplayEmailDialog() {
+//        val currentEmail = binding?.textDisplayEmailAnswer?.text?.toString() ?: ""
+//
+//        this.changeDisplayEmailDialog = ChangeDisplayEmailDialog.newInstance(currentEmail)
+//        this.changeDisplayEmailDialog
+//            ?.setOnSaveClickListener { newEmail ->
+////            changeDisplayEmailDialog?.showLoading()
+//                mainViewModel.updateDisplayEmail(newEmail)
+//            }
+//            ?.show(parentFragmentManager, ChangeDisplayEmailDialog.TAG)
+//    }
 
     private fun showChangeAuthEmailDialog() {
         val currentEmail = binding?.textAuthEmailAnswer?.text?.toString() ?: ""
@@ -1005,8 +1017,8 @@ class ProfileFragment : Fragment() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        changeDisplayEmailDialog?.dismiss()
-        changeDisplayEmailDialog = null
+//        changeDisplayEmailDialog?.dismiss()
+//        changeDisplayEmailDialog = null
         changeAuthEmailDialog?.dismiss()
         changeAuthEmailDialog = null
         binding = null

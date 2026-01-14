@@ -12,7 +12,7 @@ class DataMappingTests {
     fun `user presentation to firestore map contains all fields`() {
         val user = UserPresentation(
             uid = "123",
-            email = "test@test.com",
+            authEmail = "test@test.com",
             userName = "Test User",
             childGender = "Мальчик",
             childName = "Child Name"

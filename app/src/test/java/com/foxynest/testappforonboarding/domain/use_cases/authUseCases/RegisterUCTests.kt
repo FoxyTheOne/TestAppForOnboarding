@@ -36,7 +36,7 @@ class RegisterUCTests {
     @Test
     fun `register with valid data returns success`() = runTest {
         // Given
-        val user = UserPresentation(uid = "123", email = "test@test.com")
+        val user = UserPresentation(uid = "123", authEmail = "test@test.com")
         coEvery { authRepository.register(any(), any(), any()) } returns Resource.success(null)
 
         // When
@@ -53,7 +53,7 @@ class RegisterUCTests {
         val testPassword = "password123"
         val testUser = UserPresentation(
             uid = "test-uid",
-            email = testEmail,
+            authEmail = testEmail,
             userName = "Test User"
         )
 

@@ -25,8 +25,8 @@ data class UserPresentation(
     val authEmail: String = "",
     val isEmailVerified: Boolean = false,
 
-    // Email для отображения в профиле (Firestore) - можно менять свободно
-    val displayEmail: String = "",
+//    // Email для отображения в профиле (Firestore) - можно менять свободно
+//    val displayEmail: String = "",
 
     // Остальные поля профиля
     val userName: String = "",

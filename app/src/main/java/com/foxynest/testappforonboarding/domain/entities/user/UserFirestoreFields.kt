@@ -9,7 +9,7 @@ package com.foxynest.testappforonboarding.domain.entities.user
  * Все изменения будут сосредоточены в одном месте, что значительно снижает риск ошибок.
  */
 object UserFirestoreFields {
-    const val DISPLAY_EMAIL = "displayEmail"
+//    const val DISPLAY_EMAIL = "displayEmail"
     const val USERNAME = "username"
     const val CHILD_GENDER = "childGender"
     const val CHILD_IS_IT_A_BOY = "childIsItABoy"

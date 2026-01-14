@@ -8,7 +8,6 @@ interface IAppDatastorePreferences {
 
     // Сохранение данных
     suspend fun saveUserName(userName: String)
-    suspend fun saveEmail(email: String)
     suspend fun saveGender(gender: String)
     suspend fun saveName(name: String)
     suspend fun saveIsItABoy(answer: String)
@@ -18,7 +17,6 @@ interface IAppDatastorePreferences {
 
     // Получение данных
     fun getUserNameFlow(): Flow<String?>
-    fun getEmailFlow(): Flow<String?>
     fun getGenderFlow(): Flow<String?>
     fun getNameFlow(): Flow<String?>
     fun getIsItABoyFlow(): Flow<String?>

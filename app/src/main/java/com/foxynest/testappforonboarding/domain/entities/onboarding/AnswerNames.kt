@@ -1,7 +1,6 @@
 package com.foxynest.testappforonboarding.domain.entities.onboarding
 
 enum class AnswerNames {
-//    EMAIL_ANSWER,
     IS_EMAIL_VERIFIED_ANSWER,
     USER_NAME_ANSWER,
     CHILD_GENDER_ANSWER,

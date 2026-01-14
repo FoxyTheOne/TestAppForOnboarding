@@ -1,8 +1,6 @@
 package com.foxynest.testappforonboarding.presentation.profile
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -29,7 +27,6 @@ import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.dialogs.ChangeAuthEmailDialog
-import com.foxynest.testappforonboarding.presentation.dialogs.ChangeDisplayEmailDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,7 +45,6 @@ class ProfileFragment : Fragment() {
 
     private var localFieldsObserver: Observer<Any>? = null
     private var dataSaveErrorDialog: DataSaveErrorDialog? = null
-//    private var changeDisplayEmailDialog: ChangeDisplayEmailDialog? = null
     private var changeAuthEmailDialog: ChangeAuthEmailDialog? = null
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
@@ -124,10 +120,6 @@ class ProfileFragment : Fragment() {
         binding?.buttonRefillFields?.setOnClickListener {
             showConfirmOnboardingRestartDialog()
         }
-
-//        binding?.buttonChangeDisplayEmail?.setOnClickListener {
-//            showChangeDisplayEmailDialog()
-//        }
 
         binding?.buttonChangeAuthEmail?.setOnClickListener {
             showChangeAuthEmailDialog()
@@ -347,376 +339,6 @@ class ProfileFragment : Fragment() {
             }
         }
 
-//        mainViewModel.displayEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-//            val messageToShow = resourceResult.data.toErrorMessage(resources)
-//
-//            when (resourceResult.status) {
-//                Status.LOADING -> {
-//                    // Прогресс уже показывается в диалоге через showLoading()
-//                }
-//
-//                Status.SUCCESS -> {
-//                    this.changeDisplayEmailDialog?.showSuccess()
-//                    this.changeDisplayEmailDialog = null
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.display_email_updated_successfully),
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                    // Данные автоматически обновятся через checkedUserInfo observer
-//                }
-//
-//                Status.ERROR -> {
-//                    // Показываем ошибку от сервера в диалоге
-//                    this.changeDisplayEmailDialog?.showError(
-//                        messageToShow ?: getString(R.string.unexpected_error)
-//                    )
-//                    // Не обнуляем dialog, чтобы пользователь мог попробовать снова
-//                }
-//
-//                else -> {
-//                    // ignore
-//                }
-//            }
-//        }
-
-//        mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-//            val message = resourceResult.data.toErrorMessage(resources)
-//
-//            when (resourceResult.status) {
-//                Status.LOADING -> {
-//                    // Прогресс уже показывается в диалоге через showLoading()
-//                }
-//
-//                Status.SUCCESS -> {
-//                    changeAuthEmailDialog?.showSuccess()
-//                    changeAuthEmailDialog = null
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.auth_email_updated_successfully),
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//
-//                    // Показываем сообщение о необходимости верификации
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.profile_email_verification_send),
-//                        Toast.LENGTH_LONG
-//                    ).show()
-//
-//                    // Принудительно обновляем данные пользователя
-//                    mainViewModel.checkLoggedInStateGetUser()
-//                }
-//
-//                Status.ERROR -> {
-////                    changeAuthEmailDialog?.showError(
-////                        message ?: getString(R.string.unexpected_error)
-////                    )
-//                    // Определяем, это ошибка пароля или email
-//                    val isPasswordError = resourceResult.message?.contains("password") ?: false
-//
-//                    changeAuthEmailDialog?.showError(
-//                        message ?: getString(R.string.unexpected_error),
-//                        isPasswordError
-//                    )
-//                }
-//
-//                else -> {
-//                    // ignore
-//                }
-//            }
-//        }
-
-//        mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-//            val message = resourceResult.data.toErrorMessage(resources)
-//
-//            // Детальное логирование
-//            Log.d(
-//                "AuthEmailUpdate",
-//                "Status: ${resourceResult.status}, Message: $message, ErrorType: ${resourceResult.data}, RawMessage: ${resourceResult.message}"
-//            )
-//
-//            when (resourceResult.status) {
-//                Status.LOADING -> {
-//                    // Прогресс уже показывается в диалоге через showLoading()
-//                }
-//
-//                Status.SUCCESS -> {
-//                    changeAuthEmailDialog?.showSuccess()
-//                    changeAuthEmailDialog = null
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.auth_email_updated_successfully),
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//
-//                    // Показываем сообщение о необходимости верификации
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.profile_email_verification_send),
-//                        Toast.LENGTH_LONG
-//                    ).show()
-//
-//                    // Принудительно обновляем данные пользователя
-//                    mainViewModel.checkLoggedInStateGetUser()
-//                }
-//
-//                Status.ERROR -> {
-//                    // Улучшенная логика определения типа ошибки
-////                    val isPasswordError = when (resourceResult.data) {
-////                        ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR,
-////                        ErrorType.AUTH_DATA_ERROR -> true
-////                        else -> false
-////                    }
-//                    val isPasswordError = resourceResult.message?.contains("password") ?: false
-//
-//                    Log.d(
-//                        "AuthEmailUpdate",
-//                        "IsPasswordError: $isPasswordError, ErrorType: ${resourceResult.data}"
-//                    )
-//
-//                    changeAuthEmailDialog?.showError(
-//                        message ?: getString(R.string.unexpected_error),
-//                        isPasswordError
-//                    )
-//                }
-//
-//                else -> {}
-//            }
-//        }
-
-//        mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-//            val message = resourceResult.data.toErrorMessage(resources)
-//
-//            Log.d(
-//                "AuthEmailUpdate",
-//                "Status: ${resourceResult.status}, Message: $message, ErrorType: ${resourceResult.data}, RawMessage: ${resourceResult.message}"
-//            )
-//
-//            when (resourceResult.status) {
-//                Status.LOADING -> {
-//                    // Прогресс уже показывается в диалоге через showLoading()
-//                }
-//
-//                Status.SUCCESS -> {
-//                    changeAuthEmailDialog?.showSuccess()
-//                    changeAuthEmailDialog = null
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.auth_email_updated_successfully_please_verify),
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//
-//                    // ОБНОВЛЕННОЕ сообщение - объясняем процесс
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.verification_email_sent_explanation),
-//                        Toast.LENGTH_LONG
-//                    ).show()
-//
-//                    mainViewModel.checkLoggedInStateGetUser()
-//                }
-//
-//                Status.ERROR -> {
-//                    val isPasswordError = resourceResult.message?.contains("password") ?: false
-//
-//                    // Если это ошибка верификации, это не ошибка пароля
-//                    val isVerificationNeeded =
-//                        resourceResult.data == ErrorType.EMAIL_VERIFICATION_NEEDED
-//
-//                    Log.d(
-//                        "AuthEmailUpdate",
-//                        "IsPasswordError: $isPasswordError, ErrorType: ${resourceResult.data}"
-//                    )
-//
-//                    changeAuthEmailDialog?.showError(
-//                        message ?: getString(R.string.unexpected_error),
-//                        isPasswordError && !isVerificationNeeded // Не показываем как ошибку пароля если нужна верификация
-//                    )
-//
-//                    // Если требуется верификация, закрываем диалог с задержкой чтобы пользователь успел прочитать
-//                    if (isVerificationNeeded) {
-//                        Handler(Looper.getMainLooper()).postDelayed({
-//                            changeAuthEmailDialog?.showSuccess()
-//                        }, 3000) // 3 секунды на чтение сообщения
-//                    }
-//                }
-//
-//                else -> {}
-//            }
-//        }
-
-//        mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-//            val message = resourceResult.data.toErrorMessage(resources)
-//
-//            Log.d("AuthEmailUpdate", "Status: ${resourceResult.status}, Message: $message, ErrorType: ${resourceResult.data}, RawMessage: ${resourceResult.message}")
-//
-//            when (resourceResult.status) {
-//                Status.LOADING -> {
-//                    // Прогресс уже показывается в диалоге через showLoading()
-//                }
-//                Status.SUCCESS -> {
-//                    changeAuthEmailDialog?.showSuccess()
-//                    changeAuthEmailDialog = null
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.auth_email_updated_successfully),
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.verification_email_sent_explanation),
-//                        Toast.LENGTH_LONG
-//                    ).show()
-//
-//                    mainViewModel.checkLoggedInStateGetUser()
-//                }
-//                Status.ERROR -> {
-//                    val isPasswordError = resourceResult.message?.contains("password") ?: false
-//
-//                    val isVerificationNeeded = resourceResult.data == ErrorType.EMAIL_VERIFICATION_NEEDED
-//                    val isCurrentEmailNotVerified = resourceResult.data == ErrorType.CURRENT_EMAIL_NOT_VERIFIED
-//
-//                    Log.d("AuthEmailUpdate", "IsPasswordError: $isPasswordError, ErrorType: ${resourceResult.data}")
-//
-//                    // Для ошибки непроверенного текущего email показываем особое поведение
-//                    if (isCurrentEmailNotVerified) {
-//                        changeAuthEmailDialog?.showError(
-//                            message ?: getString(R.string.unexpected_error),
-//                            false // Не показываем как ошибку пароля
-//                        )
-//
-//                        // Закрываем диалог через 3 секунды чтобы пользователь успел прочитать
-//                        Handler(Looper.getMainLooper()).postDelayed({
-//                            changeAuthEmailDialog?.dismiss()
-//                            // Показываем кнопку верификации текущего email
-//                            binding?.buttonVerifyEmail?.visibility = View.VISIBLE
-//                        }, 3000)
-//                    } else {
-//                        changeAuthEmailDialog?.showError(
-//                            message ?: getString(R.string.unexpected_error),
-//                            isPasswordError && !isVerificationNeeded
-//                        )
-//
-//                        if (isVerificationNeeded) {
-//                            Handler(Looper.getMainLooper()).postDelayed({
-//                                changeAuthEmailDialog?.showSuccess()
-//                            }, 3000)
-//                        }
-//                    }
-//                }
-//                else -> {}
-//            }
-//        }
-
-//        mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-//            val message = resourceResult.data.toErrorMessage(resources)
-//
-//            Log.d(
-//                "AuthEmailUpdate",
-//                "Status: ${resourceResult.status}, Message: $message, ErrorType: ${resourceResult.data}, RawMessage: ${resourceResult.message}"
-//            )
-//
-//            when (resourceResult.status) {
-//                Status.LOADING -> {
-//                    // Прогресс уже показывается в диалоге через showLoading()
-//                }
-//
-//                Status.SUCCESS -> {
-//                    changeAuthEmailDialog?.showSuccess()
-//                    changeAuthEmailDialog = null
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.auth_email_updated_successfully),
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//
-//                    Toast.makeText(
-//                        requireContext(),
-//                        getString(R.string.verification_email_sent_explanation),
-//                        Toast.LENGTH_LONG
-//                    ).show()
-//
-//                    mainViewModel.checkLoggedInStateGetUser()
-//                }
-//
-//                Status.ERROR -> {
-//                    // Улучшенная логика определения типа ошибки
-//                    val errorType = resourceResult.data
-//                    val isPasswordError = resourceResult.message?.contains("password") ?: false
-//
-//                    val isCurrentEmailNotVerified =
-//                        errorType == ErrorType.CURRENT_EMAIL_NOT_VERIFIED
-//                    val isVerificationNeeded = errorType == ErrorType.EMAIL_VERIFICATION_NEEDED
-//
-//                    Log.d(
-//                        "AuthEmailUpdate",
-//                        "ErrorType: $errorType, IsPasswordError: $isPasswordError, IsCurrentEmailNotVerified: $isCurrentEmailNotVerified"
-//                    )
-//
-//                    when {
-//                        isPasswordError -> {
-//                            // Ошибка пароля - показываем в диалоге и НЕ закрываем его
-//                            changeAuthEmailDialog?.showError(
-//                                message ?: getString(R.string.unexpected_error),
-//                                true // Показываем как ошибку пароля
-//                            )
-//                        }
-//
-//                        isCurrentEmailNotVerified -> {
-//                            // Ошибка непроверенного текущего email - показываем и закрываем диалог
-//                            changeAuthEmailDialog?.showError(
-//                                message ?: getString(R.string.unexpected_error),
-//                                false
-//                            )
-//
-//                            // Закрываем диалог через 4 секунды чтобы пользователь успел прочитать
-//                            Handler(Looper.getMainLooper()).postDelayed({
-//                                changeAuthEmailDialog?.dismiss()
-//                                // Показываем кнопку верификации текущего email
-//                                binding?.buttonVerifyEmail?.visibility = View.VISIBLE
-//                                // Показываем дополнительное объяснение
-//                                Toast.makeText(
-//                                    requireContext(),
-//                                    "Please verify your current email first, then try again",
-//                                    Toast.LENGTH_LONG
-//                                ).show()
-//                            }, 4000)
-//                        }
-//
-//                        isVerificationNeeded -> {
-//                            // Нужна верификация нового email - это успешный случай
-//                            changeAuthEmailDialog?.showError(
-//                                message ?: getString(R.string.unexpected_error),
-//                                false
-//                            )
-//
-//                            Handler(Looper.getMainLooper()).postDelayed({
-//                                changeAuthEmailDialog?.showSuccess()
-//                            }, 3000)
-//                        }
-//
-//                        else -> {
-//                            // Любая другая ошибка
-//                            changeAuthEmailDialog?.showError(
-//                                message ?: getString(R.string.unexpected_error),
-//                                false
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                else -> {}
-//            }
-//        }
-
         mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
             val message = resourceResult.data.toErrorMessage(resources)
 
@@ -856,25 +478,15 @@ class ProfileFragment : Fragment() {
                 user.childBirthDate,
                 getString(R.string.localization)
             )
-//            // Email для профиля (изменяемый)
-//            binding?.textDisplayEmailAnswer?.text = user.displayEmail
-            // Email для входа (НЕ изменяемый)
+            // Email для входа
             binding?.textAuthEmailAnswer?.text = user.authEmail
 
 //            // Показываем/скрываем почту и кнопку верификации в зависимости от статуса email
-//            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
-//                binding?.textAuthEmailTitle?.visibility = View.VISIBLE
-//                binding?.linearAuthEmailAnswer?.visibility = View.VISIBLE
-//                binding?.linearEmailVerification?.visibility = View.VISIBLE
-////                binding?.buttonVerifyEmail?.visibility = View.VISIBLE
-////                binding?.textEmailNotVerified?.visibility = View.VISIBLE
-//            } else {
-//                binding?.textAuthEmailTitle?.visibility = View.GONE
-//                binding?.linearAuthEmailAnswer?.visibility = View.GONE
-//                binding?.linearEmailVerification?.visibility = View.GONE
-////                binding?.buttonVerifyEmail?.visibility = View.GONE
-////                binding?.textEmailNotVerified?.visibility = View.GONE
-//            }
+            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
+                showLogOutButtons(false)
+            } else {
+                showLogOutButtons(true)
+            }
         }
     }
 
@@ -916,7 +528,6 @@ class ProfileFragment : Fragment() {
             binding?.textWarningData?.visibility = View.GONE
             // Показываем кнопки "log out" и "обновить поля", button_verify_email
             binding?.buttonLogOut?.visibility = View.VISIBLE
-//            binding?.buttonUpdateFields?.visibility = View.VISIBLE
             // Показываем поля с почтой
             binding?.textAuthEmailTitle?.visibility = View.VISIBLE
             binding?.linearAuthEmailAnswer?.visibility = View.VISIBLE
@@ -929,25 +540,12 @@ class ProfileFragment : Fragment() {
             binding?.textWarningData?.visibility = View.VISIBLE
             // Убираем кнопки "log out" и "обновить поля", button_verify_email
             binding?.buttonLogOut?.visibility = View.GONE
-//            binding?.buttonUpdateFields?.visibility = View.GONE
             // Показываем поля с почтой
             binding?.textAuthEmailTitle?.visibility = View.GONE
             binding?.linearAuthEmailAnswer?.visibility = View.GONE
             binding?.linearEmailVerification?.visibility = View.GONE
         }
     }
-
-//    private fun showChangeDisplayEmailDialog() {
-//        val currentEmail = binding?.textDisplayEmailAnswer?.text?.toString() ?: ""
-//
-//        this.changeDisplayEmailDialog = ChangeDisplayEmailDialog.newInstance(currentEmail)
-//        this.changeDisplayEmailDialog
-//            ?.setOnSaveClickListener { newEmail ->
-////            changeDisplayEmailDialog?.showLoading()
-//                mainViewModel.updateDisplayEmail(newEmail)
-//            }
-//            ?.show(parentFragmentManager, ChangeDisplayEmailDialog.TAG)
-//    }
 
     private fun showChangeAuthEmailDialog() {
         val currentEmail = binding?.textAuthEmailAnswer?.text?.toString() ?: ""
@@ -1017,8 +615,6 @@ class ProfileFragment : Fragment() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-//        changeDisplayEmailDialog?.dismiss()
-//        changeDisplayEmailDialog = null
         changeAuthEmailDialog?.dismiss()
         changeAuthEmailDialog = null
         binding = null

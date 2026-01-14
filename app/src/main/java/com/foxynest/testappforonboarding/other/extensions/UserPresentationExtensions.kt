@@ -47,7 +47,6 @@ import com.google.firebase.firestore.FieldValue
 //}
 fun UserPresentation.toFirestoreMap(): Map<String, Any> {
     return mapOf(
-//        UserFirestoreFields.DISPLAY_EMAIL to this.displayEmail, // ⚠️ Только display email!
         UserFirestoreFields.USERNAME to this.userName,
         UserFirestoreFields.CHILD_GENDER to this.childGender,
         UserFirestoreFields.CHILD_IS_IT_A_BOY to this.isItABoy,
@@ -88,7 +87,6 @@ fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresent
         uid = firebaseUser.uid,
         authEmail = firebaseUser.email ?: "", // Email для входа
         isEmailVerified = firebaseUser.isEmailVerified, // Верификация для входа
-//        displayEmail = getString(UserFirestoreFields.DISPLAY_EMAIL) ?: "", // Email для профиля
         userName = getString(UserFirestoreFields.USERNAME) ?: "",
         childGender = getString(UserFirestoreFields.CHILD_GENDER) ?: "",
         isItABoy = getString(UserFirestoreFields.CHILD_IS_IT_A_BOY) ?: "",
@@ -107,7 +105,6 @@ fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: Frag
         "",
         "",
         false, // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
-//        this.value?.displayEmail ?: "",
         this.value?.userName ?: "",
         this.value?.childGender ?: "",
         this.value?.isItABoy ?: activity?.getString(R.string.no) ?: "",
@@ -123,7 +120,6 @@ fun Map<String, String>.createUpdatedUserFromAnswersInViewModel(currentUser: Use
         uid = currentUser.uid,
         authEmail = currentUser.authEmail,
         isEmailVerified = this[AnswerNames.IS_EMAIL_VERIFIED_ANSWER.toString()].toBoolean(),
-//        displayEmail = this[AnswerNames.EMAIL_ANSWER.toString()] ?: "",
         userName = this[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
         childGender = this[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
         isItABoy = this[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",

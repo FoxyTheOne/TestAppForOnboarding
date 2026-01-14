@@ -27,7 +27,6 @@ class OnboardingUC @Inject constructor(
     override suspend fun saveUserName(userName: String) =
         onboardingRepository.saveUserName(userName)
 
-    override suspend fun saveEmail(email: String) = onboardingRepository.saveEmail(email)
     override suspend fun saveGender(gender: String) = onboardingRepository.saveGender(gender)
     override suspend fun saveName(name: String) = onboardingRepository.saveName(name)
     override suspend fun saveIsItABoy(answer: String) = onboardingRepository.saveIsItABoy(answer)
@@ -42,8 +41,6 @@ class OnboardingUC @Inject constructor(
     override fun getUserNameFlow(): Flow<String?> =
         onboardingRepository.getUserNameFlow()
 
-    override fun getEmailFlow(): Flow<String?> =
-        onboardingRepository.getEmailFlow()
     override fun getGenderFlow(): Flow<String?> = onboardingRepository.getGenderFlow()
     override fun getNameFlow(): Flow<String?> = onboardingRepository.getNameFlow()
     override fun getIsItABoyFlow(): Flow<String?> = onboardingRepository.getIsItABoyFlow()

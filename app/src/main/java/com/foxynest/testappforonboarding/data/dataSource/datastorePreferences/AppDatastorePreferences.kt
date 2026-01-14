@@ -23,7 +23,6 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
     object PreferencesKeys {
         val IS_ONBOARDING_COMPLETED = booleanPreferencesKey("is_onboarding_completed")
         val USER_NAME = stringPreferencesKey("user_name")
-        val EMAIL = stringPreferencesKey("email")
         val GENDER = stringPreferencesKey("gender")
         val CHILD_NAME = stringPreferencesKey("child_name")
         val IS_IT_A_BOY = stringPreferencesKey("is_it_a_boy")
@@ -47,12 +46,6 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
     override suspend fun saveUserName(userName: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_NAME] = userName
-        }
-    }
-
-    override suspend fun saveEmail(email: String) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.EMAIL] = email
         }
     }
 
@@ -95,9 +88,6 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
     // Получение данных
     override fun getUserNameFlow(): Flow<String?> = context.dataStore.data
         .map { preferences -> preferences[PreferencesKeys.USER_NAME] }
-
-    override fun getEmailFlow(): Flow<String?> = context.dataStore.data
-        .map { preferences -> preferences[PreferencesKeys.EMAIL] }
 
     override fun getGenderFlow(): Flow<String?> = context.dataStore.data
         .map { preferences -> preferences[PreferencesKeys.GENDER] }

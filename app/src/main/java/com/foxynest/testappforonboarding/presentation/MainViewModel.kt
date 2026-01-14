@@ -64,8 +64,6 @@ class MainViewModel @Inject constructor(
     val profileUpdatedLiveData: LiveData<Resource<ErrorType>> = _profileUpdatedLiveData
 
     // Изменение email в профиле по кнопке "изменить"
-//    private val _displayEmailUpdateState = MutableLiveData<Resource<ErrorType>>()
-//    val displayEmailUpdateState: LiveData<Resource<ErrorType>> = _displayEmailUpdateState
     private val _authEmailUpdateState = MutableLiveData<Resource<ErrorType>>()
     val authEmailUpdateState: LiveData<Resource<ErrorType>> = _authEmailUpdateState
 
@@ -170,7 +168,6 @@ class MainViewModel @Inject constructor(
                 onboardingUC.saveOnboardingState(false)
 
                 val answers = OnboardingAnswers(
-//                    displayEmail = "",
                     userName = "",
                     childGender = "",
                     isItABoy = "",
@@ -214,16 +211,6 @@ class MainViewModel @Inject constructor(
         )
         updateOnboardingAnswers { it.copy(userName = userNameAnswer.trim()) }
     }
-
-//    fun saveEmailAnswer(emailAnswer: String) {
-//        saveOperation(
-//            emailAnswer,
-//            onboardingUC::saveEmail,
-//            AnswerNames.EMAIL_ANSWER,
-//            ErrorType.FAILED_TO_SAVE_EMAIL_LOCAL
-//        )
-//        updateOnboardingAnswers { it.copy(displayEmail = emailAnswer.trim()) }
-//    }
 
     fun saveGenderAnswer(genderAnswer: String) {
         saveOperation(
@@ -441,7 +428,6 @@ class MainViewModel @Inject constructor(
 
     private suspend fun loadDataFromDatastore() {
         try {
-            val email = onboardingUC.getEmailFlow().first() ?: ""
             val userName = onboardingUC.getUserNameFlow().first() ?: ""
             val childGender = onboardingUC.getGenderFlow().first() ?: ""
             val isItABoy = onboardingUC.getIsItABoyFlow().first() ?: ""
@@ -450,7 +436,6 @@ class MainViewModel @Inject constructor(
             val childHobby = onboardingUC.getHobbyFlow().first() ?: ""
 
             val answers = OnboardingAnswers(
-//                displayEmail = email,
                 userName = userName,
                 childGender = childGender,
                 isItABoy = isItABoy,
@@ -466,7 +451,6 @@ class MainViewModel @Inject constructor(
 
             // Также обновляем временные ответы для совместимости
             _answers.clear()
-//            _answers[AnswerNames.EMAIL_ANSWER.toString()] = email
             _answers[AnswerNames.USER_NAME_ANSWER.toString()] = userName
             _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = childGender
             _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = isItABoy

@@ -66,8 +66,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         binding?.buttonNext?.setOnClickListener {
             val userNameAnswer =
                 binding?.textFieldUserNameAnswer?.editText?.text?.toString()?.trim()
-//            val emailAnswer =
-//                binding?.textFieldUserEmailAnswer?.editText?.text?.toString()?.trim()?.lowercase()
             val checkedRadioButtonId = binding?.radioGroupQuestion1?.checkedRadioButtonId
             val radioGenderAnswerBoy = binding?.genderAnswerBoy
             val radioGenderAnswerGirl = binding?.genderAnswerGirl
@@ -76,7 +74,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
 
             val areFieldsValid = validateAllFields(
                 userNameAnswer,
-//                emailAnswer,
                 checkedRadioButtonId,
                 radioGenderAnswerBoy,
                 radioGenderAnswerGirl,
@@ -86,7 +83,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
             if (areFieldsValid) {
                 // Все проверки, в том числе "checkedRadioButtonId == null" должны были быть в areFieldsValid()
                 mainViewModel.saveUserNameAnswer(userNameAnswer ?: "")
-//                mainViewModel.saveEmailAnswer(emailAnswer ?: "")
                 checkedRadioButtonId?.let {
                     val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
                     mainViewModel.saveGenderAnswer(selectedRadioButton?.text.toString())
@@ -116,17 +112,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
             }
         })
 
-//        binding?.editTextFieldUserEmailAnswer?.addTextChangedListener(object : TextWatcher {
-//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-//            override fun afterTextChanged(s: Editable?) {
-//                s?.let { editable ->
-//                    val text = editable.toString()
-//                    validateEmail(text)
-//                }
-//            }
-//        })
-
         binding?.editTextFieldChildNameAnswer?.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -149,20 +134,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         }
         return isValid
     }
-
-//    private fun validateEmail(emailAnswer: String?): Boolean {
-//        var isValid = true
-//        if (emailAnswer.isNullOrBlank()) {
-//            binding?.textFieldUserEmailAnswer?.error = getString(R.string.error_email_not_selected)
-//            isValid = false
-//        } else if (!EmailUtils.emailMatches(emailAnswer)) {
-//            binding?.textFieldUserEmailAnswer?.error = getString(R.string.email_format_error)
-//            isValid = false
-//        } else {
-//            binding?.textFieldUserEmailAnswer?.error = null
-//        }
-//        return isValid
-//    }
 
     private fun validateChildName(childNameAnswer: String?): Boolean {
         var isValid = true
@@ -189,10 +160,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         if (!validateUserName(userNameAnswer)) {
             isValid = false
         }
-
-//        if (!validateEmail(emailAnswer)) {
-//            isValid = false
-//        }
 
         // Проверка RadioButton
         if (checkedRadioButtonId == null) {

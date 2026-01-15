@@ -101,16 +101,14 @@ fun UserPresentation.isUserDataValid(): Boolean =
 
 fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: FragmentActivity?): UserPresentation {
     // Только для передачи данных для регистрации! Не для передачи в firebase
+    // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
     return UserPresentation(
-        "",
-        "",
-        false, // Тут надо быть аккуратным, false - потому что ещё не зарегистрирован. Но на страницу регистрации может перейти и уже зарегистрированный пользователь. Не использовать эти данные для чего-либо, кроме регистрации!
-        this.value?.userName ?: "",
-        this.value?.childGender ?: "",
-        this.value?.isItABoy ?: activity?.getString(R.string.no) ?: "",
-        this.value?.childName ?: "",
-        this.value?.childHobby ?: "",
-        this.value?.childBirthDate ?: ""
+        userName = this.value?.userName ?: "",
+        childGender = this.value?.childGender ?: "",
+        isItABoy = this.value?.isItABoy ?: activity?.getString(R.string.no) ?: "",
+        childName = this.value?.childName ?: "",
+        childHobby = this.value?.childHobby ?: "",
+        childBirthDate = this.value?.childBirthDate ?: ""
     )
 }
 

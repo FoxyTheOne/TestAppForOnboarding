@@ -36,7 +36,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
     companion object {
@@ -127,29 +126,37 @@ class ProfileFragment : Fragment() {
     }
 
     private fun subscribeOnObservers() {
+        // 1. Ждем загрузки данных онбординга
+        mainViewModel.onboardingDataLoaded.observe(viewLifecycleOwner) { isLoaded ->
+            if (isLoaded) {
+                checkAndDisplayUserData()
+            }
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             mainViewModel.checkedUserInfo
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { resourceUser ->
-                    val user = resourceUser.data
-                    if (user != null) {
-                        removeLocalObservers()
-                        // Заполняем поля исходя из данных на сервере
-                        fillFieldsInProfile(user)
-                        showLogOutButtons(true)
-                    } else {
-                        // Локальные данные
-                        setupLocalObservers()
-                        // Принудительно обновляем из локальных данных
-                        val localUser =
-                            mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
-                                activity
-                            )
-                        if (localUser.isUserDataValid()) {
-                            fillFieldsInProfile(localUser)
-                        }
-                        showLogOutButtons(false)
-                    }
+                    checkAndDisplayUserData(resourceUser.data)
+//                    val user = resourceUser.data
+//                    if (user != null) {
+//                        removeLocalObservers()
+//                        // Заполняем поля исходя из данных на сервере
+//                        fillFieldsInProfile(user)
+//                        showLogOutButtons(true)
+//                    } else {
+//                        // Локальные данные
+//                        setupLocalObservers()
+//                        // Принудительно обновляем из локальных данных
+//                        val localUser =
+//                            mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+//                                activity
+//                            )
+//                        if (localUser.isUserDataValid()) {
+//                            fillFieldsInProfile(localUser)
+//                        }
+//                        showLogOutButtons(false)
+//                    }
                 }
         }
 
@@ -455,6 +462,27 @@ class ProfileFragment : Fragment() {
             // Если данных нет, создаем из локальных LiveData
             val localUser =
                 mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
+            if (localUser.isUserDataValid()) {
+                fillFieldsInProfile(localUser)
+            }
+            showLogOutButtons(false)
+        }
+    }
+
+    private fun checkAndDisplayUserData(user: UserPresentation? = mainViewModel.checkedUserInfo.value.data) {
+        if (user != null) {
+            removeLocalObservers()
+            // Пользователь зарегистрирован - показываем данные из Firebase
+            fillFieldsInProfile(user)
+            showLogOutButtons(true)
+        } else {
+            // Локальные данные
+            setupLocalObservers()
+            // Пользователь не зарегистрирован - принудительно обновляем из локальных данных
+            val localUser =
+                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+                    activity
+                )
             if (localUser.isUserDataValid()) {
                 fillFieldsInProfile(localUser)
             }

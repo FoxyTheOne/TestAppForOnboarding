@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 interface IAppDatastorePreferences {
     suspend fun saveOnboardingState(isCompleted: Boolean)
     fun isOnboardingCompleted(): Flow<Boolean>
+    suspend fun clearAllOnboardingData()
 
     // Сохранение данных
     suspend fun saveUserName(userName: String)

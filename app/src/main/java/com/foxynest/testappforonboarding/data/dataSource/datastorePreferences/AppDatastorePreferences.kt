@@ -42,6 +42,22 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
             preferences[IS_ONBOARDING_COMPLETED] ?: false
         }
 
+    override suspend fun clearAllOnboardingData() {
+        context.dataStore.edit { preferences ->
+            // Очищаем все ключи онбординга
+            preferences.remove(PreferencesKeys.USER_NAME)
+            preferences.remove(PreferencesKeys.GENDER)
+            preferences.remove(PreferencesKeys.CHILD_NAME)
+            preferences.remove(PreferencesKeys.IS_IT_A_BOY)
+            preferences.remove(PreferencesKeys.BIRTH_DATE)
+            preferences.remove(PreferencesKeys.CHILD_AGE)
+            preferences.remove(PreferencesKeys.HOBBY)
+
+            // Сбрасываем статус онбординга на false
+            preferences[IS_ONBOARDING_COMPLETED] = false
+        }
+    }
+
     // Сохранение данных
     override suspend fun saveUserName(userName: String) {
         context.dataStore.edit { preferences ->

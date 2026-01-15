@@ -23,6 +23,10 @@ class OnboardingUC @Inject constructor(
     override fun isOnboardingCompleted(): Flow<Boolean> =
         onboardingRepository.isOnboardingCompleted()
 
+    override suspend fun clearAllOnboardingData(): Resource<ErrorType> {
+        return onboardingRepository.clearAllOnboardingData()
+    }
+
     // SAVE
     override suspend fun saveUserName(userName: String) =
         onboardingRepository.saveUserName(userName)

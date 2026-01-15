@@ -51,6 +51,11 @@ class MainViewModel @Inject constructor(
         private const val TAG = "MainViewModel"
     }
 
+    // Инициализация ViewModel с загрузкой данных
+    init {
+        loadOnboardingDataOnStart()
+    }
+
     // ONBOARDING
     // В MainViewModel - ВМЕСТО 7 LiveData используем одну:
     private val _onboardingAnswersLiveData = MutableLiveData<OnboardingAnswers>(OnboardingAnswers())
@@ -95,6 +100,10 @@ class MainViewModel @Inject constructor(
     // Добавляем отдельный LiveData для состояния повторного сохранения
     private val _retrySaveState = MutableLiveData<Resource<ErrorType>>()
     val retrySaveState: LiveData<Resource<ErrorType>> = _retrySaveState
+
+    // Создадим отдельную LiveData для управления загрузкой данных
+    private val _onboardingDataLoaded = MutableLiveData<Boolean>(false)
+    val onboardingDataLoaded: LiveData<Boolean> = _onboardingDataLoaded
 
     // ONBOARDING - CLEAN
     fun cleanNotReplaceableAnswers() {
@@ -162,29 +171,24 @@ class MainViewModel @Inject constructor(
     fun clearUserDataOnLogout() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Очищаем статус онбординга при ВЫХОДЕ ИЗ АККАУНТА
+                // 1. Очищаем статус онбординга при ВЫХОДЕ ИЗ АККАУНТА
 //                val recourseResult = onboardingUC.saveOnboardingState(false)
 //                if (recourseResult.status == Status.SUCCESS) {
                 onboardingUC.saveOnboardingState(false)
 
-                val answers = OnboardingAnswers(
-                    userName = "",
-                    childGender = "",
-                    isItABoy = "",
-                    childName = "",
-                    childBirthDate = "",
-                    childHobby = ""
-                )
-
-                // Очищаем LiveData - обновляем LiveData на главном потоке
+                // 2. Очищаем LiveData - обновляем LiveData на главном потоке
+                val emptyAnswers = OnboardingAnswers()
                 withContext(Dispatchers.Main) {
-                    _onboardingAnswersLiveData.postValue(answers)
+                    _onboardingAnswersLiveData.postValue(emptyAnswers)
                 }
 
-                // Очищаем временные ответы
+                // 3. Очищаем временные ответы
                 _answers.clear()
 
-                // Очищаем проверенного пользователя
+                // 4. Очищаем DataStore через UC
+                onboardingUC.clearAllOnboardingData()
+
+                // 5. Очищаем состояние пользователя
                 _checkedUserInfo.value = Resource.init(null)
 //                }
             } catch (e: Exception) {
@@ -383,6 +387,20 @@ class MainViewModel @Inject constructor(
     }
 
     // PRIVATE METHODS
+    // Изменяем метод загрузки данных при старте
+    private fun loadOnboardingDataOnStart() {
+        viewModelScope.launch(dispatcher) {
+            // Загружаем данные только если пользователь не зарегистрирован
+            // Это предотвращает перезапись данных из Firebase
+            val currentUser = getCurrentUserUC.execute().data
+
+            if (currentUser == null) {
+                loadDataFromDatastore()
+            }
+            _onboardingDataLoaded.postValue(true)
+        }
+    }
+
     private fun saveOperation(
         answerToSave: String,
         saveToDataStoreAction: suspend (String) -> Unit,
@@ -435,28 +453,33 @@ class MainViewModel @Inject constructor(
             val birthDate = onboardingUC.getBirthDateFlow().first() ?: ""
             val childHobby = onboardingUC.getHobbyFlow().first() ?: ""
 
-            val answers = OnboardingAnswers(
-                userName = userName,
-                childGender = childGender,
-                isItABoy = isItABoy,
-                childName = childName,
-                childBirthDate = birthDate,
-                childHobby = childHobby
-            )
+            // Проверяем, есть ли данные для загрузки
+            val hasData = userName.isNotBlank() || childName.isNotBlank() || childHobby.isNotBlank()
 
-            // Обновляем LiveData на главном потоке
-            withContext(Dispatchers.Main) {
-                _onboardingAnswersLiveData.postValue(answers)
+            if (hasData) {
+                val answers = OnboardingAnswers(
+                    userName = userName,
+                    childGender = childGender,
+                    isItABoy = isItABoy,
+                    childName = childName,
+                    childBirthDate = birthDate,
+                    childHobby = childHobby
+                )
+
+                // Обновляем LiveData на главном потоке
+                withContext(Dispatchers.Main) {
+                    _onboardingAnswersLiveData.postValue(answers)
+                }
+
+                // Также обновляем временные ответы для совместимости
+                _answers.clear()
+                _answers[AnswerNames.USER_NAME_ANSWER.toString()] = userName
+                _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = childGender
+                _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = isItABoy
+                _answers[AnswerNames.CHILD_NAME_ANSWER.toString()] = childName
+                _answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] = birthDate
+                _answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] = childHobby
             }
-
-            // Также обновляем временные ответы для совместимости
-            _answers.clear()
-            _answers[AnswerNames.USER_NAME_ANSWER.toString()] = userName
-            _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = childGender
-            _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = isItABoy
-            _answers[AnswerNames.CHILD_NAME_ANSWER.toString()] = childName
-            _answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] = birthDate
-            _answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] = childHobby
 
         } catch (e: Exception) {
             Log.e(TAG, "Error loading data from DataStore", e)

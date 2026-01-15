@@ -31,6 +31,18 @@ class OnboardingRepository @Inject constructor(
     override fun isOnboardingCompleted(): Flow<Boolean> =
         appDatastorePreferences.isOnboardingCompleted()
 
+    override suspend fun clearAllOnboardingData(): Resource<ErrorType> {
+        return try {
+            appDatastorePreferences.clearAllOnboardingData()
+            Resource.success(null)
+        } catch (e: IOException) {
+            Resource.error(
+                "Ошибка при очистке данных онбординга",
+                ErrorType.FAILED_TO_CLEAR_DATA
+            )
+        }
+    }
+
     // SAVE
     override suspend fun saveUserName(userName: String) =
         appDatastorePreferences.saveUserName(userName)

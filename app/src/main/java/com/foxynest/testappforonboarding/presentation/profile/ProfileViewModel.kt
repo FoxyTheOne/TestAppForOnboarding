@@ -114,7 +114,10 @@ class ProfileViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             _logoutStateFlow.value = Resource.loading(null)
-            _logoutStateFlow.value = logoutUC.execute()
+
+            // Выходим из Firebase
+            val result = logoutUC.execute()
+            _logoutStateFlow.value = result
         }
     }
 }

@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface IOnboardingUC {
     suspend fun saveOnboardingState(isCompleted: Boolean): Resource<ErrorType>
     fun isOnboardingCompleted(): Flow<Boolean>
+    suspend fun clearAllOnboardingData(): Resource<ErrorType>
 
     suspend fun saveUserName(userName: String)
     suspend fun saveGender(gender: String)

@@ -225,6 +225,7 @@ class FirebaseAuthDataSource @Inject constructor(
             auth.currentUser?.reload()?.await()
             auth.currentUser?.isEmailVerified ?: false
         } catch (e: Exception) {
+            Log.e(TAG, "Error checking email verification", e)
             false
         }
     }

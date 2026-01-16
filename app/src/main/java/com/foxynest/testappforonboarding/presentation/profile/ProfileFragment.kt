@@ -18,6 +18,7 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentProfileBinding
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
+import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
 import com.foxynest.testappforonboarding.other.extensions.calculateAge
@@ -42,7 +43,7 @@ class ProfileFragment : Fragment() {
         private const val TAG = "ProfileFragment"
     }
 
-    private var localFieldsObserver: Observer<Any>? = null
+//    private var localFieldsObserver: Observer<Any>? = null
     private var dataSaveErrorDialog: DataSaveErrorDialog? = null
     private var changeAuthEmailDialog: ChangeAuthEmailDialog? = null
 
@@ -133,6 +134,7 @@ class ProfileFragment : Fragment() {
             }
         }
 
+        // 2. Подписка на состояние пользователя
         viewLifecycleOwner.lifecycleScope.launch {
             mainViewModel.checkedUserInfo
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
@@ -190,34 +192,84 @@ class ProfileFragment : Fragment() {
                 }
         }
 
+        // 3. Проверка верификации email
+        viewLifecycleOwner.lifecycleScope.launch {
+            profileViewModel.isEmailVerified
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { isVerified ->
+//                    if (isVerified) {
+                    // Прячем кнопку верификации
+//                        binding?.buttonVerifyEmail?.visibility = View.GONE
+//                        binding?.textEmailNotVerified?.visibility = View.GONE
+                    updateEmailVerificationUI(isVerified)
+
+//                    // Если email подтверждён, обновляем данные пользователя
+//                    if (isVerified) {
+//                        mainViewModel.checkLoggedInStateGetUser()
+//                        // Показываем уведомление (опционально)
+//                        showEmailVerifiedMessage()
+//                    }
+
+//                    Toast.makeText(
+//                        requireContext(),
+//                        "Email verified successfully",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                    } else {
+//                        // Показываем кнопку только если пользователь зарегистрирован
+//                        val user = mainViewModel.checkedUserInfo.value.data
+//                        if (user != null && user.authEmail.isNotBlank()) {
+//                            binding?.buttonVerifyEmail?.visibility = View.VISIBLE
+//                            binding?.textEmailNotVerified?.visibility = View.VISIBLE
+//                        }
+//                    }
+                }
+        }
+
+        // НОВАЯ ПОДПИСКА: Одноразовое событие подтверждения email
+        profileViewModel.emailVerifiedEvent.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { isVerified ->
+                if (isVerified) {
+                    // Показываем уведомление только один раз при изменении статуса
+                    showEmailVerifiedMessage()
+                    // Обновляем данные пользователя
+                    mainViewModel.checkLoggedInStateGetUser()
+                }
+            }
+        }
+
+        // 4. Кнопка верификации
         viewLifecycleOwner.lifecycleScope.launch {
             profileViewModel.isVerificationButtonEnabled
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { isEnabled ->
-                    binding?.buttonVerifyEmail?.isEnabled = isEnabled
+                    updateVerificationButton(isEnabled)
 
-                    context?.let {
-                        val colorGray = ContextCompat.getColor(it, R.color.gray)
-                        val colorWhite = ContextCompat.getColor(it, R.color.white)
-
-                        when (isEnabled) {
-                            false -> {
-                                binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
-                                binding?.textEmailNotVerified?.text =
-                                    getString(R.string.profile_email_verification_send)
-                            }
-
-                            true -> {
-                                binding?.buttonVerifyEmail?.setTextColor(colorWhite)
-                                    ?: "#FFFFFFFF"
-                                binding?.textEmailNotVerified?.text =
-                                    getString(R.string.profile_email_not_verified)
-                            }
-                        }
-                    }
+//                    binding?.buttonVerifyEmail?.isEnabled = isEnabled
+//
+//                    context?.let {
+//                        val colorGray = ContextCompat.getColor(it, R.color.gray)
+//                        val colorWhite = ContextCompat.getColor(it, R.color.white)
+//
+//                        when (isEnabled) {
+//                            false -> {
+//                                binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
+//                                binding?.textEmailNotVerified?.text =
+//                                    getString(R.string.profile_email_verification_send)
+//                            }
+//
+//                            true -> {
+//                                binding?.buttonVerifyEmail?.setTextColor(colorWhite)
+//                                    ?: "#FFFFFFFF"
+//                                binding?.textEmailNotVerified?.text =
+//                                    getString(R.string.profile_email_not_verified)
+//                            }
+//                        }
+//                    }
                 }
         }
 
+        // 5. Состояние отправки письма
         viewLifecycleOwner.lifecycleScope.launch {
             profileViewModel.isEmailVerificationSent
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
@@ -233,51 +285,38 @@ class ProfileFragment : Fragment() {
                 }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.isEmailVerified
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { isVerified ->
-                    if (isVerified) {
-                        binding?.buttonVerifyEmail?.visibility = View.GONE
-                        binding?.textEmailNotVerified?.visibility = View.GONE
-//                    Toast.makeText(
-//                        requireContext(),
-//                        "Email verified successfully",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-                    }
-                }
-        }
-
+        // 6. Выход из аккаунта
         viewLifecycleOwner.lifecycleScope.launch {
             profileViewModel.logoutStateFlow
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { resourceResult ->
-                    val messageToShow = resourceResult.data.toErrorMessage(resources)
+                    handleLogoutResult(resourceResult)
 
-                    when (resourceResult.status) {
-                        Status.SUCCESS -> {
-                            // Вышли из аккаунта, провряем состояние user и обновляем UI
-                            mainViewModel.checkLoggedInStateGetUser()
-
-                            // Очистка данных (ВКЛЮЧАЯ сброс онбординга)
-                            mainViewModel.clearUserDataOnLogout()
-
-                            // И возвращаемся на WelcomeFragment
-                            safeNavigate(
-                                R.id.navigation_profile,
-                                R.id.action_navigation_profile_to_navigation_welcome2
-                            )
-                        }
-
-                        Status.ERROR -> {
-                            Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
-                        }
-
-                        else -> {
-                            Log.d(TAG, "resource.status = ${resourceResult.status} ")
-                        }
-                    }
+//                    val messageToShow = resourceResult.data.toErrorMessage(resources)
+//
+//                    when (resourceResult.status) {
+//                        Status.SUCCESS -> {
+//                            // Вышли из аккаунта, провряем состояние user и обновляем UI
+//                            mainViewModel.checkLoggedInStateGetUser()
+//
+//                            // Очистка данных (ВКЛЮЧАЯ сброс онбординга)
+//                            mainViewModel.clearUserDataOnLogout()
+//
+//                            // И возвращаемся на WelcomeFragment
+//                            safeNavigate(
+//                                R.id.navigation_profile,
+//                                R.id.action_navigation_profile_to_navigation_welcome2
+//                            )
+//                        }
+//
+//                        Status.ERROR -> {
+//                            Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
+//                        }
+//
+//                        else -> {
+//                            Log.d(TAG, "resource.status = ${resourceResult.status} ")
+//                        }
+//                    }
                 }
         }
 
@@ -427,29 +466,90 @@ class ProfileFragment : Fragment() {
     }
 
 
-    private fun removeLocalObservers() {
-        // Удаляем наблюдатель локальных полей
-        localFieldsObserver?.let { observer ->
-            mainViewModel.onboardingAnswersLiveData.removeObserver(observer)
-            // Удалить остальные наблюдатели, если есть
+//    private fun removeLocalObservers() {
+//        // Удаляем наблюдатель локальных полей
+//        localFieldsObserver?.let { observer ->
+//            mainViewModel.onboardingAnswersLiveData.removeObserver(observer)
+//            // Удалить остальные наблюдатели, если есть
+//        }
+//        localFieldsObserver = null
+//    }
+//
+//    private fun setupLocalObservers() {
+//        removeLocalObservers()
+//
+//        localFieldsObserver = Observer<Any> {
+//            fillFieldsInProfile(
+//                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+//                    activity
+//                )
+//            )
+//            showLogOutButtons(false)
+//        }
+//
+//        // Подписываемся на все необходимые LiveData
+//        mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner, localFieldsObserver!!)
+//    }
+
+    private fun updateEmailVerificationUI(isVerified: Boolean) {
+        if (isVerified) {
+            binding?.buttonVerifyEmail?.visibility = View.GONE
+            binding?.textEmailNotVerified?.visibility = View.GONE
+        } else {
+            // Проверяем, есть ли у пользователя email
+            val user = mainViewModel.checkedUserInfo.value?.data
+            if (user != null && user.authEmail.isNotBlank()) {
+                binding?.buttonVerifyEmail?.visibility = View.VISIBLE
+                binding?.textEmailNotVerified?.visibility = View.VISIBLE
+            }
         }
-        localFieldsObserver = null
     }
 
-    private fun setupLocalObservers() {
-        removeLocalObservers()
+    private fun updateVerificationButton(isEnabled: Boolean) {
+        binding?.buttonVerifyEmail?.isEnabled = isEnabled
 
-        localFieldsObserver = Observer<Any> {
-            fillFieldsInProfile(
-                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
-                    activity
-                )
-            )
-            showLogOutButtons(false)
+        context?.let {
+            val colorGray = ContextCompat.getColor(it, R.color.gray)
+            val colorWhite = ContextCompat.getColor(it, R.color.white)
+
+            if (isEnabled) {
+                binding?.buttonVerifyEmail?.setTextColor(colorWhite) ?: "#FFFFFFFF"
+                binding?.textEmailNotVerified?.text =
+                    getString(R.string.profile_email_not_verified)
+            } else {
+                binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
+                binding?.textEmailNotVerified?.text =
+                    getString(R.string.profile_email_verification_send)
+            }
         }
+    }
 
-        // Подписываемся на все необходимые LiveData
-        mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner, localFieldsObserver!!)
+    private fun handleLogoutResult(resourceResult: Resource<ErrorType>) {
+        val messageToShow = resourceResult.data.toErrorMessage(resources)
+
+        when (resourceResult.status) {
+            Status.SUCCESS -> {
+                // Вышли из аккаунта, провряем состояние user и обновляем UI
+                mainViewModel.checkLoggedInStateGetUser()
+
+                // Очистка данных (ВКЛЮЧАЯ сброс онбординга)
+                mainViewModel.clearUserDataOnLogout()
+
+                // И возвращаемся на WelcomeFragment
+                safeNavigate(
+                    R.id.navigation_profile,
+                    R.id.action_navigation_profile_to_navigation_welcome2
+                )
+            }
+
+            Status.ERROR -> {
+                Toast.makeText(requireContext(), messageToShow, Toast.LENGTH_LONG).show()
+            }
+
+            else -> {
+                Log.d(TAG, "resource.status = ${resourceResult.status}")
+            }
+        }
     }
 
     private fun checkCurrentData() {
@@ -469,15 +569,20 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun checkAndDisplayUserData(user: UserPresentation? = mainViewModel.checkedUserInfo.value.data) {
-        if (user != null) {
-            removeLocalObservers()
+    private fun checkAndDisplayUserData(user: UserPresentation? = null) {
+        val currentUser = user ?: mainViewModel.checkedUserInfo.value.data
+
+        if (currentUser != null) {
+//            removeLocalObservers()
             // Пользователь зарегистрирован - показываем данные из Firebase
-            fillFieldsInProfile(user)
+            fillFieldsInProfile(currentUser)
             showLogOutButtons(true)
+
+            // Проверяем статус верификации для этого пользователя
+            profileViewModel.checkEmailVerificationStatus(true)
         } else {
             // Локальные данные
-            setupLocalObservers()
+//            setupLocalObservers()
             // Пользователь не зарегистрирован - принудительно обновляем из локальных данных
             val localUser =
                 mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
@@ -629,6 +734,14 @@ class ProfileFragment : Fragment() {
                 dataSaveErrorDialog?.showError(errorMessage)
             }
         }
+    }
+
+    private fun showEmailVerifiedMessage() {
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.profile_email_verified_successfully),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     override fun onResume() {

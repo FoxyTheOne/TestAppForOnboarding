@@ -25,6 +25,7 @@ class HomeViewModel @Inject constructor(
     private val _openWelcomeFragmentLiveData = MutableLiveData<Boolean>()
     val openWelcomeFragmentLiveData: LiveData<Boolean> = _openWelcomeFragmentLiveData
 
+    //TODO Нужно ли перенести эту логику в MainActivity и MainViewModel для избежании путаницы? Что, если главная страница станет другой - логика перестанет работать
     fun showWelcomeFragmentIfOnboardingIsNotComplete() {
         viewModelScope.launch(Dispatchers.IO) {
             // Проверка авторизации при запуске. Регистрация возможна только после прохождения опроса, значит если человек залогинен - опрос пройден

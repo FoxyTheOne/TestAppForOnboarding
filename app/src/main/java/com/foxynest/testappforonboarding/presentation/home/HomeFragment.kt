@@ -18,6 +18,7 @@ import com.foxynest.testappforonboarding.databinding.FragmentHomeBinding
 import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
+import com.foxynest.testappforonboarding.presentation.MainActivity
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -55,6 +56,9 @@ class HomeFragment : Fragment() {
         // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+
+        // Принудительно обновляем выделение в BottomNavigationView
+        updateBottomNavigation()
 
 //        initListeners()
         subscribeOnLiveData()
@@ -104,9 +108,18 @@ class HomeFragment : Fragment() {
                 }
         }
 
+        //TODO Нужно ли перенести эту логику в MainActivity и MainViewModel для избежании путаницы? Что, если главная страница станет другой - логика перестанет работать
         homeViewModel.openWelcomeFragmentLiveData.observe(viewLifecycleOwner) { onboardingIsNotComplete ->
             if (onboardingIsNotComplete && findNavController().currentDestination?.id == R.id.navigation_home) {
                 findNavController().navigate(R.id.action_global_navigation_welcome)
+            }
+        }
+    }
+
+    private fun updateBottomNavigation() {
+        activity?.let {
+            if (it is MainActivity) {
+                it.updateBottomNavigationSelection(R.id.navigation_home)
             }
         }
     }

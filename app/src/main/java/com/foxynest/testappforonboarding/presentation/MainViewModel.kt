@@ -51,11 +51,6 @@ class MainViewModel @Inject constructor(
         private const val TAG = "MainViewModel"
     }
 
-    // Инициализация ViewModel с загрузкой данных
-    init {
-        loadOnboardingDataOnStart()
-    }
-
     // ONBOARDING
     // В MainViewModel - ВМЕСТО 7 LiveData используем одну:
     private val _onboardingAnswersLiveData = MutableLiveData<OnboardingAnswers>(OnboardingAnswers())
@@ -104,6 +99,11 @@ class MainViewModel @Inject constructor(
     // Создадим отдельную LiveData для управления загрузкой данных
     private val _onboardingDataLoaded = MutableLiveData<Boolean>(false)
     val onboardingDataLoaded: LiveData<Boolean> = _onboardingDataLoaded
+
+    // Инициализация ViewModel с загрузкой данных
+    init {
+        loadOnboardingDataOnStart()
+    }
 
     // ONBOARDING - CLEAN
     fun cleanNotReplaceableAnswers() {

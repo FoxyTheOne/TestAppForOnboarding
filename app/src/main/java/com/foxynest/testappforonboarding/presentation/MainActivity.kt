@@ -36,9 +36,10 @@ class MainActivity : AppCompatActivity() {
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: ActivityMainBinding? = null
 
-    private val navController: NavController by lazy {
-        findNavController(R.id.nav_host_fragment_activity_main)
-    }
+    private lateinit var navController: NavController
+//    private val navController: NavController by lazy {
+//        findNavController(R.id.nav_host_fragment_activity_main)
+//    }
     private val mainViewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +49,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view: View = binding!!.root
         setContentView(view)
+
+        // Инициализируем navController
+        navController = findNavController(R.id.nav_host_fragment_activity_main)
 
         // СНАЧАЛА настраиваем навигацию:
         setupNavigation()
@@ -87,6 +91,10 @@ class MainActivity : AppCompatActivity() {
         subscribeToObservers()
     }
 
+    fun updateBottomNavigationSelection(destinationId: Int) {
+        binding?.navView?.menu?.findItem(destinationId)?.isChecked = true
+    }
+
     private fun subscribeToObservers() {
         mainViewModel.errorMessageLiveData.observe(this) { event ->
             val toastMessage = event.getContentIfNotHandled()?.data?.toErrorMessage(resources)
@@ -108,21 +116,65 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        // Let's add a listener to our NavController to hide BottomBar when we are on the onboarding and paywall pages
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.navigation_welcome -> navView.visibility = View.GONE
-                R.id.navigation_login -> navView.visibility = View.GONE
-                R.id.navigation_register -> navView.visibility = View.GONE
-                R.id.navigation_question1 -> navView.visibility = View.GONE
-                R.id.navigation_question2 -> navView.visibility = View.GONE
-                R.id.navigation_question3 -> navView.visibility = View.GONE
-                R.id.navigation_paywall -> navView.visibility = View.GONE
-                R.id.navigation_profile -> navView.visibility = View.VISIBLE
-                R.id.navigation_home -> navView.visibility = View.VISIBLE
-                else -> navView.visibility = View.VISIBLE
+        // Fix для правильного выделения пунктов меню
+        navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_home -> {
+                    if (navController.currentDestination?.id != R.id.navigation_home) {
+                        navController.navigate(R.id.navigation_home)
+                    }
+                    true
+                }
+                R.id.navigation_profile -> {
+                    if (navController.currentDestination?.id != R.id.navigation_profile) {
+                        navController.navigate(R.id.navigation_profile)
+                    }
+                    true
+                }
+                R.id.navigation_useful_information -> {
+                    if (navController.currentDestination?.id != R.id.navigation_useful_information) {
+                        navController.navigate(R.id.navigation_useful_information)
+                    }
+                    true
+                }
+                else -> false
             }
         }
+
+        // Let's add a listener to our NavController to hide BottomBar when we are on the onboarding and paywall pages
+//        navController.addOnDestinationChangedListener { _, destination, _ ->
+//            when (destination.id) {
+//                R.id.navigation_welcome -> navView.visibility = View.GONE
+//                R.id.navigation_login -> navView.visibility = View.GONE
+//                R.id.navigation_register -> navView.visibility = View.GONE
+//                R.id.navigation_question1 -> navView.visibility = View.GONE
+//                R.id.navigation_question2 -> navView.visibility = View.GONE
+//                R.id.navigation_question3 -> navView.visibility = View.GONE
+//                R.id.navigation_paywall -> navView.visibility = View.GONE
+//                R.id.navigation_profile -> navView.visibility = View.VISIBLE
+//                R.id.navigation_home -> navView.visibility = View.VISIBLE
+//                else -> navView.visibility = View.VISIBLE
+//            }
+//        }
+        // Слушатель для скрытия/показа BottomNavigationView
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.navigation_welcome,
+                R.id.navigation_login,
+                R.id.navigation_register,
+                R.id.navigation_question1,
+                R.id.navigation_question2,
+                R.id.navigation_question3,
+                R.id.navigation_paywall -> {
+                    binding?.navView?.visibility = View.GONE
+                }
+                else -> {
+                    binding?.navView?.visibility = View.VISIBLE
+                    updateBottomNavigationSelection(destination.id)
+                }
+            }
+        }
+
 
         // Отступ у контента в случае появления bottomNavigationView
         val bottomNavigationView = binding?.navView

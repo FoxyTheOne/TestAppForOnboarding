@@ -26,6 +26,7 @@ import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDat
 import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
+import com.foxynest.testappforonboarding.presentation.MainActivity
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.dialogs.ChangeAuthEmailDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
@@ -70,6 +71,9 @@ class ProfileFragment : Fragment() {
         // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+
+        // Принудительно обновляем выделение в BottomNavigationView
+        updateBottomNavigation()
 
         // СНАЧАЛА подписываемся на observers
         subscribeOnObservers()
@@ -465,6 +469,13 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun updateBottomNavigation() {
+        activity?.let {
+            if (it is MainActivity) {
+                it.updateBottomNavigationSelection(R.id.navigation_profile)
+            }
+        }
+    }
 
 //    private fun removeLocalObservers() {
 //        // Удаляем наблюдатель локальных полей

@@ -19,6 +19,7 @@ import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToSav
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
+import com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.Question1Fragment.Companion
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,19 +30,16 @@ import java.util.Locale
 import java.util.TimeZone
 
 @AndroidEntryPoint
-class Question3Fragment : BaseWelcomeFragmentAbstract() {
+class Question3Fragment : BaseOnboardingFragment() {
     companion object {
         private const val TAG = "Question3Fragment"
     }
 
-    private var selectedDateInMillis: Long? = null
-
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentQuestion3Binding? = null
 
-    // 1.1. ViewModel. We bind our viewModel to the cycle of our activity, not fragment. So, we need to do this way:
-    private lateinit var mainViewModel: MainViewModel
-//    private val onboardingViewModel by viewModels<OnboardingViewModel>()
+    private var selectedDateInMillis: Long? = null
+    override val currentFragmentId: Int = R.id.navigation_question3
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,9 +54,12 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
-        // So, we need to do this way:
-        mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+        // Добавим логирование для отладки
+        Log.d(TAG, "Question3Fragment onViewCreated")
+        Log.d(TAG, "isOnboardingStarted: ${mainViewModel.isOnboardingStarted()}")
+        Log.d(TAG, "isOnboardingCancelled: ${mainViewModel.isOnboardingCancelled()}")
+        Log.d(TAG, "isOnboardingCompleted: ${mainViewModel.isOnboardingCompleted()}")
+        Log.d(TAG, "sourceFragment: $sourceFragment")
 
         initListeners()
     }
@@ -95,7 +96,6 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
             val textFieldCharHobbyAnswer =
                 binding?.textFieldHobbyAnswer?.editText?.text?.toString()?.trim()
 
-
             val areFieldsValid = validateAllFields(birtDateText, ageText, textFieldCharHobbyAnswer)
 
             if (areFieldsValid) {
@@ -103,26 +103,16 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
                 mainViewModel.saveHobbyAnswer(textFieldCharHobbyAnswer ?: "")
                 mainViewModel.saveBirthDateAnswer(birtDateText ?: "0")
 
-                safeNavigate(R.id.navigation_question3, R.id.action_navigation_question3_to_paywallFragment)
+                safeNavigate(
+                    R.id.navigation_question3,
+                    R.id.action_navigation_question3_to_paywallFragment
+                )
             }
         }
 
-        binding?.buttonBack?.setOnClickListener {
-            mainViewModel.cleanFragment3AnswersBeforeBackButton()
-
-            val savedGenderName = mainViewModel.answers[AnswerNames.CHILD_GENDER_ANSWER.toString()]
-
-            if (this.findNavController().currentDestination?.id == R.id.navigation_question3) {
-                when (savedGenderName) {
-                    Gender.BOY.genderName -> {
-                        findNavController().navigate(R.id.action_navigation_question3_to_navigation_question2)
-                    }
-                    Gender.GIRL.genderName -> {
-                        findNavController().navigate(R.id.action_navigation_question3_to_navigation_question1)
-                    }
-                }
-                Log.d(TAG, savedGenderName ?: "Не сохранено")
-            }
+        // Добавляем обработчик кнопки отмены
+        binding?.buttonCancel?.setOnClickListener {
+            showCancelConfirmationDialog()
         }
     }
 
@@ -223,6 +213,7 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
             Status.SUCCESS -> {
                 age = resultAge.data ?: 0
             }
+
             Status.ERROR -> {
                 age = 0
             } // TODO toast?
@@ -241,9 +232,21 @@ class Question3Fragment : BaseWelcomeFragmentAbstract() {
         return age
     }
 
+    private fun hasNavigatedToNext(): Boolean {
+        return findNavController().currentDestination?.id == R.id.navigation_paywall
+    }
+
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        super.onDestroyView()
+        // Если фрагмент уничтожается без перехода к Paywall,
+        // отменяем онбординг
+//        if (!isCancelled && !hasNavigatedToNext() && !mainViewModel.isOnboardingCompleted()) {
+//            mainViewModel.cancelOnboarding()
+//        }
+        // Убираем лишний вызов cancelOnboarding()
+        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог
+        // и не должен вызываться повторно в onDestroyView()
         binding = null
+        super.onDestroyView()
     }
 }

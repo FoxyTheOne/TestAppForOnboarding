@@ -60,6 +60,10 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
         // Подтягиваем ответы из пройденного только что опросника. ПРИНУДИТЕЛЬНО обновляем Firebase после онбординга. В дальнейшем метод будет вызываться в activity при запуске программы
         mainViewModel.getAnswersFromOnboardingSaveToFirebaseAndUse()
 
+        // Отмечаем онбординг как завершенный
+        // TODO объединить с методом saveOnboardingState()
+        mainViewModel.completeOnboarding()
+
         initListeners()
         subscribeOnLiveData()
     }

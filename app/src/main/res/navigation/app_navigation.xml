@@ -23,6 +23,15 @@
             app:destination="@id/navigation_question1"
             app:popUpTo="@id/navigation_welcome"
             app:popUpToInclusive="true" />
+
+        <!-- Обновляем WelcomeFragment для перехода в контейнер -->
+        <!-- Для онбординга с viewpager2 -->
+        <action
+            android:id="@+id/action_welcomeFragment_to_onboardingContainerFragment"
+            app:destination="@id/onboardingContainerFragment"
+            app:popUpTo="@id/navigation_welcome"
+            app:popUpToInclusive="true" />
+
     </fragment>
 
     <fragment
@@ -38,6 +47,21 @@
             android:id="@+id/action_loginFragment_to_navigation_profile"
             app:destination="@id/navigation_profile"
             app:popUpTo="@id/navigation_login"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Удаляем старые переходы между вопросами и добавляем контейнер -->
+    <!-- Для онбординга с viewpager2 -->
+    <fragment
+        android:id="@+id/onboardingContainerFragment"
+        android:name="com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.newOnboarding.OnboardingContainerFragment"
+        android:label="Onboarding"
+        tools:layout="@layout/fragment_onboarding_container">
+
+        <action
+            android:id="@+id/action_onboardingContainerFragment_to_paywallFragment"
+            app:destination="@id/navigation_paywall"
+            app:popUpTo="@id/onboardingContainerFragment"
             app:popUpToInclusive="true" />
     </fragment>
 
@@ -159,6 +183,14 @@
             app:destination="@id/navigation_welcome"
             app:popUpTo="@id/navigation_welcome"
             app:popUpToInclusive="true"/>
+
+        <!-- Для онбординга с viewpager2 -->
+        <action
+            android:id="@+id/action_navigation_profile_to_onboardingContainerFragment"
+            app:destination="@id/onboardingContainerFragment"
+            app:popUpTo="@id/onboardingContainerFragment"
+            app:popUpToInclusive="true" />
+
     </fragment>
 
     <fragment
@@ -173,6 +205,13 @@
         app:destination="@id/navigation_home" />
     <action
         android:id="@+id/action_global_navigation_welcome"
-        app:destination="@id/navigation_welcome" />
+        app:destination="@id/navigation_welcome"
+        app:popUpTo="@id/navigation_welcome"
+        app:popUpToInclusive="true" />
+    <action
+        android:id="@+id/action_global_navigation_profile"
+        app:destination="@id/navigation_profile"
+        app:popUpTo="@id/navigation_profile"
+        app:popUpToInclusive="true" />
 
 </navigation>

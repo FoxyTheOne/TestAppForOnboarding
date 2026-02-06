@@ -13,13 +13,16 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
+import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
+import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.CancelOnboardingDialog
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class Question1Fragment : BaseWelcomeFragmentAbstract() {
+class Question1Fragment : BaseOnboardingFragment() {
     companion object {
         private const val TAG = "Question1Fragment"
     }
@@ -27,9 +30,7 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentQuestion1Binding? = null
 
-    // 1.1. ViewModel. We bind our viewModel to the cycle of our activity, not fragment. So, we need to do this way:
-    private lateinit var mainViewModel: MainViewModel
-//    private val onboardingViewModel by viewModels<OnboardingViewModel>()
+    override val currentFragmentId: Int = R.id.navigation_question1
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,12 +45,21 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
-        // So, we need to do this way:
-        mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
+        // Добавим логирование для отладки
+        Log.d(TAG, "Question1Fragment onViewCreated")
+        Log.d(TAG, "isOnboardingStarted: ${mainViewModel.isOnboardingStarted()}")
+        Log.d(TAG, "isOnboardingCancelled: ${mainViewModel.isOnboardingCancelled()}")
+        Log.d(TAG, "isOnboardingCompleted: ${mainViewModel.isOnboardingCompleted()}")
+        Log.d(TAG, "sourceFragment: $sourceFragment")
 
-        // ОЧИСТКА ОТВЕТОВ, которые не перезапишутся, перед запуском онбординга, чтобы не было конфликтов в собранных данных
-        mainViewModel.cleanNotReplaceableAnswers()
+        // Подготавливаем данные для онбординга
+        // ТОЛЬКО если это первый запуск онбординга, а не возврат назад
+//        if (!mainViewModel.isOnboardingStarted()) {
+//            mainViewModel.prepareForOnboarding()
+//        }
+        // Теперь готовимся всегда, когда заходим на первый фрагмент онбординга
+        // независимо от предыдущего состояния
+        mainViewModel.prepareForOnboarding()
 
         initListeners()
     }
@@ -61,6 +71,10 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
 
         binding?.genderAnswerGirl?.setOnCheckedChangeListener { buttonView, isChecked ->
             Log.d(TAG, "answer2 is checked: $isChecked")
+        }
+
+        binding?.buttonCancel?.setOnClickListener {
+            showCancelConfirmationDialog()
         }
 
         binding?.buttonNext?.setOnClickListener {
@@ -89,15 +103,32 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
                 }
                 mainViewModel.saveChildNameAnswer(childNameAnswer ?: "")
 
-                if (this.findNavController().currentDestination?.id == R.id.navigation_question1) {
-                    when {
-                        radioGenderAnswerBoy?.isChecked == true -> this.findNavController()
-                            .navigate(R.id.action_navigation_question1_to_question2Fragment)
+                when {
+                    radioGenderAnswerBoy?.isChecked == true -> {
+                        // Передаем аргумент при навигации на Question2Fragment
+                        val args = Bundle().apply {
+                            putString("source_fragment", sourceFragment)
+                        }
+                        safeNavigate(
+                            R.id.navigation_question1,
+                            R.id.action_navigation_question1_to_question2Fragment,
+                            args
+                        )
+                    }
 
-                        radioGenderAnswerGirl?.isChecked == true -> this.findNavController()
-                            .navigate(R.id.action_navigation_question1_to_navigation_question3)
+                    radioGenderAnswerGirl?.isChecked == true -> {
+                        // Передаем аргумент при навигации на Question3Fragment
+                        val args = Bundle().apply {
+                            putString("source_fragment", sourceFragment)
+                        }
+                        safeNavigate(
+                            R.id.navigation_question1,
+                            R.id.action_navigation_question1_to_navigation_question3,
+                            args
+                        )
                     }
                 }
+
             }
         }
 
@@ -124,10 +155,63 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
         })
     }
 
+//    private fun showCancelConfirmationDialog() {
+//        CancelOnboardingDialog.newInstance()
+//            .setListeners(
+//                positiveAction = {
+//                    // Подтверждение отмены
+//                    isCancelled = true
+//                    mainViewModel.cancelOnboarding()
+//
+//                    // Возвращаемся на предыдущий фрагмент
+//                    navigateBackToPrevious()
+//                },
+//                negativeAction = {
+//                    // Пользователь передумал
+//                    // Ничего не делаем
+//                }
+//            )
+//            .show(parentFragmentManager, TAG)
+//    }
+
+//    private fun navigateBackToPrevious() {
+//        // Проверяем, откуда пришли в онбординг
+//        val previousDestination = arguments?.getString("source_fragment")
+//
+//        when (previousDestination) {
+//            "profile" -> {
+//                // Возвращаемся в профиль
+////                findNavController().navigate(R.id.action_global_navigation_profile)
+//                safeNavigate(R.id.navigation_question1, R.id.action_global_navigation_profile)
+//            }
+//            "welcome" -> {
+//                // Возвращаемся на Welcome
+////                findNavController().navigate(R.id.action_global_navigation_welcome)
+//                safeNavigate(R.id.navigation_question1, R.id.action_global_navigation_welcome)
+//            }
+//            else -> {
+//                // По умолчанию возвращаемся в профиль
+////                findNavController().navigate(R.id.action_global_navigation_profile)
+//                safeNavigate(R.id.navigation_question1, R.id.action_global_navigation_profile)
+//            }
+//        }
+//    }
+
+    private fun hasNavigatedToNext(): Boolean {
+        // Проверяем, был ли навигация к следующему фрагменту
+        return findNavController().currentDestination?.id in
+                listOf(
+                    R.id.navigation_question2,
+                    R.id.navigation_question3,
+                    R.id.navigation_paywall
+                )
+    }
+
     private fun validateUserName(userNameAnswer: String?): Boolean {
         var isValid = true
         if (userNameAnswer.isNullOrBlank()) {
-            binding?.textFieldUserNameAnswer?.error = getString(R.string.error_user_name_not_selected)
+            binding?.textFieldUserNameAnswer?.error =
+                getString(R.string.error_user_name_not_selected)
             isValid = false
         } else {
             binding?.textFieldUserNameAnswer?.error = null
@@ -138,7 +222,8 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
     private fun validateChildName(childNameAnswer: String?): Boolean {
         var isValid = true
         if (childNameAnswer.isNullOrBlank()) {
-            binding?.textFieldChildNameAnswer?.error = getString(R.string.error_child_name_not_selected)
+            binding?.textFieldChildNameAnswer?.error =
+                getString(R.string.error_child_name_not_selected)
             isValid = false
         } else {
             binding?.textFieldChildNameAnswer?.error = null
@@ -148,7 +233,6 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
 
     private fun validateAllFields(
         userNameAnswer: String?,
-//        emailAnswer: String?,
         checkedRadioButtonId: Int?,
         radioGenderAnswerBoy: RadioButton?,
         radioGenderAnswerGirl: RadioButton?,
@@ -190,7 +274,17 @@ class Question1Fragment : BaseWelcomeFragmentAbstract() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        super.onDestroyView()
+        // Отменяем онбординг только если:
+        // 1. Не было отмены через диалог
+        // 2. Не произошла навигация дальше
+        // 3. Онбординг не был завершен
+//        if (!isCancelled && !hasNavigatedToNext() && !mainViewModel.isOnboardingCompleted()) {
+//            mainViewModel.cancelOnboarding()
+//        }
+        // Убираем лишний вызов cancelOnboarding()
+        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог
+        // и не должен вызываться повторно в onDestroyView()
         binding = null
+        super.onDestroyView()
     }
 }

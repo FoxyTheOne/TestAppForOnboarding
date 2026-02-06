@@ -175,6 +175,9 @@ dependencies {
     // Инструментальные тесты (androidTest/)
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test:rules:1.5.0'
+
+    // viewpager2
+    implementation "androidx.viewpager2:viewpager2:1.0.0"
 }
 
 //kapt {

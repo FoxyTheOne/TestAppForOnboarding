@@ -5,8 +5,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.di.DispatcherIO
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerMapping
 import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
@@ -51,10 +53,56 @@ class MainViewModel @Inject constructor(
         private const val TAG = "MainViewModel"
     }
 
+    // TODO проверить верность получения данных
+    private val answerMappings = listOf(
+        AnswerMapping(
+            answerName = AnswerNames.USER_NAME_ANSWER,
+            getter = { onboardingUC.getUserNameFlow().first() },
+            setter = onboardingUC::saveUserName,
+            defaultValue = ""
+        ),
+        AnswerMapping(
+            answerName = AnswerNames.CHILD_GENDER_ANSWER,
+            getter = { onboardingUC.getGenderFlow().first() },
+            setter = onboardingUC::saveGender,
+            defaultValue = ""
+        ),
+        AnswerMapping(
+            answerName = AnswerNames.IS_IT_A_BOY_ANSWER,
+            getter = { onboardingUC.getIsItABoyFlow().first() },
+            setter = onboardingUC::saveIsItABoy,
+            defaultValue = "Нет"
+        ),
+        AnswerMapping(
+            answerName = AnswerNames.CHILD_NAME_ANSWER,
+            getter = { onboardingUC.getNameFlow().first() },
+            setter = onboardingUC::saveName,
+            defaultValue = ""
+        ),
+        AnswerMapping(
+            answerName = AnswerNames.CHILD_BIRTH_DATE_ANSWER,
+            getter = { onboardingUC.getBirthDateFlow().first() },
+            setter = onboardingUC::saveBirthDate,
+            defaultValue = ""
+        ),
+        AnswerMapping(
+            answerName = AnswerNames.CHILD_HOBBY_ANSWER,
+            getter = { onboardingUC.getHobbyFlow().first() },
+            setter = onboardingUC::saveHobbyAnswer,
+            defaultValue = ""
+        )
+    )
+
     // ONBOARDING
     // В MainViewModel - ВМЕСТО 7 LiveData используем одну:
     private val _onboardingAnswersLiveData = MutableLiveData<OnboardingAnswers>(OnboardingAnswers())
     val onboardingAnswersLiveData: LiveData<OnboardingAnswers> = _onboardingAnswersLiveData
+
+    // Добавим временное хранилище для резервного копирования данных (нужно при отмене онбординга)
+    private var _onboardingBackup: OnboardingAnswers? = null
+    private var _isOnboardingStarted = false
+    private var _isOnboardingCompleted = false
+    private var _isOnboardingCancelled = false
 
     // Для временного хранения во время заполнения опроса (нужно при возвращении назад по страницам в онбординге)
     private val _answers = mutableMapOf<String, String>()
@@ -105,20 +153,45 @@ class MainViewModel @Inject constructor(
         loadOnboardingDataOnStart()
     }
 
-    // ONBOARDING - CLEAN
-    fun cleanNotReplaceableAnswers() {
+    /**
+     * Подготовка к онбордингу - сохраняем текущие данные в бэкап
+     * и сбрасываем все до значений по умолчанию
+     */
+    fun prepareForOnboarding() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Указываем все ответы, которые находятся на необязательных фрагментах. Которые могут отобразиться, а могут нет, в зависимости от ответов. Нужно сохранить дефолтное состояние
-                onboardingUC.saveIsItABoy("Нет")
-                saveAnswerToMainViewModel(AnswerNames.IS_IT_A_BOY_ANSWER.toString(), "Нет")
-            } catch (e: IOException) {
-                e.printStackTrace()
+                // Сбрасываем ВСЕ флаги перед началом нового онбординга
+                _isOnboardingStarted = true
+                _isOnboardingCompleted = false
+                _isOnboardingCancelled = false
+
+                // 1. Сохраняем текущие данные в бэкап
+                val currentAnswers = getCurrentAnswersForBackup()
+                _onboardingBackup = currentAnswers
+
+                Log.d(TAG, "Onboarding prepared: data backed up. Backup is null: ${_onboardingBackup == null}")
+
+                // 2. Сбрасываем все ответы на значения по умолчанию
+                resetAllAnswersToDefault()
+
+                // 3. Очищаем временные ответы в ViewModel
+                _answers.clear()
+
+                // 4. Обновляем LiveData с пустыми значениями
+                val emptyAnswers = OnboardingAnswers()
+                withContext(Dispatchers.Main) {
+                    _onboardingAnswersLiveData.postValue(emptyAnswers)
+                }
+
+                Log.d(TAG, "Onboarding prepared: data backed up and reset")
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error preparing for onboarding", e)
                 _errorMessageLiveData.postValue(
                     MyEvent(
                         Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
-                            null
+                            "Ошибка при подготовке опроса",
+                            ErrorType.UNEXPECTED_ERROR
                         )
                     )
                 )
@@ -126,19 +199,44 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun cleanFragment2AnswersBeforeBackButton() {
+    /**
+     * Отмена онбординга - восстанавливаем данные из бэкапа
+     */
+    fun cancelOnboarding() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Указываем все ответы, которые находятся на втором фрагменте
-                onboardingUC.saveIsItABoy("Нет")
-                saveAnswerToMainViewModel(AnswerNames.IS_IT_A_BOY_ANSWER.toString(), "Нет")
-            } catch (e: IOException) {
-                e.printStackTrace()
+                Log.d(TAG, "cancelOnboarding called. Backup is null: ${_onboardingBackup == null}")
+
+                _isOnboardingCancelled = true
+                _isOnboardingCompleted = false
+                _isOnboardingStarted = false  // Сбрасываем флаг запуска!
+
+                _onboardingBackup?.let { backup ->
+                    Log.d(TAG, "Restoring from backup: $backup")
+                    // Восстанавливаем данные из бэкапа
+                    restoreFromBackup(backup)
+                    _onboardingBackup = null // Очищаем бэкап
+                    Log.d(TAG, "Onboarding cancelled: data restored from backup")
+                } ?: run {
+                    Log.d(TAG, "Backup is null, resetting to defaults")
+                    // Если бэкапа нет, просто очищаем
+                    resetAllAnswersToDefault()
+
+                    // НАДО ОБНОВИТЬ LiveData даже при очистке
+                    val emptyAnswers = OnboardingAnswers()
+                    withContext(Dispatchers.Main) {
+                        _onboardingAnswersLiveData.postValue(emptyAnswers)
+                    }
+                    Log.d(TAG, "Onboarding cancelled: data reset to defaults (no backup)")
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error cancelling onboarding", e)
                 _errorMessageLiveData.postValue(
                     MyEvent(
                         Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
-                            null
+                            "Ошибка при отмене опроса",
+                            ErrorType.UNEXPECTED_ERROR
                         )
                     )
                 )
@@ -146,27 +244,20 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun cleanFragment3AnswersBeforeBackButton() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                // Указываем все ответы, которые находятся на третьем фрагменте
-                onboardingUC.saveBirthDate("")
-                onboardingUC.saveHobbyAnswer("")
-                saveAnswerToMainViewModel(AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString(), "")
-                saveAnswerToMainViewModel(AnswerNames.CHILD_HOBBY_ANSWER.toString(), "")
-            } catch (e: IOException) {
-                e.printStackTrace()
-                _errorMessageLiveData.postValue(
-                    MyEvent(
-                        Resource.error(
-                            CommonConstants.FAILED_TO_SAVE_LOCAL,
-                            null
-                        )
-                    )
-                )
-            }
-        }
+    /**
+     * Завершение онбординга - очищаем бэкап
+     */
+    fun completeOnboarding() {
+        _isOnboardingCompleted = true
+        _isOnboardingStarted = false  // Сбрасываем флаг запуска
+        _isOnboardingCancelled = false
+        _onboardingBackup = null
+        Log.d(TAG, "Onboarding completed: backup cleared")
     }
+
+    /**
+     * ONBOARDING - CLEAN
+     */
 
     fun clearUserDataOnLogout() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -205,7 +296,16 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    // ONBOARDING - SAVE
+    /**
+     * ONBOARDING - FLAGS
+     */
+    fun isOnboardingStarted(): Boolean = _isOnboardingStarted
+    fun isOnboardingCompleted(): Boolean = _isOnboardingCompleted
+    fun isOnboardingCancelled(): Boolean = _isOnboardingCancelled
+
+    /**
+     * ONBOARDING - SAVE
+     */
     fun saveUserNameAnswer(userNameAnswer: String) {
         saveOperation(
             userNameAnswer,
@@ -290,44 +390,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-//    fun updateDisplayEmail(newDisplayEmail: String) {
-//        viewModelScope.launch {
-//            // Валидация email
-//            val trimmedLowercaseEmail = newDisplayEmail.lowercase().trim()
-//            val validationResult = loginValidateEmailUC.execute(trimmedLowercaseEmail)
-//
-//            when (validationResult.successful) {
-//                true -> {
-//                    _displayEmailUpdateState.value = Resource.loading(null)
-//
-//                    val result = updateEmailUC.updateDisplayEmail(trimmedLowercaseEmail)
-//                    _displayEmailUpdateState.value = result
-//
-//                    // Обновить данные в случае успешного изменения в firebase:
-//                    if (result.status == Status.SUCCESS) {
-//                        // Обновляем локальные данные
-//                        updateOnboardingAnswers { it.copy(displayEmail = trimmedLowercaseEmail) }
-//                        // Обновляем временные ответы
-//                        saveAnswerToMainViewModel(
-//                            AnswerNames.EMAIL_ANSWER.toString(),
-//                            trimmedLowercaseEmail
-//                        )
-//
-//                        // Принудительно обновляем данные пользователя с сервера
-//                        checkLoggedInStateGetUser()
-//                    }
-//                }
-//
-//                false -> {
-//                    // Эта ошибка не должна происходить, так как валидация уже прошла в диалоге
-//                    // Но на всякий случай обработаем
-//                    _displayEmailUpdateState.value =
-//                        Resource.error("Не верный адрес", validationResult.errorMessage)
-//                }
-//            }
-//        }
-//    }
-
     fun updateAuthEmail(newAuthEmail: String, password: String) {
         viewModelScope.launch {
             // Валидация email
@@ -351,7 +413,9 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    // ONBOARDING - GET FROM DATA AND SAVE TO FIREBASE
+    /**
+     * ONBOARDING - GET FROM DATA AND SAVE TO FIREBASE
+     */
     // Запустить метод для получения этих данных можно, когда открывается PAYWALL FRAGMENT - в этот момент опрос уже точно пройден
     fun getAnswersFromOnboardingSaveToFirebaseAndUse() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -379,14 +443,120 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    // OTHER
+    /**
+     * OTHER
+     */
     fun checkLoggedInStateGetUser() {
         viewModelScope.launch {
             _checkedUserInfo.value = getCurrentUserUC.execute()
         }
     }
 
-    // PRIVATE METHODS
+    /**
+     * PRIVATE METHODS
+     */
+    private suspend fun getCurrentAnswersForBackup(): OnboardingAnswers {
+        Log.d(TAG, "getCurrentAnswersForBackup called")
+
+        // TODO проверить логику
+        // Проверяем, авторизован ли пользователь
+        val currentUser = getCurrentUserUC.execute().data
+        Log.d(TAG, "Current user is null: ${currentUser == null}")
+
+        return if (currentUser != null) {
+            Log.d(TAG, "Creating backup from Firebase user")
+            // Если пользователь авторизован - берем данные из Firebase
+            OnboardingAnswers(
+                userName = currentUser.userName,
+                childGender = currentUser.childGender,
+                isItABoy = currentUser.isItABoy,
+                childName = currentUser.childName,
+                childBirthDate = currentUser.childBirthDate,
+                childHobby = currentUser.childHobby
+            )
+        } else {
+            Log.d(TAG, "Creating backup from DataStore")
+            // Если не авторизован - собираем из DataStore
+            val answersMap = mutableMapOf<String, String>()
+
+            // Используем маппинги
+            answerMappings.forEach { mapping ->
+                val value = mapping.getter() ?: mapping.defaultValue
+                answersMap[mapping.answerName.toString()] = value
+                Log.d(TAG, "${mapping.answerName}: $value")
+            }
+
+            // Также загружаем из существующих LiveData для надежности
+            val currentLiveData = _onboardingAnswersLiveData.value
+            if (currentLiveData != null && currentLiveData != OnboardingAnswers()) {
+                // Если в LiveData уже есть данные, используем их
+                Log.d(TAG, "Using data from LiveData")
+                currentLiveData
+            } else {
+                Log.d(TAG, "Creating from answersMap")
+                answersMap.createOnboardingAnswersFromMap()
+            }
+        }
+    }
+
+    private suspend fun resetAllAnswersToDefault() {
+        try {
+            answerMappings.forEach { mapping ->
+                mapping.setter(mapping.defaultValue)
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            throw e
+        }
+    }
+
+    private suspend fun restoreFromBackup(backup: OnboardingAnswers) {
+        try {
+            // Сначала сохраняем в DataStore
+            onboardingUC.saveUserName(backup.userName)
+            onboardingUC.saveGender(backup.childGender)
+            onboardingUC.saveIsItABoy(backup.isItABoy)
+            onboardingUC.saveName(backup.childName)
+            onboardingUC.saveBirthDate(backup.childBirthDate)
+            onboardingUC.saveHobbyAnswer(backup.childHobby)
+
+            // Обновляем временные ответы для совместимости
+            updateAnswersMapFromBackup(backup)
+
+            // ВАЖНО: Обновляем LiveData на главном потоке
+            withContext(Dispatchers.Main) {
+                _onboardingAnswersLiveData.postValue(backup)
+            }
+
+            Log.d(TAG, "Data restored from backup: $backup")
+        } catch (e: IOException) {
+            e.printStackTrace()
+            throw e
+        }
+    }
+
+    private fun updateAnswersMapFromBackup(backup: OnboardingAnswers) {
+        _answers.clear()
+        _answers[AnswerNames.USER_NAME_ANSWER.toString()] = backup.userName
+        _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = backup.childGender
+        _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = backup.isItABoy
+        _answers[AnswerNames.CHILD_NAME_ANSWER.toString()] = backup.childName
+        _answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] = backup.childBirthDate
+        _answers[AnswerNames.CHILD_HOBBY_ANSWER.toString()] = backup.childHobby
+    }
+
+    // Добавим extension функцию для конвертации Map в OnboardingAnswers
+    private fun Map<String, String>.createOnboardingAnswersFromMap(): OnboardingAnswers {
+        return OnboardingAnswers(
+            userName = this[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
+            childGender = this[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
+            isItABoy = this[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
+            childName = this[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
+            childBirthDate = this[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: "",
+            childHobby = this[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: ""
+        )
+    }
+
     // Изменяем метод загрузки данных при старте
     private fun loadOnboardingDataOnStart() {
         viewModelScope.launch(dispatcher) {

@@ -8,17 +8,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/nav_view"
+    <!-- Общий заголовок для онбординга (скрывается для основных экранов) -->
+    <TextView
+        android:id="@+id/onboarding_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        android:background="?android:attr/windowBackground"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        android:layout_marginTop="@dimen/space_beforeOrAfterElement"
+        android:layout_marginStart="@dimen/space_beforeOrAfterElement"
+        android:layout_marginEnd="@dimen/space_beforeOrAfterElement"
+        android:text="@string/onboarding_tittle"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Прогресс-бар для онбординга -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/onboarding_progress"
+        android:layout_width="0dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="@dimen/space_small"
+        android:layout_marginStart="@dimen/space_beforeOrAfterElement"
+        android:layout_marginEnd="@dimen/space_beforeOrAfterElement"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/onboarding_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <FrameLayout
         android:id="@+id/flFragmentContainer"
@@ -27,7 +45,7 @@
         app:layout_constraintBottom_toTopOf="@id/nav_view"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/onboarding_progress"
         app:layout_constraintHorizontal_bias="0.5">
 
         <fragment
@@ -39,5 +57,17 @@
             app:navGraph="@navigation/app_navigation" />
 
     </FrameLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:background="?android:attr/windowBackground"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

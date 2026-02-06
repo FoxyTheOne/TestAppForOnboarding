@@ -19,9 +19,11 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.ActivityMainBinding
+import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.BaseDialogFragment
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.QuitDialog
+import com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.OnboardingViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -29,7 +31,25 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
+
+        // Список фрагментов онбординга, где кнопка назад должна быть заблокирована
+        private val ONBOARDING_FRAGMENTS = setOf(
+            R.id.navigation_welcome,
+            R.id.navigation_login,
+            R.id.navigation_register,
+            R.id.navigation_question1,
+            R.id.navigation_question2,
+            R.id.navigation_question3,
+            R.id.navigation_paywall
+        )
     }
+
+    // Список основных фрагментов приложения, где кнопка назад должна показывать диалог выхода
+    private val mainAppFragments = setOf(
+        R.id.navigation_home,
+        R.id.navigation_profile,
+        R.id.navigation_useful_information
+    )
 
     private var quitDialog: BaseDialogFragment? = null
 
@@ -37,25 +57,22 @@ class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
 
     private lateinit var navController: NavController
-//    private val navController: NavController by lazy {
-//        findNavController(R.id.nav_host_fragment_activity_main)
-//    }
+
     private val mainViewModel by viewModels<MainViewModel>()
+    private val onboardingViewModel by viewModels<OnboardingViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // VIEW BINDING -> 2. Инициализация
         binding = ActivityMainBinding.inflate(layoutInflater)
-        val view: View = binding!!.root
-        setContentView(view)
+        setContentView(binding!!.root)
 
         // Инициализируем navController
         navController = findNavController(R.id.nav_host_fragment_activity_main)
 
         // СНАЧАЛА настраиваем навигацию:
         setupNavigation()
-
         // Уберем Action bar
         supportActionBar?.hide()
 
@@ -63,6 +80,19 @@ class MainActivity : AppCompatActivity() {
 //        mainViewModel.getAndUseAnswersFromOnboarding()
         mainViewModel.checkLoggedInStateGetUser() // -> проверяем в каждом фрагменте отдельно (home, profile, info)
 
+        setupNotificationPermission()
+        observeOnboardingState() // Подписываемся на изменения онбординга
+        subscribeToObservers()
+    }
+
+    fun updateBottomNavigationSelection(destinationId: Int) {
+        binding?.navView?.menu?.findItem(destinationId)?.isChecked = true
+    }
+
+    /**
+     * PERMISSIONS
+     */
+    private fun setupNotificationPermission() {
         // Запрос на разрешение notification
         val requestPermissionLauncherNotification =
             registerForActivityResult(
@@ -87,32 +117,50 @@ class MainActivity : AppCompatActivity() {
                 requestPermissionLauncherNotification.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-
-        subscribeToObservers()
     }
 
-    fun updateBottomNavigationSelection(destinationId: Int) {
-        binding?.navView?.menu?.findItem(destinationId)?.isChecked = true
-    }
+    /**
+     * ONBOARDING
+     */
+    private fun observeOnboardingState() {
+        // Наблюдаем за заголовком онбординга
+        onboardingViewModel.currentTitle.observe(this) { title ->
+            binding?.onboardingTitle?.text = title
+        }
 
-    private fun subscribeToObservers() {
-        mainViewModel.errorMessageLiveData.observe(this) { event ->
-            val toastMessage = event.getContentIfNotHandled()?.data?.toErrorMessage(resources)
-            Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show()
+        // Наблюдаем за прогрессом
+        onboardingViewModel.currentStep.observe(this) { currentStep ->
+            onboardingViewModel.totalSteps.observe(this) { totalSteps ->
+                if (totalSteps > 0) {
+                    val progress = (currentStep.toFloat() / totalSteps.toFloat()) * 100
+                    binding?.onboardingProgress?.progress = progress.toInt()
+
+                    // Можно добавить отображение текста прогресса
+                    // binding?.progressText?.text = onboardingViewModel.getProgressText()
+                }
+            }
         }
     }
 
+    private fun updateOnboardingTitle(destinationId: Int) {
+        val title = when (destinationId) {
+            R.id.navigation_question1 -> getString(R.string.onboarding_container_title)
+            R.id.navigation_question2 -> getString(R.string.onboarding_container_title)
+            R.id.navigation_question3 -> getString(R.string.onboarding_container_title)
+            else -> getString(R.string.onboarding_tittle)
+        }
+        onboardingViewModel.updateTitle(title)
+    }
+
+    /**
+     * NAVIGATION
+     */
     private fun setupNavigation() {
         // Bottom navigation setup
         val navView: BottomNavigationView = binding!!.navView
-//        val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
         // Passing each menu ID as a set of Ids because each menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home, R.id.navigation_profile, R.id.navigation_useful_information
-            )
-        )
+        val appBarConfiguration = AppBarConfiguration(mainAppFragments)
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
@@ -125,76 +173,88 @@ class MainActivity : AppCompatActivity() {
                     }
                     true
                 }
+
                 R.id.navigation_profile -> {
                     if (navController.currentDestination?.id != R.id.navigation_profile) {
                         navController.navigate(R.id.navigation_profile)
                     }
                     true
                 }
+
                 R.id.navigation_useful_information -> {
                     if (navController.currentDestination?.id != R.id.navigation_useful_information) {
                         navController.navigate(R.id.navigation_useful_information)
                     }
                     true
                 }
+
                 else -> false
             }
         }
 
         // Let's add a listener to our NavController to hide BottomBar when we are on the onboarding and paywall pages
-//        navController.addOnDestinationChangedListener { _, destination, _ ->
-//            when (destination.id) {
-//                R.id.navigation_welcome -> navView.visibility = View.GONE
-//                R.id.navigation_login -> navView.visibility = View.GONE
-//                R.id.navigation_register -> navView.visibility = View.GONE
-//                R.id.navigation_question1 -> navView.visibility = View.GONE
-//                R.id.navigation_question2 -> navView.visibility = View.GONE
-//                R.id.navigation_question3 -> navView.visibility = View.GONE
-//                R.id.navigation_paywall -> navView.visibility = View.GONE
-//                R.id.navigation_profile -> navView.visibility = View.VISIBLE
-//                R.id.navigation_home -> navView.visibility = View.VISIBLE
-//                else -> navView.visibility = View.VISIBLE
-//            }
-//        }
-        // Слушатель для скрытия/показа BottomNavigationView
+        // Слушатель для скрытия/показа BottomNavigationView и управления онбордингом
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.navigation_welcome,
-                R.id.navigation_login,
-                R.id.navigation_register,
-                R.id.navigation_question1,
-                R.id.navigation_question2,
-                R.id.navigation_question3,
-                R.id.navigation_paywall -> {
-                    binding?.navView?.visibility = View.GONE
+            val destId = destination.id
+
+            // Управление видимостью элементов онбординга
+            if (destId in ONBOARDING_FRAGMENTS) {
+                binding?.navView?.visibility = View.GONE
+
+                // Показываем заголовок и прогресс-бар для фрагментов онбординга (кроме приветствия)
+                if (destId != R.id.navigation_welcome
+                    && destId != R.id.navigation_login
+                    && destId != R.id.navigation_register
+                    && destId != R.id.navigation_paywall) {
+                    binding?.onboardingTitle?.visibility = View.VISIBLE
+                    binding?.onboardingProgress?.visibility = View.VISIBLE
+
+                    // Обновляем состояние онбординга
+                    onboardingViewModel.updateProgress(destId)
+
+                    // Устанавливаем заголовок для текущего фрагмента
+                    updateOnboardingTitle(destId)
+                } else {
+                    binding?.onboardingTitle?.visibility = View.GONE
+                    binding?.onboardingProgress?.visibility = View.GONE
                 }
-                else -> {
-                    binding?.navView?.visibility = View.VISIBLE
-                    updateBottomNavigationSelection(destination.id)
-                }
+            } else {
+                binding?.navView?.visibility = View.VISIBLE
+                binding?.onboardingTitle?.visibility = View.GONE
+                binding?.onboardingProgress?.visibility = View.GONE
+                updateBottomNavigationSelection(destId)
             }
         }
 
-
         // Отступ у контента в случае появления bottomNavigationView
-        val bottomNavigationView = binding?.navView
-        val mainContent = binding?.flFragmentContainer
-        bottomNavigationView?.viewTreeObserver?.addOnGlobalLayoutListener(object :
-            ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (mainContent != null) {
-                    val bottomBarHeight = bottomNavigationView.height
-                    // Применить отступ к mainContent
-                    val params = mainContent.layoutParams as ConstraintLayout.LayoutParams
-                    params.bottomMargin = bottomBarHeight
-                    mainContent.layoutParams = params
-
-                    bottomNavigationView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                }
-            }
-        })
+        setupContentPadding()
     }
 
+    override fun onBackPressed() {
+        val currentDestination = navController.currentDestination?.id
+
+        when {
+            currentDestination in ONBOARDING_FRAGMENTS -> {
+                // Запрещаем возврат в онбординге
+                return
+            }
+
+            currentDestination in mainAppFragments -> {
+                // Показываем диалог подтверждения выхода
+                showQuitDialog()
+                return
+            }
+
+            else -> {
+                // Для остальных случаев - стандартное поведение
+                super.onBackPressed()
+            }
+        }
+    }
+
+    /**
+     * DIALOGS
+     */
     private fun showQuitDialog() {
         if (quitDialog != null && quitDialog!!.isAdded) {
             return
@@ -213,44 +273,31 @@ class MainActivity : AppCompatActivity() {
         quitDialog?.show(supportFragmentManager, QuitDialog.TAG)
     }
 
-    override fun onBackPressed() {
-        val currentDestination = navController.currentDestination?.id
-
-        // Список фрагментов онбординга, где кнопка назад должна быть заблокирована
-        val onboardingFragments = setOf(
-            R.id.navigation_welcome,
-            R.id.navigation_login,
-            R.id.navigation_register,
-            R.id.navigation_question1,
-            R.id.navigation_question2,
-            R.id.navigation_question3,
-            R.id.navigation_paywall
-        )
-
-        // Список основных фрагментов приложения, где кнопка назад должна показывать диалог выхода
-        val mainAppFragments = setOf(
-            R.id.navigation_home,
-            R.id.navigation_profile,
-            R.id.navigation_useful_information
-        )
-
-        when (currentDestination) {
-            in onboardingFragments -> {
-                // Запрещаем возврат в онбординге
-                return
-            }
-
-            in mainAppFragments -> {
-                // Показываем диалог подтверждения выхода в основном приложении
-                showQuitDialog()
-                return
-            }
-
-            else -> {
-                // Для остальных случаев - стандартное поведение
-                super.onBackPressed()
-            }
+    /**
+     * OTHER
+     */
+    private fun subscribeToObservers() {
+        mainViewModel.errorMessageLiveData.observe(this) { event ->
+            val toastMessage = event.getContentIfNotHandled()?.data?.toErrorMessage(resources)
+            Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun setupContentPadding() {
+        val bottomNavigationView = binding?.navView
+        val mainContent = binding?.flFragmentContainer
+        bottomNavigationView?.viewTreeObserver?.addOnGlobalLayoutListener(object :
+            ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (mainContent != null) {
+                    val bottomBarHeight = bottomNavigationView.height
+                    val params = mainContent.layoutParams as ConstraintLayout.LayoutParams
+                    params.bottomMargin = bottomBarHeight
+                    mainContent.layoutParams = params
+                    bottomNavigationView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                }
+            }
+        })
     }
 
     // VIEW BINDING -> 3. onDestroyView()

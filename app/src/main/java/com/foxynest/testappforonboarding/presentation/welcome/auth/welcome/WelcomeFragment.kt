@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentWelcomeBinding
+import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -18,6 +19,7 @@ class WelcomeFragment : BaseWelcomeFragmentAbstract() {
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var _binding: FragmentWelcomeBinding? = null
+
     // Делаем binding internal для тестов в том же модуле
     internal val binding: FragmentWelcomeBinding?
         get() = _binding
@@ -42,9 +44,20 @@ class WelcomeFragment : BaseWelcomeFragmentAbstract() {
 
     private fun initListeners() {
         _binding?.buttonStartOnboarding?.setOnClickListener {
-            if (findNavController().currentDestination?.id == R.id.navigation_welcome) {
-                findNavController().navigate(R.id.action_welcomeFragment_to_navigation_question1)
+//            // Сбрасываем состояние онбординга перед запуском
+//            mainViewModel.resetOnboardingState()
+
+            // Создаем Bundle с аргументом
+            val args = Bundle().apply {
+                putString("source_fragment", "welcome")
             }
+
+            // Используем safeNavigate с аргументами
+            safeNavigate(
+                R.id.navigation_welcome,
+                R.id.action_welcomeFragment_to_navigation_question1,
+                args
+            )
         }
 
         _binding?.buttonStartLogin?.setOnClickListener {

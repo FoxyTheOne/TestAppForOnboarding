@@ -10,7 +10,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -32,6 +31,7 @@ import com.foxynest.testappforonboarding.presentation.dialogs.ChangeAuthEmailDia
 import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -44,7 +44,7 @@ class ProfileFragment : Fragment() {
         private const val TAG = "ProfileFragment"
     }
 
-//    private var localFieldsObserver: Observer<Any>? = null
+    //    private var localFieldsObserver: Observer<Any>? = null
     private var dataSaveErrorDialog: DataSaveErrorDialog? = null
     private var changeAuthEmailDialog: ChangeAuthEmailDialog? = null
 
@@ -83,6 +83,23 @@ class ProfileFragment : Fragment() {
 
         // И принудительно проверяем текущие данные
         checkCurrentData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // При возвращении на фрагмент ПРИНУДИТЕЛЬНО проверяем данные
+        // Это особенно важно после отмены онбординга
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Даем время на восстановление данных
+            delay(100) // Минимальная задержка для гарантии
+
+            // При возвращении на фрагмент проверяем данные
+            checkCurrentData()
+
+            // При возвращении на экран проверяем статус верификации
+            profileViewModel.checkEmailVerificationStatus()
+        }
     }
 
     // Firebase будет держать user зарегистрированным даже после того, как он закроет программу и откроет заново. Поэтому нам нужно переписать метод onStart(), чтобы проверять, is user logged in in firebase or not
@@ -144,25 +161,6 @@ class ProfileFragment : Fragment() {
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { resourceUser ->
                     checkAndDisplayUserData(resourceUser.data)
-//                    val user = resourceUser.data
-//                    if (user != null) {
-//                        removeLocalObservers()
-//                        // Заполняем поля исходя из данных на сервере
-//                        fillFieldsInProfile(user)
-//                        showLogOutButtons(true)
-//                    } else {
-//                        // Локальные данные
-//                        setupLocalObservers()
-//                        // Принудительно обновляем из локальных данных
-//                        val localUser =
-//                            mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
-//                                activity
-//                            )
-//                        if (localUser.isUserDataValid()) {
-//                            fillFieldsInProfile(localUser)
-//                        }
-//                        showLogOutButtons(false)
-//                    }
                 }
         }
 
@@ -201,32 +199,7 @@ class ProfileFragment : Fragment() {
             profileViewModel.isEmailVerified
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { isVerified ->
-//                    if (isVerified) {
-                    // Прячем кнопку верификации
-//                        binding?.buttonVerifyEmail?.visibility = View.GONE
-//                        binding?.textEmailNotVerified?.visibility = View.GONE
                     updateEmailVerificationUI(isVerified)
-
-//                    // Если email подтверждён, обновляем данные пользователя
-//                    if (isVerified) {
-//                        mainViewModel.checkLoggedInStateGetUser()
-//                        // Показываем уведомление (опционально)
-//                        showEmailVerifiedMessage()
-//                    }
-
-//                    Toast.makeText(
-//                        requireContext(),
-//                        "Email verified successfully",
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-//                    } else {
-//                        // Показываем кнопку только если пользователь зарегистрирован
-//                        val user = mainViewModel.checkedUserInfo.value.data
-//                        if (user != null && user.authEmail.isNotBlank()) {
-//                            binding?.buttonVerifyEmail?.visibility = View.VISIBLE
-//                            binding?.textEmailNotVerified?.visibility = View.VISIBLE
-//                        }
-//                    }
                 }
         }
 
@@ -248,28 +221,6 @@ class ProfileFragment : Fragment() {
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { isEnabled ->
                     updateVerificationButton(isEnabled)
-
-//                    binding?.buttonVerifyEmail?.isEnabled = isEnabled
-//
-//                    context?.let {
-//                        val colorGray = ContextCompat.getColor(it, R.color.gray)
-//                        val colorWhite = ContextCompat.getColor(it, R.color.white)
-//
-//                        when (isEnabled) {
-//                            false -> {
-//                                binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
-//                                binding?.textEmailNotVerified?.text =
-//                                    getString(R.string.profile_email_verification_send)
-//                            }
-//
-//                            true -> {
-//                                binding?.buttonVerifyEmail?.setTextColor(colorWhite)
-//                                    ?: "#FFFFFFFF"
-//                                binding?.textEmailNotVerified?.text =
-//                                    getString(R.string.profile_email_not_verified)
-//                            }
-//                        }
-//                    }
                 }
         }
 
@@ -707,8 +658,16 @@ class ProfileFragment : Fragment() {
         ConfirmOnboardingRestartDialog.newInstance()
             .setListeners(
                 positiveAction = {
+                    // Передаем информацию о том, откуда запущен онбординг
+                    val args = Bundle().apply {
+                        putString("source_fragment", "profile")
+                    }
                     // Пользователь подтвердил - запускаем заново онбординг, проходим его и в конце сохраняем результаты на сервер
-                    safeNavigate(R.id.navigation_profile, R.id.navigation_question1)
+                    safeNavigate(
+                        R.id.navigation_profile,
+                        R.id.navigation_question1,
+                        args
+                    )
                 },
                 negativeAction = {
                     // Пользователь отменил - ничего не делаем
@@ -753,16 +712,6 @@ class ProfileFragment : Fragment() {
             getString(R.string.profile_email_verified_successfully),
             Toast.LENGTH_SHORT
         ).show()
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        // При возвращении на фрагмент проверяем данные
-        checkCurrentData()
-
-        // При возвращении на экран проверяем статус верификации
-        profileViewModel.checkEmailVerificationStatus()
     }
 
     // VIEW BINDING -> 3. onDestroyView()

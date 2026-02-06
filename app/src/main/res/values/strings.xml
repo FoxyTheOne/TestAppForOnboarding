@@ -18,7 +18,13 @@
 
     <!-- Onboarding -->
     <string name="onboarding_tittle">Добро пожаловать!</string>
-    <string name="button_next">Дальше</string>
+    <string name="onboarding_container_title">Помогите нам лучше понять вашего ребенка</string>
+    <string name="question1_title">Основная информация</string>
+    <string name="question2_title">Дополнительные сведения</string>
+    <string name="question3_title">Дата рождения и интересы</string>
+    <string name="button_back">Назад</string>
+    <string name="button_next">Далее</string>
+    <string name="button_cancel">Закрыть</string>
     <string name="button_finish">Готово</string>
     <string name="text_gender_question">Укажите пол вашего ребенка</string>
     <string name="text_boy">Мальчик</string>
@@ -150,6 +156,7 @@
     <string name="cancel">Отмена</string>
     <string name="confirm_dialog_title">Подтверждение</string>
     <string name="are_you_sure_confirm">Вы уверены? Текущие ответы будут стёрты и перезаписаны.</string>
+    <string name="are_you_sure_confirm2">Вы уверены, что хотите выйти из онбординга?</string>
     <string name="quit_confirm">Вы уверены, что хотите выйти?</string>
     <string name="local_onboarding_saving_error_title">Ошибка</string>
     <string name="local_onboarding_saving_error_text">Не получилось сохранить статус пройденного опроса на вашем телефоне. Повторить попытку?</string>

@@ -20,7 +20,7 @@ import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
-import com.foxynest.testappforonboarding.other.extensions.calculateAge
+import com.foxynest.testappforonboarding.other.extensions.calculateChildAge
 import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
 import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
@@ -597,7 +597,7 @@ class ProfileFragment : Fragment() {
             Log.d(TAG, "Ошибка форматирования даты ${e.printStackTrace()}")
         }
 
-        val resultAge = birthDate?.calculateAge()
+        val resultAge = birthDate?.calculateChildAge()
 
         return when (resultAge?.status) {
             Status.SUCCESS -> {

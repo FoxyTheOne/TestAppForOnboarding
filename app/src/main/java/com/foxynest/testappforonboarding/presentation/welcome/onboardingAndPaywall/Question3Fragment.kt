@@ -7,19 +7,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion3Binding
-import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
-import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.other.Status
-import com.foxynest.testappforonboarding.other.extensions.calculateAge
-import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToSaveFormat
+import com.foxynest.testappforonboarding.other.extensions.calculateChildAge
+import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToMySaveFormat
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
-import com.foxynest.testappforonboarding.presentation.MainViewModel
-import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
-import com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.Question1Fragment.Companion
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import dagger.hilt.android.AndroidEntryPoint
@@ -91,7 +85,7 @@ class Question3Fragment : BaseOnboardingFragment() {
         // SETUP BUTTONS
         binding?.buttonFinish?.setOnClickListener {
             // Получаем дату в нужном формате для сохранения
-            val birtDateText = selectedDateInMillis?.convertDateMillisToSaveFormat()
+            val birtDateText = selectedDateInMillis?.convertDateMillisToMySaveFormat()
             val ageText = binding?.textChildAgeValue?.text?.toString()
             val textFieldCharHobbyAnswer =
                 binding?.textFieldHobbyAnswer?.editText?.text?.toString()?.trim()
@@ -207,7 +201,7 @@ class Question3Fragment : BaseOnboardingFragment() {
 
     private fun calculateAndDisplayAge(birthDate: Date): Int {
         var age = 0
-        val resultAge = birthDate.calculateAge()
+        val resultAge = birthDate.calculateChildAge()
 
         when (resultAge.status) {
             Status.SUCCESS -> {

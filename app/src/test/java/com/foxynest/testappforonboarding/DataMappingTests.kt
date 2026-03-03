@@ -1,7 +1,7 @@
 package com.foxynest.testappforonboarding
 
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
-import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToSaveFormat
+import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToMySaveFormat
 import com.foxynest.testappforonboarding.other.extensions.toFirestoreMap
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
@@ -28,7 +28,7 @@ class DataMappingTests {
     @Test
     fun `date conversion works correctly`() {
         val timestamp = System.currentTimeMillis()
-        val dateString = timestamp.convertDateMillisToSaveFormat()
+        val dateString = timestamp.convertDateMillisToMySaveFormat()
 
         assertTrue(dateString.matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
     }

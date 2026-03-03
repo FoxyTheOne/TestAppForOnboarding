@@ -6,7 +6,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-fun Date.calculateAge(): Resource<Int> {
+fun Date.calculateChildAge(): Resource<Int> {
     val birthDate = this
     try {
         val today = Calendar.getInstance()
@@ -34,7 +34,7 @@ fun Date.calculateAge(): Resource<Int> {
     }
 }
 
-fun Long.convertDateMillisToSaveFormat(): String {
+fun Long.convertDateMillisToMySaveFormat(): String {
     return try {
         // Используем стандартный ISO-подобный формат для хранения: yyyy-MM-dd
         val saveFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)

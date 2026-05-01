@@ -7,6 +7,6 @@ fun OnboardingAnswers?.hasValidData(): Boolean {
 
     return userName.isNotBlank() &&
             childName.isNotBlank() &&
-            childHobby.isNotBlank() &&
+            childHobbies.isNotBlank() &&
             childBirthDate.isNotBlank()
 }

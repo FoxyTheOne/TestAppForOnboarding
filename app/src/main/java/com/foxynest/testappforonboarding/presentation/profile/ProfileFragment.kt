@@ -19,6 +19,7 @@ import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.other.constants.CommonConstants.HOBBIES_DELIMITER
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
 import com.foxynest.testappforonboarding.other.extensions.calculateChildAge
 import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
@@ -564,7 +565,15 @@ class ProfileFragment : Fragment() {
             binding?.textGenderAnswer?.text = user.childGender
             binding?.textGenderAnswerIsItABoy?.text = user.isItABoy
             binding?.textChildNameAnswer?.text = user.childName
-            binding?.textHobbyAnswer?.text = user.childHobby
+//            binding?.textHobbyAnswer?.text = user.childHobby
+            // HOBBY
+            val hobbies = user.childHobbies
+            if (hobbies.isNotBlank()) {
+                val hobbiesList = hobbies.split(HOBBIES_DELIMITER)
+                binding?.textHobbyAnswer?.text = hobbiesList.joinToString("\n")
+            } else {
+                binding?.textHobbyAnswer?.text = ""
+            }
             // ВЫЧИСЛЯЕМ возраст из даты рождения
             val age = calculateAgeFromBirthDate(user.childBirthDate)
             binding?.textChildAgeAnswer?.text = if (age >= 0) age.toString() else ""

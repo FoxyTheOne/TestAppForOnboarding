@@ -9,7 +9,7 @@ private fun Map<String, String>.hasValidAnswers(): Boolean {
         AnswerNames.CHILD_GENDER_ANSWER.toString(),
         AnswerNames.CHILD_NAME_ANSWER.toString(),
         AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString(),
-        AnswerNames.CHILD_HOBBY_ANSWER.toString()
+        AnswerNames.CHILD_HOBBIES_ANSWER.toString()
     )
 
     return requiredFields.any { field ->

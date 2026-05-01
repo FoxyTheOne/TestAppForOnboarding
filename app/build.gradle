@@ -178,6 +178,9 @@ dependencies {
 
     // viewpager2
     implementation "androidx.viewpager2:viewpager2:1.0.0"
+
+    // Gson для конвертации в JSON
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 //kapt {

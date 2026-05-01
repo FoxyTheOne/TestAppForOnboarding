@@ -103,6 +103,11 @@
         android:name="com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.Question3Fragment"
         android:label="Question3Fragment">
         <action
+            android:id="@+id/action_navigation_question3_to_navigation_question4"
+            app:destination="@id/navigation_question4"
+            app:popUpTo="@id/navigation_question3"
+            app:popUpToInclusive="true" />
+        <action
             android:id="@+id/action_navigation_question3_to_paywallFragment"
             app:destination="@id/navigation_paywall"
             app:popUpTo="@id/navigation_question3"
@@ -116,6 +121,17 @@
             android:id="@+id/action_navigation_question3_to_navigation_question1"
             app:destination="@id/navigation_question1"
             app:popUpTo="@id/navigation_question3"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_question4"
+        android:name="com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.Question4Fragment"
+        android:label="Question4Fragment">
+        <action
+            android:id="@+id/action_navigation_question4_to_paywallFragment"
+            app:destination="@id/navigation_paywall"
+            app:popUpTo="@id/navigation_question4"
             app:popUpToInclusive="true" />
     </fragment>
 

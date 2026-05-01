@@ -65,7 +65,8 @@ class Question2Fragment : BaseOnboardingFragment() {
     }
 
     private fun saveAnswerAndGoFurther(answer: String) {
-        mainViewModel.saveIsItABoyAnswer(answer)
+        mainViewModel.updateOnboardingAnswers { it.copy(isItABoy = answer) }
+//        mainViewModel.saveIsItABoyAnswer(answer)
 
         // Передаем аргумент при навигации на Question3Fragment
         val args = Bundle().apply {

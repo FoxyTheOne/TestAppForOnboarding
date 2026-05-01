@@ -71,49 +71,98 @@ class Question3Fragment : BaseOnboardingFragment() {
         }
 
         // SETUP FIELDS
-        binding?.editTextFieldHobbyAnswer?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                s?.let { editable ->
-                    val text = editable.toString()
-                    validateHobby(text)
-                }
-            }
-        })
+//        binding?.editTextFieldHobbyAnswer?.addTextChangedListener(object : TextWatcher {
+//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+//            override fun afterTextChanged(s: Editable?) {
+//                s?.let { editable ->
+//                    val text = editable.toString()
+//                    validateHobby(text)
+//                }
+//            }
+//        })
 
         // SETUP BUTTONS
-        binding?.buttonFinish?.setOnClickListener {
-            // Получаем дату в нужном формате для сохранения
-            val birtDateText = selectedDateInMillis?.convertDateMillisToMySaveFormat()
-            val ageText = binding?.textChildAgeValue?.text?.toString()
-            val textFieldCharHobbyAnswer =
-                binding?.textFieldHobbyAnswer?.editText?.text?.toString()?.trim()
-
-            val areFieldsValid = validateAllFields(birtDateText, ageText, textFieldCharHobbyAnswer)
-
-            if (areFieldsValid) {
-                // Все проверки на null должны были быть в areFieldsValid()
-                mainViewModel.saveHobbyAnswer(textFieldCharHobbyAnswer ?: "")
-                mainViewModel.saveBirthDateAnswer(birtDateText ?: "0")
-
-                safeNavigate(
-                    R.id.navigation_question3,
-                    R.id.action_navigation_question3_to_paywallFragment
-                )
-            }
-        }
-
         // Добавляем обработчик кнопки отмены
         binding?.buttonCancel?.setOnClickListener {
             showCancelConfirmationDialog()
         }
+
+//        binding?.buttonFinish?.setOnClickListener {
+//            // Получаем дату в нужном формате для сохранения
+//            val birtDateText = selectedDateInMillis?.convertDateMillisToMySaveFormat()
+//            val ageText = binding?.textChildAgeValue?.text?.toString()
+//            val textFieldCharHobbyAnswer =
+//                binding?.textFieldHobbyAnswer?.editText?.text?.toString()?.trim()
+//
+//            val areFieldsValid = validateAllFields(birtDateText, ageText, textFieldCharHobbyAnswer)
+//
+//            if (areFieldsValid) {
+//                // Все проверки на null должны были быть в areFieldsValid()
+//                mainViewModel.saveHobbyAnswer(textFieldCharHobbyAnswer ?: "")
+//                mainViewModel.saveBirthDateAnswer(birtDateText ?: "0")
+//
+//                safeNavigate(
+//                    R.id.navigation_question3,
+//                    R.id.action_navigation_question3_to_paywallFragment
+//                )
+//            }
+//        }
+        binding?.buttonNext?.setOnClickListener {
+            val birthDateText = selectedDateInMillis?.convertDateMillisToMySaveFormat() ?: ""
+            val ageText = binding?.textChildAgeValue?.text?.toString() ?: "0"
+
+            if (validateDate(birthDateText, ageText)) {
+                mainViewModel.updateOnboardingAnswers { it.copy(childBirthDate = birthDateText) }
+//                mainViewModel.saveBirthDateAnswer(birthDateText ?: "0")
+
+                val args = Bundle().apply {
+                    putString("source_fragment", sourceFragment)
+                }
+                safeNavigate(
+                    R.id.navigation_question3,
+                    R.id.action_navigation_question3_to_navigation_question4,
+                    args
+                )
+            }
+        }
     }
 
-    private fun validateAllFields(
+//    private fun validateAllFields(
+//        birthDateText: String?, // в формате MM/dd/yyyy
+//        ageText: String?,
+//        textFieldCharHobbyAnswer: String?
+//    ): Boolean {
+//        var isValid = true
+//
+//        // Проверка даты рождения
+//        if (birthDateText.isNullOrBlank() || selectedDateInMillis == null) {
+//            binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_selected)
+//            isValid = false
+//        } else {
+//            binding?.textFieldBirthDate?.error = null
+//        }
+//
+//        // Проверка возраста (должен быть больше 0)
+//        val age = ageText?.toIntOrNull() ?: 0
+//        if (age < 0) {
+//            if (isValid) { // Показываем ошибку возраста только если дата валидна
+//                binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_valid)
+//            }
+//            isValid = false
+//        }
+//
+//        // Проверка хобби
+//        if (!validateHobby(textFieldCharHobbyAnswer)) {
+//            isValid = false
+//        }
+//
+//        return isValid
+//    }
+
+    private fun validateDate(
         birthDateText: String?, // в формате MM/dd/yyyy
-        ageText: String?,
-        textFieldCharHobbyAnswer: String?
+        ageText: String?
     ): Boolean {
         var isValid = true
 
@@ -134,24 +183,19 @@ class Question3Fragment : BaseOnboardingFragment() {
             isValid = false
         }
 
-        // Проверка хобби
-        if (!validateHobby(textFieldCharHobbyAnswer)) {
-            isValid = false
-        }
-
         return isValid
     }
 
-    private fun validateHobby(hobbyAnswer: String?): Boolean {
-        return if (hobbyAnswer.isNullOrBlank()) {
-            binding?.textFieldHobbyAnswer?.error = getString(R.string.error_hobby_not_selected)
-            false
-        } else {
-            // Очищаем ошибку, если поле заполнено
-            binding?.textFieldHobbyAnswer?.error = null
-            true
-        }
-    }
+//    private fun validateHobby(hobbyAnswer: String?): Boolean {
+//        return if (hobbyAnswer.isNullOrBlank()) {
+//            binding?.textFieldHobbyAnswer?.error = getString(R.string.error_hobby_not_selected)
+//            false
+//        } else {
+//            // Очищаем ошибку, если поле заполнено
+//            binding?.textFieldHobbyAnswer?.error = null
+//            true
+//        }
+//    }
 
     private fun showDatePicker() {
         // Устанавливаем ограничения даты (например, от 1900 года до сегодня)

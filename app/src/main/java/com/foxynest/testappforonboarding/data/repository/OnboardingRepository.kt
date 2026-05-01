@@ -1,7 +1,9 @@
 package com.foxynest.testappforonboarding.data.repository
 
+import androidx.datastore.dataStore
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
 import com.foxynest.testappforonboarding.other.Resource
 import kotlinx.coroutines.flow.Flow
@@ -44,29 +46,33 @@ class OnboardingRepository @Inject constructor(
     }
 
     // SAVE
-    override suspend fun saveUserName(userName: String) =
-        appDatastorePreferences.saveUserName(userName)
-
-    override suspend fun saveGender(gender: String) =
-        appDatastorePreferences.saveGender(gender)
-
-    override suspend fun saveName(name: String) = appDatastorePreferences.saveName(name)
-    override suspend fun saveIsItABoy(answer: String) = appDatastorePreferences.saveIsItABoy(answer)
-    override suspend fun saveBirthDate(birthDate: String) =
-        appDatastorePreferences.saveBirthDate(birthDate)
-
-    override suspend fun saveChildAge(age: Int) =
-        appDatastorePreferences.saveChildAge(age)
-
-    override suspend fun saveHobbyAnswer(hobby: String) =
-        appDatastorePreferences.saveHobbyAnswer(hobby)
+    override suspend fun saveOnboardingAnswers(answers: OnboardingAnswers) =
+        appDatastorePreferences.saveOnboardingAnswers(answers)
+//    override suspend fun saveUserName(userName: String) =
+//        appDatastorePreferences.saveUserName(userName)
+//
+//    override suspend fun saveGender(gender: String) =
+//        appDatastorePreferences.saveGender(gender)
+//
+//    override suspend fun saveName(name: String) = appDatastorePreferences.saveName(name)
+//    override suspend fun saveIsItABoy(answer: String) = appDatastorePreferences.saveIsItABoy(answer)
+//    override suspend fun saveBirthDate(birthDate: String) =
+//        appDatastorePreferences.saveBirthDate(birthDate)
+//
+//    override suspend fun saveChildAge(age: Int) =
+//        appDatastorePreferences.saveChildAge(age)
+//
+//    override suspend fun saveHobbies(hobbies: String) =
+//        appDatastorePreferences.saveHobbies(hobbies)
 
     // GET
-    override fun getUserNameFlow(): Flow<String?> = appDatastorePreferences.getUserNameFlow()
-    override fun getGenderFlow(): Flow<String?> = appDatastorePreferences.getGenderFlow()
-    override fun getNameFlow(): Flow<String?> = appDatastorePreferences.getNameFlow()
-    override fun getIsItABoyFlow(): Flow<String?> = appDatastorePreferences.getIsItABoyFlow()
-    override fun getBirthDateFlow(): Flow<String?> = appDatastorePreferences.getBirthDateFlow()
-    override fun getChildAgeFlow(): Flow<Int?> = appDatastorePreferences.getChildAgeFlow()
-    override fun getHobbyFlow(): Flow<String?> = appDatastorePreferences.getHobbyFlow()
+    override fun getOnboardingAnswersFlow(): Flow<OnboardingAnswers> =
+        appDatastorePreferences.getOnboardingAnswersFlow()
+//    override fun getUserNameFlow(): Flow<String?> = appDatastorePreferences.getUserNameFlow()
+//    override fun getGenderFlow(): Flow<String?> = appDatastorePreferences.getGenderFlow()
+//    override fun getNameFlow(): Flow<String?> = appDatastorePreferences.getNameFlow()
+//    override fun getIsItABoyFlow(): Flow<String?> = appDatastorePreferences.getIsItABoyFlow()
+//    override fun getBirthDateFlow(): Flow<String?> = appDatastorePreferences.getBirthDateFlow()
+//    override fun getChildAgeFlow(): Flow<Int?> = appDatastorePreferences.getChildAgeFlow()
+//    override fun getHobbiesFlow(): Flow<String?> = appDatastorePreferences.getHobbiesFlow()
 }

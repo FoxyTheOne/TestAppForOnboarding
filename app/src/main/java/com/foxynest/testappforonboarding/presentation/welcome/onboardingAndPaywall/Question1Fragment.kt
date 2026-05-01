@@ -79,12 +79,12 @@ class Question1Fragment : BaseOnboardingFragment() {
 
         binding?.buttonNext?.setOnClickListener {
             val userNameAnswer =
-                binding?.textFieldUserNameAnswer?.editText?.text?.toString()?.trim()
+                binding?.textFieldUserNameAnswer?.editText?.text?.toString()?.trim() ?: ""
             val checkedRadioButtonId = binding?.radioGroupQuestion1?.checkedRadioButtonId
             val radioGenderAnswerBoy = binding?.genderAnswerBoy
             val radioGenderAnswerGirl = binding?.genderAnswerGirl
             val childNameAnswer =
-                binding?.textFieldChildNameAnswer?.editText?.text?.toString()?.trim()
+                binding?.textFieldChildNameAnswer?.editText?.text?.toString()?.trim() ?: ""
 
             val areFieldsValid = validateAllFields(
                 userNameAnswer,
@@ -95,37 +95,51 @@ class Question1Fragment : BaseOnboardingFragment() {
             )
 
             if (areFieldsValid) {
-                // Все проверки, в том числе "checkedRadioButtonId == null" должны были быть в areFieldsValid()
-                mainViewModel.saveUserNameAnswer(userNameAnswer ?: "")
+                // Если checkedRadioButtonId будет null, то валидация не будет успешна и сюда не зайдет. Но для метода findViewById() это нужно указать явно
                 checkedRadioButtonId?.let {
                     val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
-                    mainViewModel.saveGenderAnswer(selectedRadioButton?.text.toString())
-                }
-                mainViewModel.saveChildNameAnswer(childNameAnswer ?: "")
 
-                when {
-                    radioGenderAnswerBoy?.isChecked == true -> {
-                        // Передаем аргумент при навигации на Question2Fragment
-                        val args = Bundle().apply {
-                            putString("source_fragment", sourceFragment)
-                        }
-                        safeNavigate(
-                            R.id.navigation_question1,
-                            R.id.action_navigation_question1_to_question2Fragment,
-                            args
+                    // Используем единый метод обновления
+                    mainViewModel.updateOnboardingAnswers { answers ->
+                        answers.copy(
+                            userName = userNameAnswer,
+                            childGender = selectedRadioButton?.text.toString(),
+                            childName = childNameAnswer
                         )
                     }
 
-                    radioGenderAnswerGirl?.isChecked == true -> {
-                        // Передаем аргумент при навигации на Question3Fragment
-                        val args = Bundle().apply {
-                            putString("source_fragment", sourceFragment)
+                    // Все проверки, в том числе "checkedRadioButtonId == null" должны были быть в areFieldsValid()
+//                mainViewModel.saveUserNameAnswer(userNameAnswer ?: "")
+//                checkedRadioButtonId?.let {
+//                    val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
+//                    mainViewModel.saveGenderAnswer(selectedRadioButton?.text.toString())
+//                }
+//                mainViewModel.saveChildNameAnswer(childNameAnswer ?: "")
+
+                    when {
+                        radioGenderAnswerBoy?.isChecked == true -> {
+                            // Передаем аргумент при навигации на Question2Fragment
+                            val args = Bundle().apply {
+                                putString("source_fragment", sourceFragment)
+                            }
+                            safeNavigate(
+                                R.id.navigation_question1,
+                                R.id.action_navigation_question1_to_question2Fragment,
+                                args
+                            )
                         }
-                        safeNavigate(
-                            R.id.navigation_question1,
-                            R.id.action_navigation_question1_to_navigation_question3,
-                            args
-                        )
+
+                        radioGenderAnswerGirl?.isChecked == true -> {
+                            // Передаем аргумент при навигации на Question3Fragment
+                            val args = Bundle().apply {
+                                putString("source_fragment", sourceFragment)
+                            }
+                            safeNavigate(
+                                R.id.navigation_question1,
+                                R.id.action_navigation_question1_to_navigation_question3,
+                                args
+                            )
+                        }
                     }
                 }
 

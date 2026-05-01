@@ -42,6 +42,21 @@
     <string name="text_child_age">Полных лет ребенку:</string>
     <string name="text_hobby_question">Чем ваш ребенок любит заниматься, когда он развлекается самостоятельно?</string>
     <string name="text_hobby_hint">Напишите хобби</string>
+    <string name="text_hobby_question2">Выберите занятия, которыми увлекается ваш ребенок</string>
+    <string name="error_hobbies_not_selected">Выберите хотя бы один из вариантов</string>
+    <string-array name="hobbies_array">
+        <item>рисование</item>
+        <item>конструирование</item>
+        <item>музыкальные инструменты</item>
+        <item>футбол</item>
+        <item>книги</item>
+        <item>изучение иностранных языков</item>
+        <item>математика</item>
+        <item>шахматы</item>
+        <item>плавание</item>
+        <item>единоборства</item>
+        <item>хореография</item>
+    </string-array>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="error_gender_not_selected">Пожалуйста, выберите пол ребенка</string>

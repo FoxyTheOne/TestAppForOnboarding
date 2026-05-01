@@ -51,7 +51,7 @@ fun UserPresentation.toFirestoreMap(): Map<String, Any> {
         UserFirestoreFields.CHILD_GENDER to this.childGender,
         UserFirestoreFields.CHILD_IS_IT_A_BOY to this.isItABoy,
         UserFirestoreFields.CHILD_NAME to this.childName,
-        UserFirestoreFields.CHILD_HOBBY to this.childHobby,
+        UserFirestoreFields.CHILD_HOBBIES to this.childHobbies,
         UserFirestoreFields.CHILD_BIRTH_DATE to this.childBirthDate
     )
 }
@@ -91,13 +91,13 @@ fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresent
         childGender = getString(UserFirestoreFields.CHILD_GENDER) ?: "",
         isItABoy = getString(UserFirestoreFields.CHILD_IS_IT_A_BOY) ?: "",
         childName = getString(UserFirestoreFields.CHILD_NAME) ?: "",
-        childHobby = getString(UserFirestoreFields.CHILD_HOBBY) ?: "",
+        childHobbies = getString(UserFirestoreFields.CHILD_HOBBIES) ?: "",
         childBirthDate = getString(UserFirestoreFields.CHILD_BIRTH_DATE) ?: ""
     )
 }
 
 fun UserPresentation.isUserDataValid(): Boolean =
-    this.userName.isNotBlank() && this.childName.isNotBlank() && this.childHobby.isNotBlank() && this.childBirthDate.isNotBlank()
+    this.userName.isNotBlank() && this.childName.isNotBlank() && this.childHobbies.isNotBlank() && this.childBirthDate.isNotBlank()
 
 fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: FragmentActivity?): UserPresentation {
     // Только для передачи данных для регистрации! Не для передачи в firebase
@@ -107,7 +107,7 @@ fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: Frag
         childGender = this.value?.childGender ?: "",
         isItABoy = this.value?.isItABoy ?: activity?.getString(R.string.no) ?: "",
         childName = this.value?.childName ?: "",
-        childHobby = this.value?.childHobby ?: "",
+        childHobbies = this.value?.childHobbies ?: "",
         childBirthDate = this.value?.childBirthDate ?: ""
     )
 }
@@ -122,7 +122,15 @@ fun Map<String, String>.createUpdatedUserFromAnswersInViewModel(currentUser: Use
         childGender = this[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
         isItABoy = this[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
         childName = this[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
-        childHobby = this[AnswerNames.CHILD_HOBBY_ANSWER.toString()] ?: "",
+        childHobbies = this[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] ?: "",
         childBirthDate = this[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
     )
+//    return currentUser.copy(
+//        userName = this[AnswerNames.USER_NAME_ANSWER.toString()] ?: currentUser.userName,
+//        childGender = this[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: currentUser.childGender,
+//        isItABoy = this[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: currentUser.isItABoy,
+//        childName = this[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: currentUser.childName,
+//        childHobbies = this[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] ?: currentUser.childHobbies,
+//        childBirthDate = this[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: currentUser.childBirthDate
+//    )
 }

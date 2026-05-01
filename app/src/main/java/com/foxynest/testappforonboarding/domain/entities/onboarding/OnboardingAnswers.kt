@@ -10,5 +10,6 @@ data class OnboardingAnswers(
     val isItABoy: String = "",
     val childName: String = "",
     val childBirthDate: String = "",
-    val childHobby: String = ""
+//    val childHobby: String = ""
+    val childHobbies: String = ""
 ) : Parcelable

@@ -19,6 +19,16 @@ class OnboardingViewModel @Inject constructor(
         private const val TAG = "OnboardingViewModel"
     }
 
+    /**
+     * При изменении, исправить так же calculateCurrentStep()
+     */
+    val mandatorySteps = listOf(
+        R.id.navigation_question1,
+        R.id.navigation_question3,
+        R.id.navigation_question4,
+        R.id.navigation_paywall
+    )
+
     // Состояние прогресса
     private val _currentStep = MutableLiveData(0)
     val currentStep: LiveData<Int> = _currentStep
@@ -45,16 +55,19 @@ class OnboardingViewModel @Inject constructor(
             R.id.navigation_question1, listOf(
                 AnswerNames.IS_IT_A_BOY_ANSWER,
                 AnswerNames.CHILD_BIRTH_DATE_ANSWER,
-                AnswerNames.CHILD_HOBBY_ANSWER
+                AnswerNames.CHILD_HOBBIES_ANSWER
             )
         )
         // Если возвращаемся на Question2, очищаем ответы Question3
         put(
             R.id.navigation_question2, listOf(
                 AnswerNames.CHILD_BIRTH_DATE_ANSWER,
-                AnswerNames.CHILD_HOBBY_ANSWER
+                AnswerNames.CHILD_HOBBIES_ANSWER
             )
         )
+        put(R.id.navigation_question3, listOf(
+            AnswerNames.CHILD_HOBBIES_ANSWER
+        ))
     }
 
     fun updateProgress(destinationId: Int) {
@@ -86,22 +99,15 @@ class OnboardingViewModel @Inject constructor(
         return dependentAnswers[currentDestination] ?: emptyList()
     }
 
-    private fun calculateTotalSteps(path: List<Int>): Int {
-        // Учитываем только обязательные шаги
-        val mandatorySteps = listOf(
-            R.id.navigation_question1,
-            R.id.navigation_question3,
-            R.id.navigation_paywall
-        )
-        return mandatorySteps.size
-    }
+    private fun calculateTotalSteps(path: List<Int>): Int = mandatorySteps.size
 
     private fun calculateCurrentStep(destinationId: Int, path: List<Int>): Int {
         return when (destinationId) {
             R.id.navigation_question1 -> 1
             R.id.navigation_question2 -> 2
             R.id.navigation_question3 -> 2 // Если Question2 был пропущен
-            R.id.navigation_paywall -> 3
+            R.id.navigation_question4 -> 3
+            R.id.navigation_paywall -> 4
             else -> 0
         }
     }

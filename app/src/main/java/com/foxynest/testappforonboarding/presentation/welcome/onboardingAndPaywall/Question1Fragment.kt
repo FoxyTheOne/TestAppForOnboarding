@@ -9,15 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
-import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
-import com.foxynest.testappforonboarding.presentation.MainViewModel
-import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.CancelOnboardingDialog
-import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -53,12 +48,7 @@ class Question1Fragment : BaseOnboardingFragment() {
         Log.d(TAG, "sourceFragment: $sourceFragment")
 
         // Подготавливаем данные для онбординга
-        // ТОЛЬКО если это первый запуск онбординга, а не возврат назад
-//        if (!mainViewModel.isOnboardingStarted()) {
-//            mainViewModel.prepareForOnboarding()
-//        }
-        // Теперь готовимся всегда, когда заходим на первый фрагмент онбординга
-        // независимо от предыдущего состояния
+        // Теперь готовимся всегда, когда заходим на первый фрагмент онбординга, независимо от предыдущего состояния
         mainViewModel.prepareForOnboarding()
 
         initListeners()
@@ -107,14 +97,6 @@ class Question1Fragment : BaseOnboardingFragment() {
                             childName = childNameAnswer
                         )
                     }
-
-                    // Все проверки, в том числе "checkedRadioButtonId == null" должны были быть в areFieldsValid()
-//                mainViewModel.saveUserNameAnswer(userNameAnswer ?: "")
-//                checkedRadioButtonId?.let {
-//                    val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
-//                    mainViewModel.saveGenderAnswer(selectedRadioButton?.text.toString())
-//                }
-//                mainViewModel.saveChildNameAnswer(childNameAnswer ?: "")
 
                     when {
                         radioGenderAnswerBoy?.isChecked == true -> {
@@ -168,48 +150,6 @@ class Question1Fragment : BaseOnboardingFragment() {
             }
         })
     }
-
-//    private fun showCancelConfirmationDialog() {
-//        CancelOnboardingDialog.newInstance()
-//            .setListeners(
-//                positiveAction = {
-//                    // Подтверждение отмены
-//                    isCancelled = true
-//                    mainViewModel.cancelOnboarding()
-//
-//                    // Возвращаемся на предыдущий фрагмент
-//                    navigateBackToPrevious()
-//                },
-//                negativeAction = {
-//                    // Пользователь передумал
-//                    // Ничего не делаем
-//                }
-//            )
-//            .show(parentFragmentManager, TAG)
-//    }
-
-//    private fun navigateBackToPrevious() {
-//        // Проверяем, откуда пришли в онбординг
-//        val previousDestination = arguments?.getString("source_fragment")
-//
-//        when (previousDestination) {
-//            "profile" -> {
-//                // Возвращаемся в профиль
-////                findNavController().navigate(R.id.action_global_navigation_profile)
-//                safeNavigate(R.id.navigation_question1, R.id.action_global_navigation_profile)
-//            }
-//            "welcome" -> {
-//                // Возвращаемся на Welcome
-////                findNavController().navigate(R.id.action_global_navigation_welcome)
-//                safeNavigate(R.id.navigation_question1, R.id.action_global_navigation_welcome)
-//            }
-//            else -> {
-//                // По умолчанию возвращаемся в профиль
-////                findNavController().navigate(R.id.action_global_navigation_profile)
-//                safeNavigate(R.id.navigation_question1, R.id.action_global_navigation_profile)
-//            }
-//        }
-//    }
 
     private fun hasNavigatedToNext(): Boolean {
         // Проверяем, был ли навигация к следующему фрагменту
@@ -288,16 +228,7 @@ class Question1Fragment : BaseOnboardingFragment() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        // Отменяем онбординг только если:
-        // 1. Не было отмены через диалог
-        // 2. Не произошла навигация дальше
-        // 3. Онбординг не был завершен
-//        if (!isCancelled && !hasNavigatedToNext() && !mainViewModel.isOnboardingCompleted()) {
-//            mainViewModel.cancelOnboarding()
-//        }
-        // Убираем лишний вызов cancelOnboarding()
-        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог
-        // и не должен вызываться повторно в onDestroyView()
+        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог и не должен вызываться повторно в onDestroyView()
         binding = null
         super.onDestroyView()
     }

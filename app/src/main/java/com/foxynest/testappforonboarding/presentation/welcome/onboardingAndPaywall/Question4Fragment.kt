@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion4Binding
-import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.google.android.material.chip.Chip
@@ -40,7 +39,8 @@ class Question4Fragment : BaseOnboardingFragment() {
     private fun initChips() {
         val hobbiesArray = resources.getStringArray(R.array.hobbies_array)
         hobbiesArray.forEach { hobby ->
-            val chip = layoutInflater.inflate(R.layout.item_chip, binding?.chipGroupHobbies, false) as Chip
+            val chip =
+                layoutInflater.inflate(R.layout.item_chip, binding?.chipGroupHobbies, false) as Chip
             chip.text = hobby
             chip.isCheckable = true
             binding?.chipGroupHobbies?.addView(chip)
@@ -76,8 +76,7 @@ class Question4Fragment : BaseOnboardingFragment() {
             } else {
                 showError(false)
                 val hobbiesString = selectedHobbies.joinToString(CommonConstants.HOBBIES_DELIMITER)
-                mainViewModel.updateOnboardingAnswers { it.copy(childHobbies = hobbiesString) }
-//                mainViewModel.saveHobbiesAnswer(hobbiesString)
+                mainViewModel.updateChildHobbies(hobbiesString)
 
                 val args = Bundle().apply {
                     putString("source_fragment", sourceFragment)

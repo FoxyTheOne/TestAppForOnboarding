@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.MainViewModel
@@ -20,6 +19,7 @@ abstract class BaseOnboardingFragment : Fragment() {
     companion object {
         private const val TAG = "BaseOnboardingFragmentAbstract"
     }
+
     // 1.1. ViewModel. We bind our viewModel to the cycle of our activity, not fragment. So, we need to do this way:
     protected lateinit var mainViewModel: MainViewModel
     protected lateinit var onboardingViewModel: OnboardingViewModel
@@ -53,8 +53,8 @@ abstract class BaseOnboardingFragment : Fragment() {
         CancelOnboardingDialog.newInstance()
             .setListeners(
                 positiveAction = {
-                    isCancelled = true
                     // Подтверждение отмены
+                    isCancelled = true
                     mainViewModel.cancelOnboarding()
 
                     // Возвращаемся на предыдущий фрагмент
@@ -71,7 +71,10 @@ abstract class BaseOnboardingFragment : Fragment() {
     protected fun navigateBackToPrevious() {
         Log.d("BaseOnboardingFragment", "navigateBackToPrevious called")
         Log.d("BaseOnboardingFragment", "currentFragmentId: $currentFragmentId")
-        Log.d("BaseOnboardingFragment", "source_fragment: ${arguments?.getString("source_fragment")}")
+        Log.d(
+            "BaseOnboardingFragment",
+            "source_fragment: ${arguments?.getString("source_fragment")}"
+        )
 
         // Проверяем, откуда пришли в онбординг
         val previousDestination = arguments?.getString("source_fragment")
@@ -86,10 +89,12 @@ abstract class BaseOnboardingFragment : Fragment() {
                 // Возвращаемся в профиль
                 safeNavigate(currentId, R.id.action_global_navigation_profile)
             }
+
             "welcome" -> {
                 // Возвращаемся на Welcome
                 safeNavigate(currentId, R.id.action_global_navigation_welcome)
             }
+
             else -> {
                 // По умолчанию возвращаемся в профиль
                 safeNavigate(currentId, R.id.action_global_navigation_profile)

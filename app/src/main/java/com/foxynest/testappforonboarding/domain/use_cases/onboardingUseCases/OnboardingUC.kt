@@ -18,7 +18,7 @@ class OnboardingUC @Inject constructor(
     private val onboardingRepository: IOnboardingRepository
 ) : IOnboardingUC {
     // Onboarding state
-    override suspend fun saveOnboardingState(isCompleted: Boolean) : Resource<ErrorType> =
+    override suspend fun saveOnboardingState(isCompleted: Boolean): Resource<ErrorType> =
         onboardingRepository.saveOnboardingState(isCompleted)
 
     override fun isOnboardingCompleted(): Flow<Boolean> =
@@ -31,32 +31,8 @@ class OnboardingUC @Inject constructor(
     // SAVE
     override suspend fun saveOnboardingAnswers(answers: OnboardingAnswers) =
         onboardingRepository.saveOnboardingAnswers(answers)
-//    override suspend fun saveUserName(userName: String) =
-//        onboardingRepository.saveUserName(userName)
-//
-//    override suspend fun saveGender(gender: String) = onboardingRepository.saveGender(gender)
-//    override suspend fun saveName(name: String) = onboardingRepository.saveName(name)
-//    override suspend fun saveIsItABoy(answer: String) = onboardingRepository.saveIsItABoy(answer)
-//    override suspend fun saveBirthDate(birthDate: String) =
-//        onboardingRepository.saveBirthDate(birthDate)
-//
-//    override suspend fun saveChildAge(age: Int) = onboardingRepository.saveChildAge(age)
-//    override suspend fun saveHobbies(hobbies: String) =
-//        onboardingRepository.saveHobbies(hobbies)
 
     // GET
     override fun getOnboardingAnswersFlow(): Flow<OnboardingAnswers> =
         onboardingRepository.getOnboardingAnswersFlow()
-//    override fun getUserNameFlow(): Flow<String?> =
-//        onboardingRepository.getUserNameFlow()
-//
-//    override fun getGenderFlow(): Flow<String?> = onboardingRepository.getGenderFlow()
-//    override fun getNameFlow(): Flow<String?> = onboardingRepository.getNameFlow()
-//    override fun getIsItABoyFlow(): Flow<String?> = onboardingRepository.getIsItABoyFlow()
-//    override fun getBirthDateFlow(): Flow<String?> =
-//        onboardingRepository.getBirthDateFlow()
-//
-//    override fun getChildAgeFlow(): Flow<Int?> =
-//        onboardingRepository.getChildAgeFlow()
-//    override fun getHobbiesFlow(): Flow<String?> = onboardingRepository.getHobbiesFlow()
 }

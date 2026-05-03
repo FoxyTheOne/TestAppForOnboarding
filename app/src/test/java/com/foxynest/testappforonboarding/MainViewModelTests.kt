@@ -44,17 +44,17 @@ class MainViewModelTests {
         )
     }
 
-    @Test
-    fun `save user name answer updates live data`() = runTest {
-        // Given
-        val userName = "Test User"
-        coEvery { onboardingUC.saveUserName(userName) } returns Unit
-
-        // When
-        viewModel.saveUserNameAnswer(userName)
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        // Then
-        assertEquals(userName, viewModel.answers["USER_NAME_ANSWER"])
-    }
+//    @Test
+//    fun `save user name answer updates live data`() = runTest {
+//        // Given
+//        val userName = "Test User"
+//        coEvery { onboardingUC.saveUserName(userName) } returns Unit
+//
+//        // When
+//        viewModel.saveUserNameAnswer(userName)
+//        testDispatcher.scheduler.advanceUntilIdle()
+//
+//        // Then
+//        assertEquals(userName, viewModel.answers["USER_NAME_ANSWER"])
+//    }
 }

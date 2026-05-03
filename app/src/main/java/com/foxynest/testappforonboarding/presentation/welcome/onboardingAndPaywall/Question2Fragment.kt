@@ -5,14 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion2Binding
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
-import com.foxynest.testappforonboarding.presentation.MainViewModel
-import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
-import com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.Question1Fragment.Companion
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -64,17 +60,18 @@ class Question2Fragment : BaseOnboardingFragment() {
         }
     }
 
-    private fun saveAnswerAndGoFurther(answer: String) {
-        mainViewModel.updateOnboardingAnswers { it.copy(isItABoy = answer) }
-//        mainViewModel.saveIsItABoyAnswer(answer)
+    private fun saveAnswerAndGoFurther(isItABoy: String) {
+        mainViewModel.updateIsItABoy(isItABoy)
 
         // Передаем аргумент при навигации на Question3Fragment
         val args = Bundle().apply {
             putString("source_fragment", sourceFragment)
         }
-        safeNavigate(R.id.navigation_question2,
+        safeNavigate(
+            R.id.navigation_question2,
             R.id.action_navigation_question2_to_navigation_question3,
-            args)
+            args
+        )
     }
 
     private fun hasNavigatedToNext(): Boolean {
@@ -87,14 +84,7 @@ class Question2Fragment : BaseOnboardingFragment() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        // Если фрагмент уничтожается без перехода к следующему вопросу,
-        // отменяем онбординг
-//        if (!isCancelled && !hasNavigatedToNext() && !mainViewModel.isOnboardingCompleted()) {
-//            mainViewModel.cancelOnboarding()
-//        }
-        // Убираем лишний вызов cancelOnboarding()
-        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог
-        // и не должен вызываться повторно в onDestroyView()
+        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог и не должен вызываться повторно в onDestroyView()
         binding = null
         super.onDestroyView()
     }

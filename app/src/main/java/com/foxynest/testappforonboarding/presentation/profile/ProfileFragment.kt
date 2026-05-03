@@ -247,32 +247,6 @@ class ProfileFragment : Fragment() {
                 .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
                 .collect { resourceResult ->
                     handleLogoutResult(resourceResult)
-
-//                    val messageToShow = resourceResult.data.toErrorMessage(resources)
-//
-//                    when (resourceResult.status) {
-//                        Status.SUCCESS -> {
-//                            // Вышли из аккаунта, провряем состояние user и обновляем UI
-//                            mainViewModel.checkLoggedInStateGetUser()
-//
-//                            // Очистка данных (ВКЛЮЧАЯ сброс онбординга)
-//                            mainViewModel.clearUserDataOnLogout()
-//
-//                            // И возвращаемся на WelcomeFragment
-//                            safeNavigate(
-//                                R.id.navigation_profile,
-//                                R.id.action_navigation_profile_to_navigation_welcome2
-//                            )
-//                        }
-//
-//                        Status.ERROR -> {
-//                            Toast.makeText(activity, messageToShow, Toast.LENGTH_LONG).show()
-//                        }
-//
-//                        else -> {
-//                            Log.d(TAG, "resource.status = ${resourceResult.status} ")
-//                        }
-//                    }
                 }
         }
 
@@ -429,31 +403,6 @@ class ProfileFragment : Fragment() {
         }
     }
 
-//    private fun removeLocalObservers() {
-//        // Удаляем наблюдатель локальных полей
-//        localFieldsObserver?.let { observer ->
-//            mainViewModel.onboardingAnswersLiveData.removeObserver(observer)
-//            // Удалить остальные наблюдатели, если есть
-//        }
-//        localFieldsObserver = null
-//    }
-//
-//    private fun setupLocalObservers() {
-//        removeLocalObservers()
-//
-//        localFieldsObserver = Observer<Any> {
-//            fillFieldsInProfile(
-//                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
-//                    activity
-//                )
-//            )
-//            showLogOutButtons(false)
-//        }
-//
-//        // Подписываемся на все необходимые LiveData
-//        mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner, localFieldsObserver!!)
-//    }
-
     private fun updateEmailVerificationUI(isVerified: Boolean) {
         if (isVerified) {
             binding?.buttonVerifyEmail?.visibility = View.GONE
@@ -536,7 +485,6 @@ class ProfileFragment : Fragment() {
         val currentUser = user ?: mainViewModel.checkedUserInfo.value.data
 
         if (currentUser != null) {
-//            removeLocalObservers()
             // Пользователь зарегистрирован - показываем данные из Firebase
             fillFieldsInProfile(currentUser)
             showLogOutButtons(true)
@@ -545,7 +493,6 @@ class ProfileFragment : Fragment() {
             profileViewModel.checkEmailVerificationStatus(true)
         } else {
             // Локальные данные
-//            setupLocalObservers()
             // Пользователь не зарегистрирован - принудительно обновляем из локальных данных
             val localUser =
                 mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
@@ -565,7 +512,6 @@ class ProfileFragment : Fragment() {
             binding?.textGenderAnswer?.text = user.childGender
             binding?.textGenderAnswerIsItABoy?.text = user.isItABoy
             binding?.textChildNameAnswer?.text = user.childName
-//            binding?.textHobbyAnswer?.text = user.childHobby
             // HOBBY
             val hobbies = user.childHobbies
             if (hobbies.isNotBlank()) {

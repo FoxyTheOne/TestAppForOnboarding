@@ -7,8 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.di.DispatcherIO
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
-import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerMapping
-import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
@@ -20,8 +18,6 @@ import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.I
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
-import com.foxynest.testappforonboarding.other.constants.CommonConstants
-import com.foxynest.testappforonboarding.other.extensions.createUpdatedUserFromAnswersInViewModel
 import com.foxynest.testappforonboarding.other.extensions.hasValidData
 import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,11 +26,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import javax.inject.Inject
 
@@ -56,63 +50,10 @@ class MainViewModel @Inject constructor(
         private const val TAG = "MainViewModel"
     }
 
-    // TODO проверить верность получения данных
-//    private val answerMappings = listOf(
-//        AnswerMapping(
-//            answerName = AnswerNames.USER_NAME_ANSWER,
-//            getter = { onboardingUC.getUserNameFlow().first() },
-//            setter = onboardingUC::saveUserName,
-//            defaultValue = ""
-//        ),
-//        AnswerMapping(
-//            answerName = AnswerNames.CHILD_GENDER_ANSWER,
-//            getter = { onboardingUC.getGenderFlow().first() },
-//            setter = onboardingUC::saveGender,
-//            defaultValue = ""
-//        ),
-//        AnswerMapping(
-//            answerName = AnswerNames.IS_IT_A_BOY_ANSWER,
-//            getter = { onboardingUC.getIsItABoyFlow().first() },
-//            setter = onboardingUC::saveIsItABoy,
-//            defaultValue = "Нет"
-//        ),
-//        AnswerMapping(
-//            answerName = AnswerNames.CHILD_NAME_ANSWER,
-//            getter = { onboardingUC.getNameFlow().first() },
-//            setter = onboardingUC::saveName,
-//            defaultValue = ""
-//        ),
-//        AnswerMapping(
-//            answerName = AnswerNames.CHILD_BIRTH_DATE_ANSWER,
-//            getter = { onboardingUC.getBirthDateFlow().first() },
-//            setter = onboardingUC::saveBirthDate,
-//            defaultValue = ""
-//        ),
-////        AnswerMapping(
-////            answerName = AnswerNames.CHILD_HOBBY_ANSWER,
-////            getter = { onboardingUC.getHobbyFlow().first() },
-////            setter = onboardingUC::saveHobbyAnswer,
-////            defaultValue = ""
-////        )
-//        AnswerMapping(
-//            answerName = AnswerNames.CHILD_HOBBIES_ANSWER,
-//            getter = { onboardingUC.getHobbiesFlow().first() ?: "" },
-//            setter = onboardingUC::saveHobbies,
-//            defaultValue = ""
-//        )
-//    )
-
     // ONBOARDING
-    // В MainViewModel - ВМЕСТО 7 LiveData используем одну:
     // ЕДИНСТВЕННАЯ LiveData для всех ответов
     private val _onboardingAnswersLiveData = MutableLiveData<OnboardingAnswers>(OnboardingAnswers())
     val onboardingAnswersLiveData: LiveData<OnboardingAnswers> = _onboardingAnswersLiveData
-
-//    // Добавим временное хранилище для резервного копирования данных (нужно при отмене онбординга)
-//    private var _onboardingBackup: OnboardingAnswers? = null
-//    private var _isOnboardingStarted = false
-//    private var _isOnboardingCompleted = false
-//    private var _isOnboardingCancelled = false
 
     // Бэкап для отмены онбординга
     private var onboardingBackup: OnboardingAnswers? = null
@@ -120,10 +61,7 @@ class MainViewModel @Inject constructor(
     private var isOnboardingCompleted = false
     private var isOnboardingCancelled = false
 
-//    // Для временного хранения во время заполнения опроса (нужно при возвращении назад по страницам в онбординге)
-//    private val _answers = mutableMapOf<String, String>()
-//    val answers: Map<String, String> get() = _answers
-
+    // PROFILE
     private val _profileUpdatedLiveData = MutableLiveData<Resource<ErrorType>>()
     val profileUpdatedLiveData: LiveData<Resource<ErrorType>> = _profileUpdatedLiveData
 
@@ -151,6 +89,7 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
     val authStateFlow: StateFlow<UserPresentation?> = _authStateFlow
 
+    // ERROR
     private val _errorMessageLiveData =
         MutableLiveData<MyEvent<Resource<ErrorType>>>()
     val errorMessageLiveData: LiveData<MyEvent<Resource<ErrorType>>> =
@@ -166,8 +105,7 @@ class MainViewModel @Inject constructor(
 
     // Инициализация ViewModel с загрузкой данных
     init {
-//        loadOnboardingDataOnStart()
-        loadOnboardingData()
+        loadOnboardingDataOnStart()
     }
 
     /**
@@ -176,191 +114,95 @@ class MainViewModel @Inject constructor(
     fun isOnboardingStarted(): Boolean = isOnboardingStarted
     fun isOnboardingCompleted(): Boolean = isOnboardingCompleted
     fun isOnboardingCancelled(): Boolean = isOnboardingCancelled
-//    fun isOnboardingStarted(): Boolean = _isOnboardingStarted
-//    fun isOnboardingCompleted(): Boolean = _isOnboardingCompleted
-//    fun isOnboardingCancelled(): Boolean = _isOnboardingCancelled
 
     /**
      * Подготовка к онбордингу - сохраняем текущие данные в бэкап
      * и сбрасываем все до значений по умолчанию
      */
     fun prepareForOnboarding() {
-        viewModelScope.launch {
-            Log.d(TAG, "=== PREPARE FOR ONBOARDING ===")
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "=== PREPARE FOR ONBOARDING ===")
 
-            isOnboardingStarted = true
-            isOnboardingCompleted = false
-            isOnboardingCancelled = false
+                // Сбрасываем ВСЕ флаги перед началом нового онбординга
+                isOnboardingStarted = true
+                isOnboardingCompleted = false
+                isOnboardingCancelled = false
 
-            // 1. Берём ТЕКУЩИЕ данные (которые уже сохранены в DataStore)
-            val currentAnswers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
+                // 1. Берём ТЕКУЩИЕ данные (которые уже сохранены в DataStore)
+                val currentAnswers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
 
-            // 2. Сохраняем бэкап, если текущие данные НЕ пустые
-            onboardingBackup = if (currentAnswers.hasValidData()) currentAnswers else null
+                // 2. Сохраняем бэкап, если текущие данные НЕ пустые
+                onboardingBackup = if (currentAnswers.hasValidData()) currentAnswers else null
 
-            // 3. Сбрасываем ответы (сохраняем пустой объект)
-            onboardingUC.saveOnboardingAnswers(OnboardingAnswers())
+                // 3. Сбрасываем ответы (сохраняем пустой объект)
+                onboardingUC.saveOnboardingAnswers(OnboardingAnswers())
+            } catch (e: Exception) {
+                Log.e(TAG, "Error preparing for onboarding", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Ошибка при подготовке опроса",
+                            ErrorType.UNEXPECTED_ERROR
+                        )
+                    )
+                )
+            }
         }
     }
-//    fun prepareForOnboarding() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                Log.d(TAG, "=== PREPARE FOR ONBOARDING ===")
-//
-//                // Сбрасываем ВСЕ флаги перед началом нового онбординга
-//                _isOnboardingStarted = true
-//                _isOnboardingCompleted = false
-//                _isOnboardingCancelled = false
-//
-////                // 1. Сохраняем текущие данные в бэкап, только если есть что сохранять
-////                val currentAnswers = getCurrentAnswersForBackup()
-////                if (currentAnswers != null) {
-////                    _onboardingBackup = currentAnswers
-////                    Log.d(TAG, "Backup created: ${_onboardingBackup != null}")
-////                    Log.d(TAG, "Backup content: $_onboardingBackup")
-////                } else {
-////                    Log.d(TAG, "Backup is not created: ${_onboardingBackup != null}")
-////                }
-//
-//                // 1. Сохраняем текущие данные в бэкап, только если есть что сохранять
-//                val currentAnswers = getCurrentAnswersForBackup()
-//                _onboardingBackup = currentAnswers   // <- всегда присваиваем, даже если null
-//                if (currentAnswers != null) {
-//                    Log.d(TAG, "Backup created: $_onboardingBackup")
-//                } else {
-//                    Log.d(TAG, "Backup is null (no data to backup)")
-//                }
-//
-//
-//
-////                В fun cancelOnboarding() , если _onboardingBackup = null, то выполняется run-блок.
-////                В этом блоке мы не восстанавливаем никакие данные, а просто вызываем loadDataFromDatastore().
-////                Что делает loadDataFromDatastore()? Она загружает текущие данные из DataStore и обновляет _onboardingAnswersLiveData и _answers.
-////                То есть она отображает актуальное состояние, которое уже есть в DataStore. После отмены онбординга это именно то, что нам нужно:
-////                ничего не менять, просто показать текущие данные.
-//
-//
-//
-//                // 2. Сбрасываем все ответы на значения по умолчанию
-//                resetAllAnswersToDefault()
-//
-//                // 3. Очищаем временные ответы в ViewModel
-//                _answers.clear()
-//
-//                // 4. Обновляем LiveData с пустыми значениями
-//                val emptyAnswers = OnboardingAnswers()
-//                withContext(Dispatchers.Main) {
-//                    _onboardingAnswersLiveData.postValue(emptyAnswers)
-//                }
-//
-//                Log.d(TAG, "Onboarding prepared: data backed up and reset")
-//
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Error preparing for onboarding", e)
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            "Ошибка при подготовке опроса",
-//                            ErrorType.UNEXPECTED_ERROR
-//                        )
-//                    )
-//                )
-//            }
-//        }
-//    }
 
     /**
      * Отмена онбординга - восстанавливаем данные из бэкапа
      */
     fun cancelOnboarding() {
-        viewModelScope.launch {
-            Log.d(TAG, "=== CANCEL ONBOARDING ===")
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                Log.d(TAG, "=== CANCEL ONBOARDING ===")
 
-            isOnboardingCancelled = true
-            isOnboardingCompleted = false
-            isOnboardingStarted = false
+                isOnboardingCancelled = true
+                isOnboardingCompleted = false
+                isOnboardingStarted = false // Сбрасываем флаг запуска!
 
-            // Восстанавливаем данные из бэкапа
-            onboardingBackup?.let { backup ->
-                Log.d(TAG, "Restoring from backup: $backup")
-                onboardingUC.saveOnboardingAnswers(backup)
-                onboardingBackup = null
-            }
-            // Если бэкапа нет – ничего не восстанавливаем, значит данных и не было
+                // Восстанавливаем данные из бэкапа
+                onboardingBackup?.let { backup ->
+                    Log.d(TAG, "Restoring from backup: $backup")
+                    onboardingUC.saveOnboardingAnswers(backup)
+                    onboardingBackup = null
+                }
+                // Если бэкапа нет – ничего не восстанавливаем, значит данных и не было
 //                ?: run {
 //                Log.d(TAG, "No backup to restore")
 //                // Если бэкапа нет, перезагружаем из DataStore
 //                loadOnboardingData()
 //            }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error cancelling onboarding", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Ошибка при отмене опроса",
+                            ErrorType.UNEXPECTED_ERROR
+                        )
+                    )
+                )
+            }
         }
     }
-//    fun cancelOnboarding() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                Log.d(TAG, "=== CANCEL ONBOARDING ===")
-//                Log.d(TAG, "Backup is null: ${_onboardingBackup == null}")
-//
-//                _isOnboardingCancelled = true
-//                _isOnboardingCompleted = false
-//                _isOnboardingStarted = false  // Сбрасываем флаг запуска!
-//
-//                _onboardingBackup?.let { backup ->
-//                    Log.d(TAG, "Restoring from backup: $backup")
-//                    // Восстанавливаем данные из бэкапа только если они есть
-//                    restoreFromBackup(backup)
-////                    _onboardingBackup = null // Очищаем бэкап - на всякий случай не буду очищать
-//                    Log.d(TAG, "Onboarding cancelled: data restored from backup")
-//                } ?: run {
-//                    Log.d(TAG, "Backup is null or empty - nothing to restore")
-//                    // Если бэкапа нет, НЕ очищаем данные!
-//                    // Просто оставляем как есть
-//
-//                    // Но нам нужно обновить LiveData из текущих данных в DataStore
-//                    loadDataFromDatastore()
-//
-////                    val emptyAnswers = OnboardingAnswers()
-////                    withContext(Dispatchers.Main) {
-////                        _onboardingAnswersLiveData.postValue(emptyAnswers)
-////                    }
-////                    Log.d(TAG, "Onboarding cancelled: data reset to defaults (no backup)")
-//                }
-//
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Error cancelling onboarding", e)
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            "Ошибка при отмене опроса",
-//                            ErrorType.UNEXPECTED_ERROR
-//                        )
-//                    )
-//                )
-//            }
-//        }
-//    }
 
     /**
      * Завершение онбординга - очищаем бэкап
      */
     fun completeOnboarding() {
         isOnboardingCompleted = true
-        isOnboardingStarted = false
+        isOnboardingStarted = false // Сбрасываем флаг запуска
         isOnboardingCancelled = false
         onboardingBackup = null
         Log.d(TAG, "Onboarding completed: backup cleared")
     }
-//    fun completeOnboarding() {
-//        _isOnboardingCompleted = true
-//        _isOnboardingStarted = false  // Сбрасываем флаг запуска
-//        _isOnboardingCancelled = false
-//        _onboardingBackup = null
-//        Log.d(TAG, "Onboarding completed: backup cleared")
-//    }
 
     /**
      * ONBOARDING - CLEAN
      */
-
     fun clearUserDataOnLogout() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -369,78 +211,57 @@ class MainViewModel @Inject constructor(
                 onboardingUC.clearAllOnboardingData()
                 _checkedUserInfo.value = Resource.init(null)
             } catch (e: Exception) {
-                Log.e(TAG, "Error clearing user data", e)
+                Log.e(TAG, "Error clearing user data on logout", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Ошибка при очистке данных",
+                            ErrorType.FAILED_TO_CLEAR_DATA
+                        )
+                    )
+                )
             }
         }
     }
 
-
-//    fun clearUserDataOnLogout() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                // 1. Очищаем статус онбординга при ВЫХОДЕ ИЗ АККАУНТА
-////                val recourseResult = onboardingUC.saveOnboardingState(false)
-////                if (recourseResult.status == Status.SUCCESS) {
-//                onboardingUC.saveOnboardingState(false)
-//
-//                // 2. Очищаем LiveData - обновляем LiveData на главном потоке
-//                val emptyAnswers = OnboardingAnswers()
-//                withContext(Dispatchers.Main) {
-//                    _onboardingAnswersLiveData.postValue(emptyAnswers)
-//                }
-//
-//                // 3. Очищаем временные ответы
-//                _answers.clear()
-//
-//                // 4. Очищаем DataStore через UC
-//                onboardingUC.clearAllOnboardingData()
-//
-//                // 5. Очищаем состояние пользователя
-//                _checkedUserInfo.value = Resource.init(null)
-////                }
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Error clearing user data on logout", e)
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            "Ошибка при очистке данных",
-//                            ErrorType.FAILED_TO_CLEAR_DATA
-//                        )
-//                    )
-//                )
-//            }
-//        }
-//    }
-
     /**
      * ONBOARDING - SAVE
      */
-// === ЕДИНСТВЕННЫЙ МЕТОД СОХРАНЕНИЯ ===
+    // === ЕДИНСТВЕННЫЙ МЕТОД СОХРАНЕНИЯ ===
+    fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
+        val current = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
+        val updated = update(current)
 
-fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
-    val current = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
-    val updated = update(current)
-
-    viewModelScope.launch {
-        try {
-            onboardingUC.saveOnboardingAnswers(updated)
-            Log.d(TAG, "Saved onboarding answers: $updated")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to save onboarding answers", e)
-            _errorMessageLiveData.postValue(
-                MyEvent(
-                    Resource.error(
-                        "Не удалось сохранить данные",
-                        ErrorType.UNEXPECTED_ERROR
+        viewModelScope.launch {
+            try {
+                onboardingUC.saveOnboardingAnswers(updated)
+                Log.d(TAG, "Saved onboarding answers: $updated")
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to save onboarding answers", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Не удалось сохранить данные",
+                            ErrorType.DATA_NOT_SAVED_ERROR
+                        )
                     )
                 )
-            )
+            } catch (e: Exception) {
+                Log.e(TAG, "Unexpected error saving onboarding answers", e)
+                _errorMessageLiveData.postValue(
+                    MyEvent(
+                        Resource.error(
+                            "Произошла непредвиденная ошибка",
+                            ErrorType.UNEXPECTED_ERROR
+                        )
+                    )
+                )
+            }
         }
     }
-}
+
     // === УДОБНЫЕ МЕТОДЫ-ОБЁРТКИ (опционально) ===
     // Их можно вызывать из фрагментов для красоты
-
     fun updateUserName(userName: String) {
         updateOnboardingAnswers { it.copy(userName = userName) }
     }
@@ -449,12 +270,12 @@ fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
         updateOnboardingAnswers { it.copy(childGender = gender) }
     }
 
-    fun updateIsItABoy(answer: String) {
-        updateOnboardingAnswers { it.copy(isItABoy = answer) }
-    }
-
     fun updateChildName(name: String) {
         updateOnboardingAnswers { it.copy(childName = name) }
+    }
+
+    fun updateIsItABoy(answer: String) {
+        updateOnboardingAnswers { it.copy(isItABoy = answer) }
     }
 
     fun updateBirthDate(birthDate: String) {
@@ -465,76 +286,6 @@ fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
         updateOnboardingAnswers { it.copy(childHobbies = hobbies) }
     }
 
-//    fun saveUserNameAnswer(userNameAnswer: String) {
-//        saveOperation(
-//            userNameAnswer,
-//            onboardingUC::saveUserName,
-//            AnswerNames.USER_NAME_ANSWER,
-//            ErrorType.FAILED_TO_SAVE_USER_NAME_LOCAL
-//        )
-//        updateOnboardingAnswers { it.copy(userName = userNameAnswer.trim()) }
-//    }
-//
-//    fun saveGenderAnswer(genderAnswer: String) {
-//        saveOperation(
-//            genderAnswer,
-//            onboardingUC::saveGender,
-//            AnswerNames.CHILD_GENDER_ANSWER,
-//            ErrorType.FAILED_TO_SAVE_GENDER_LOCAL
-//        )
-//        updateOnboardingAnswers { it.copy(childGender = genderAnswer.trim()) }
-//    }
-//
-//    fun saveChildNameAnswer(nameAnswer: String) {
-//        saveOperation(
-//            nameAnswer,
-//            onboardingUC::saveName,
-//            AnswerNames.CHILD_NAME_ANSWER,
-//            ErrorType.FAILED_TO_SAVE_CHILD_NAME_LOCAL
-//        )
-//        updateOnboardingAnswers { it.copy(childName = nameAnswer.trim()) }
-//    }
-//
-//    fun saveIsItABoyAnswer(answer: String) {
-//        saveOperation(
-//            answer,
-//            onboardingUC::saveIsItABoy,
-//            AnswerNames.IS_IT_A_BOY_ANSWER,
-//            ErrorType.FAILED_TO_SAVE_IS_IT_A_BOY_LOCAL
-//        )
-//        updateOnboardingAnswers { it.copy(isItABoy = answer.trim()) }
-//    }
-//
-//    fun saveBirthDateAnswer(birthDate: String) {
-//        saveOperation(
-//            birthDate,
-//            onboardingUC::saveBirthDate,
-//            AnswerNames.CHILD_BIRTH_DATE_ANSWER,
-//            ErrorType.FAILED_TO_SAVE_BIRTH_DATE_LOCAL
-//        )
-//        updateOnboardingAnswers { it.copy(childBirthDate = birthDate.trim()) }
-//    }
-//
-////    fun saveHobbyAnswer(hobby: String) {
-////        saveOperation(
-////            hobby,
-////            onboardingUC::saveHobbyAnswer,
-////            AnswerNames.CHILD_HOBBY_ANSWER,
-////            ErrorType.FAILED_TO_SAVE_HOBBY_LOCAL
-////        )
-////        updateOnboardingAnswers { it.copy(childHobby = hobby.trim()) }
-////    }
-//
-//    fun saveHobbiesAnswer(hobbies: String) {
-//        saveOperation(
-//            hobbies,
-//            onboardingUC::saveHobbies,
-//            AnswerNames.CHILD_HOBBIES_ANSWER,
-//            ErrorType.FAILED_TO_SAVE_HOBBIES_LOCAL
-//        )
-//        updateOnboardingAnswers { it.copy(childHobbies = hobbies) }
-//    }
-
     fun retryDataSave() {
         viewModelScope.launch(Dispatchers.IO) {
             _retrySaveState.postValue(Resource.loading(null))
@@ -543,8 +294,6 @@ fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
             val currentUser = getCurrentUserUC.execute().data
             if (currentUser != null) {
                 // Повторно собираем данные для сохранения
-//                val updatedUser = answers.createUpdatedUserFromAnswersInViewModel(currentUser)
-
                 val currentAnswers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
                 val updatedUser = currentUser.copy(
                     userName = currentAnswers.userName,
@@ -596,7 +345,6 @@ fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
     /**
      * ONBOARDING - GET FROM DATA AND SAVE TO FIREBASE
      */
-
     fun getAnswersFromOnboardingSaveToFirebaseAndUse() {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "=== SAVE TO FIREBASE ===")
@@ -776,63 +524,6 @@ fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
 //        return backupAnswers
 //    }
 
-//    private suspend fun resetAllAnswersToDefault() {
-//        try {
-//            answerMappings.forEach { mapping ->
-//                mapping.setter(mapping.defaultValue)
-//            }
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//            throw e
-//        }
-//    }
-
-//    private suspend fun restoreFromBackup(backup: OnboardingAnswers) {
-//        try {
-//            // Восстанавливаем только если есть что восстанавливать
-//            if (backup.hasValidData()) {
-//                Log.d(TAG, "Restoring valid data from backup")
-//
-//                // Сохраняем в DataStore только непустые значения
-//                if (backup.userName.isNotBlank()) {
-//                    onboardingUC.saveUserName(backup.userName)
-//                }
-//                if (backup.childGender.isNotBlank()) {
-//                    onboardingUC.saveGender(backup.childGender)
-//                }
-//                if (backup.isItABoy.isNotBlank() && backup.isItABoy != "Нет") {
-//                    onboardingUC.saveIsItABoy(backup.isItABoy)
-//                }
-//                if (backup.childName.isNotBlank()) {
-//                    onboardingUC.saveName(backup.childName)
-//                }
-//                if (backup.childBirthDate.isNotBlank()) {
-//                    onboardingUC.saveBirthDate(backup.childBirthDate)
-//                }
-//                if (backup.childHobbies.isNotBlank()) {
-//                    onboardingUC.saveHobbies(backup.childHobbies)
-//                }
-//
-//                // Обновляем временные ответы для совместимости
-//                updateAnswersMapFromBackup(backup)
-//
-//                // Обновляем LiveData на главном потоке
-//                withContext(Dispatchers.Main) {
-//                    _onboardingAnswersLiveData.postValue(backup)
-//                }
-//
-//                Log.d(TAG, "Data restored from backup: $backup")
-//            } else {
-//                Log.d(TAG, "Backup has no valid data, skipping restore")
-//                // Загружаем текущие данные из DataStore
-//                loadDataFromDatastore()
-//            }
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//            throw e
-//        }
-//    }
-
     /**
      * Сюда добавляем новые ответы
      */
@@ -872,7 +563,7 @@ fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
 //        }
 //    }
     // Загрузка данных из DataStore при старте
-    private fun loadOnboardingData() {
+    private fun loadOnboardingDataOnStart() {
         viewModelScope.launch {
             onboardingUC.getOnboardingAnswersFlow().collect { answers ->
                 _onboardingAnswersLiveData.postValue(answers)
@@ -880,121 +571,4 @@ fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
             }
         }
     }
-
-//    private fun saveOperation(
-//        answerToSave: String,
-//        saveToDataStoreAction: suspend (String) -> Unit,
-//        answerKey: AnswerNames,
-//        errorType: ErrorType
-//    ) {
-//        viewModelScope.launch(dispatcher) {
-//            val trimmedAnswer = answerToSave.trim()
-//
-//            // НЕ сохраняем пустые строки!
-//            if (trimmedAnswer.isEmpty()) {
-//                Log.d(TAG, "Empty answer for ${answerKey.name} - skipping save")
-//                return@launch
-//            }
-//
-//            try {
-//                saveToDataStoreAction(trimmedAnswer)
-//                saveAnswerToMainViewModel(answerKey.toString(), trimmedAnswer)
-//                Log.d(TAG, "Saved ${answerKey.name}: $trimmedAnswer")
-//            } catch (e: IOException) {
-//                Log.e(TAG, "Failed to save ${answerKey.name}", e)
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            "Не удалось сохранить некоторые данные на вашем телефоне",
-//                            errorType
-//                        )
-//                    )
-//                )
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Unexpected error saving ${answerKey.name}", e)
-//                _errorMessageLiveData.postValue(
-//                    MyEvent(
-//                        Resource.error(
-//                            "Произошла непредвиденная ошибка",
-//                            ErrorType.UNEXPECTED_ERROR
-//                        )
-//                    )
-//                )
-//            }
-//        }
-//    }
-
-//    private fun saveAnswerToMainViewModel(questionName: String, answer: String) {
-//        _answers[questionName] = answer
-//        Log.d(
-//            TAG,
-//            "Проверка: Размер ${_answers.size}, Пол: ${_answers[AnswerNames.CHILD_GENDER_ANSWER.toString()]}"
-//        )
-//    }
-
-//    private suspend fun loadDataFromDatastore() {
-//        try {
-//            val userName = onboardingUC.getUserNameFlow().first() ?: ""
-//            val childGender = onboardingUC.getGenderFlow().first() ?: ""
-//            val isItABoy = onboardingUC.getIsItABoyFlow().first() ?: ""
-//            val childName = onboardingUC.getNameFlow().first() ?: ""
-//            val birthDate = onboardingUC.getBirthDateFlow().first() ?: ""
-//            val childHobbies = onboardingUC.getHobbiesFlow().first() ?: ""
-//
-//             // МИГРАЦИЯ!!!! Если hobbies пусты, пробуем прочитать старое поле hobby
-//                    if (childHobbies.isBlank()) {
-//                        val oldHobby = onboardingUC.getHobbyFlow().first() ?: ""
-//                        if (oldHobby.isNotBlank()) {
-//                            childHobbies = oldHobby
-//                            // Опционально: сохраняем в новый ключ
-//                            onboardingUC.saveHobbies(oldHobby)
-//                        }
-//                    }
-//
-//
-//            // Проверяем, есть ли данные для загрузки
-//            val hasData = userName.isNotBlank() || childName.isNotBlank() || childHobbies.isNotBlank()
-//
-//            if (hasData) {
-//                val answers = OnboardingAnswers(
-//                    userName = userName,
-//                    childGender = childGender,
-//                    isItABoy = isItABoy,
-//                    childName = childName,
-//                    childBirthDate = birthDate,
-//                    childHobbies = childHobbies
-//                )
-//
-//                // Обновляем LiveData на главном потоке
-//                withContext(Dispatchers.Main) {
-//                    _onboardingAnswersLiveData.postValue(answers)
-//                }
-//
-//                // Также обновляем временные ответы для совместимости
-//                _answers.clear()
-//                _answers[AnswerNames.USER_NAME_ANSWER.toString()] = userName
-//                _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = childGender
-//                _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = isItABoy
-//                _answers[AnswerNames.CHILD_NAME_ANSWER.toString()] = childName
-//                _answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] = birthDate
-//                _answers[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] = childHobbies
-//            }
-//
-//        } catch (e: Exception) {
-//            Log.e(TAG, "Error loading data from DataStore", e)
-//            _errorMessageLiveData.postValue(
-//                MyEvent(
-//                    Resource.error(
-//                        CommonConstants.FAILED_TO_LOAD_LOCAL,
-//                        ErrorType.FAILED_TO_LOAD_LOCAL_DATA
-//                    )
-//                )
-//            )
-//        }
-//    }
-
-//    private fun updateOnboardingAnswers(update: (OnboardingAnswers) -> OnboardingAnswers) {
-//        val current = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
-//        _onboardingAnswersLiveData.value = update(current)
-//    }
 }

@@ -124,6 +124,7 @@
     <string name="info_title_empty">Здесь будет разамещена полезная информация для вас</string>
 
     <!-- Для сообщений об ошибке и проч (ErrorType). Вы можете вставлять другие переменные или форматированный текст в строку, используя символ %s для строк или %d для чисел, а также передавая дополнительные аргументы в метод getString() -->
+    <string name="forbidden_action">Действие запрещено</string>
     <string name="email_empty_error">Почта не может быть пустой</string>
     <string name="email_format_error">Не верный формат почты</string>
     <string name="email_length_error">В пароле должно быть минимум %d символов</string>

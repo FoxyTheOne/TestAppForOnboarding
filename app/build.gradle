@@ -18,12 +18,12 @@ plugins {
 
 android {
     namespace 'com.foxynest.testappforonboarding'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.foxynest.testappforonboarding"
         minSdk 29
-        targetSdk 35
+        targetSdk 36
         // versionCode - используется Android и Google Play для определения, какая версия приложения новее и для автоматического обновления. Всегда увеличивайте versionCode при каждой новой сборке приложения, даже если вы не меняете versionName. Это гарантирует, что Android сможет правильно отслеживать обновления.
         versionCode 1
         versionName "1.0.0"

@@ -1,12 +1,14 @@
 package com.foxynest.testappforonboarding.presentation
 
 import android.Manifest
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -64,6 +66,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (resources.configuration.smallestScreenWidthDp <= 600) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } // Но учтите: на планшетах ориентация всё равно будет меняться – система проигнорирует ваш вызов. Это особенность Android 16, и её нельзя обойти (без использования недокументированных и запрещенных методов)
+
         // VIEW BINDING -> 2. Инициализация
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
@@ -79,6 +85,36 @@ class MainActivity : AppCompatActivity() {
 //        // ПОТОМ запрашиваем данные: подтягиваем ответы из пройденного ранее онбординга. Загружаем данные БЕЗ принудительного обновления Firebase
 //        mainViewModel.getAndUseAnswersFromOnboarding()
         mainViewModel.checkLoggedInStateGetUser() // -> проверяем в каждом фрагменте отдельно (home, profile, info)
+
+        // Регистрируем обработчик кнопки "Назад"
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val currentDestination = navController.currentDestination?.id
+
+                when (currentDestination) {
+                    in ONBOARDING_FRAGMENTS -> {
+                        // Запрещаем возврат в онбординге – просто ничего не делаем
+                        // Можно также показать тост "Действие запрещено"
+                        Toast.makeText(this@MainActivity, R.string.forbidden_action, Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                    in mainAppFragments -> {
+                        // Показываем диалог подтверждения выхода
+                        showQuitDialog()
+                        return
+                    }
+                    else -> {
+                        // Для остальных случаев - стандартное поведение (выход из Activity или навигация назад)
+                        // Если фрагментов нет или это корневой экран - закрываем Activity
+                        if (supportFragmentManager.backStackEntryCount == 0 && navController.graph.startDestinationId == currentDestination) {
+                            finish()
+                        } else {
+                            navController.navigateUp()
+                        }
+                    }
+                }
+            }
+        })
 
         setupNotificationPermission()
         observeOnboardingState() // Подписываемся на изменения онбординга
@@ -230,27 +266,27 @@ class MainActivity : AppCompatActivity() {
         setupContentPadding()
     }
 
-    override fun onBackPressed() {
-        val currentDestination = navController.currentDestination?.id
-
-        when {
-            currentDestination in ONBOARDING_FRAGMENTS -> {
-                // Запрещаем возврат в онбординге
-                return
-            }
-
-            currentDestination in mainAppFragments -> {
-                // Показываем диалог подтверждения выхода
-                showQuitDialog()
-                return
-            }
-
-            else -> {
-                // Для остальных случаев - стандартное поведение
-                super.onBackPressed()
-            }
-        }
-    }
+//    override fun onBackPressed() {
+//        val currentDestination = navController.currentDestination?.id
+//
+//        when {
+//            currentDestination in ONBOARDING_FRAGMENTS -> {
+//                // Запрещаем возврат в онбординге
+//                return
+//            }
+//
+//            currentDestination in mainAppFragments -> {
+//                // Показываем диалог подтверждения выхода
+//                showQuitDialog()
+//                return
+//            }
+//
+//            else -> {
+//                // Для остальных случаев - стандартное поведение
+//                super.onBackPressed()
+//            }
+//        }
+//    }
 
     /**
      * DIALOGS

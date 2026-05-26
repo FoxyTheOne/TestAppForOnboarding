@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
+import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.domain.entities.VisibilityEnum
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PAY_URL
@@ -133,11 +134,17 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
     private fun subscribeOnLiveData() {
         mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner) { answers ->
-            when (answers.childGender) {
-                "Мальчик" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
-                "Девочка" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)
-                else -> Unit
+            val genderEnum = Gender.fromString(answers.childGender)
+            val textToShow = when (genderEnum) {
+                Gender.BOY -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
+                Gender.GIRL -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)
             }
+
+//            when (answers.childGender) {
+//                "Мальчик" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
+//                "Девочка" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)
+//                else -> Unit
+//            }
         }
 
         // TODO Повторить бы то же самое в профиле - вдруг этот фрагмент уже будет закрыт. Но там нет связи с этой LiveData

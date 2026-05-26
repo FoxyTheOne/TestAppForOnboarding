@@ -30,7 +30,10 @@ fun Date.calculateChildAge(): Resource<Int> {
 
         return Resource.success(age)
     } catch (e: Exception) {
-        return Resource.error("Error calculating age from birth date: $birthDate : ${e.message}", null)
+        return Resource.error(
+            "Error calculating age from birth date: $birthDate : ${e.message}",
+            null
+        )
     }
 }
 

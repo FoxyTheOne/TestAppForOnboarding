@@ -156,14 +156,25 @@ class Question3Fragment : BaseOnboardingFragment() {
         datePicker.show(childFragmentManager, "DATE_PICKER")
     }
 
+//    private fun onDateSelected(selectedDateMillis: Long) {
+//        // Форматируем для отображения (день.месяц.год)
+//        val displayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+//        val displayDate = displayFormatter.format(Date(selectedDateMillis))
+//        binding?.editTextBirthDate?.setText(displayDate)
+//
+//        // Сразу рассчитываем и отображаем возраст
+//        calculateAndDisplayAge(Date(selectedDateMillis))
+//    }
+
     private fun onDateSelected(selectedDateMillis: Long) {
         // Форматируем для отображения (день.месяц.год)
-        val displayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        val displayDate = displayFormatter.format(Date(selectedDateMillis))
+        val date = Date(selectedDateMillis)
+        val displayFormatter = android.text.format.DateFormat.getDateFormat(requireContext())
+        val displayDate = displayFormatter.format(date)
         binding?.editTextBirthDate?.setText(displayDate)
 
         // Сразу рассчитываем и отображаем возраст
-        calculateAndDisplayAge(Date(selectedDateMillis))
+        calculateAndDisplayAge(date)
     }
 
     private fun calculateAndDisplayAge(birthDate: Date): Int {

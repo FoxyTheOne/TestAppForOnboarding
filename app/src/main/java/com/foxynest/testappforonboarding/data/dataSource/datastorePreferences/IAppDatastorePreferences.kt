@@ -4,6 +4,11 @@ import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAn
 import kotlinx.coroutines.flow.Flow
 
 interface IAppDatastorePreferences {
+    // Migration
+    suspend fun getSchemaVersion(): Int
+    suspend fun setSchemaVersion(version: Int)
+
+    // Onboarding
     suspend fun saveOnboardingState(isCompleted: Boolean)
     fun isOnboardingCompleted(): Flow<Boolean>
     suspend fun clearAllOnboardingData()

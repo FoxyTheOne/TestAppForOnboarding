@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
+import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -86,14 +87,21 @@ class Question1Fragment : BaseOnboardingFragment() {
 
             if (areFieldsValid) {
                 // Если checkedRadioButtonId будет null, то валидация не будет успешна и сюда не зайдет. Но для метода findViewById() это нужно указать явно
-                checkedRadioButtonId?.let {
-                    val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
+//                checkedRadioButtonId?.let {
+//                    val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
+
+                    val selectedGender = when (checkedRadioButtonId) {
+                        R.id.gender_answer_boy -> Gender.BOY.name
+                        R.id.gender_answer_girl -> Gender.GIRL.name
+                        else -> null
+                    }
 
                     // Используем единый метод обновления
                     mainViewModel.updateOnboardingAnswers { answers ->
                         answers.copy(
                             userName = userNameAnswer,
-                            childGender = selectedRadioButton?.text.toString(),
+//                            childGender = selectedRadioButton?.text.toString(),
+                            childGender = selectedGender ?: Gender.BOY.name,
                             childName = childNameAnswer
                         )
                     }
@@ -123,7 +131,7 @@ class Question1Fragment : BaseOnboardingFragment() {
                             )
                         }
                     }
-                }
+//                }
 
             }
         }

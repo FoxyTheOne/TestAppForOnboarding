@@ -1,182 +1,182 @@
 <resources>
     <string name="app_name">TestAppForOnboarding</string>
-    <string name="localization">ru</string>
-    <string name="no_notification_permission">У нас нет разрешения показывать уведомления на вашем телефоне</string>
+    <string name="localization">en</string>
+    <string name="no_notification_permission">We don\'t have the permission to show notifications on your phone</string>
 
     <!-- Welcome -->
-    <string name="welcome_tittle">Приветствуем!</string>
-    <string name="welcome_text_onboarding">Для полноценного опыта использования нашего приложения, просим вас пройти небольшой опрос перед первым запуском. Ответы помогут нам настроить приложение под вас.</string>
-    <string name="welcome_button_onboarding">Начать опрос</string>
-    <string name="welcome_text_login">Уже зарегистрированы?</string>
-    <string name="welcome_button_login">Войти</string>
+    <string name="welcome_tittle">Welcome!</string>
+    <string name="welcome_text_onboarding">To ensure a proper experience using our app we ask that you complete a short inquirer before launching it for the first time. Your answers will help us customize the app for you.</string>
+    <string name="welcome_button_onboarding">Start inquirer</string>
+    <string name="welcome_text_login">Already Registered?</string>
+    <string name="welcome_button_login">Login</string>
 
     <!-- Auth -->
-    <string name="auth_text_mail">Почта</string>
-    <string name="auth_text_password">Пароль</string>
-    <string name="auth_text_password2">Повторите пароль</string>
-    <string name="register_title">Регистрация</string>
+    <string name="auth_text_mail">Email</string>
+    <string name="auth_text_password">Password</string>
+    <string name="auth_text_password2">Repeat Password</string>
+    <string name="register_title">Registration</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_tittle">Добро пожаловать!</string>
-    <string name="onboarding_container_title">Помогите нам лучше понять вашего ребенка</string>
-    <string name="question1_title">Основная информация</string>
-    <string name="question2_title">Дополнительные сведения</string>
-    <string name="question3_title">Дата рождения и интересы</string>
-    <string name="button_back">Назад</string>
-    <string name="button_next">Далее</string>
-    <string name="button_cancel">Закрыть</string>
-    <string name="button_finish">Готово</string>
-    <string name="text_gender_question">Укажите пол вашего ребенка</string>
-    <string name="text_boy">Мальчик</string>
-    <string name="text_girl">Девочка</string>
-    <string name="text_child_name_question">Как зовут вашего ребенка?</string>
-    <string name="text_user_name_question">Как вас зовут?</string>
-    <string name="text_name_hint">Введите имя</string>
-    <string name="text_user_email_question">Укажите вашу почту</string>
-    <string name="text_email_hint">Введите email</string>
-    <string name="text_question2fragment">На этот фрагмент вы должны были попасть только если пол вашего ребенка - мальчик. Нажмите, что это так</string>
-    <string name="text_birth_date_question">Когда родился ваш ребенок?</string>
-    <string name="text_birth_date_hint">ДД.ММ.ГГГГ</string>
-    <string name="text_select_date_hint">Выберите дату рождения ребенка</string>
-    <string name="text_select_date_helper">Нажмите для выбора даты</string>
-    <string name="text_child_age">Полных лет ребенку:</string>
-    <string name="text_hobby_question">Чем ваш ребенок любит заниматься, когда он развлекается самостоятельно?</string>
-    <string name="text_hobby_hint">Напишите хобби</string>
-    <string name="text_hobby_question2">Выберите занятия, которыми увлекается ваш ребенок</string>
-    <string name="error_hobbies_not_selected">Выберите хотя бы один из вариантов</string>
-    <string-array name="hobbies_array">
-        <item>рисование</item>
-        <item>конструирование</item>
-        <item>музыкальные инструменты</item>
-        <item>футбол</item>
-        <item>книги</item>
-        <item>изучение иностранных языков</item>
-        <item>математика</item>
-        <item>шахматы</item>
-        <item>плавание</item>
-        <item>единоборства</item>
-        <item>хореография</item>
-    </string-array>
-    <string name="yes">Да</string>
-    <string name="no">Нет</string>
-    <string name="error_gender_not_selected">Пожалуйста, выберите пол ребенка</string>
-    <string name="error_child_name_not_selected">Пожалуйста, введите имя ребенка</string>
-    <string name="error_email_not_selected">Пожалуйста, введите email</string>
-    <string name="error_user_name_not_selected">Пожалуйста, введите ваше имя</string>
-    <string name="error_birth_date_not_selected">Пожалуйста, выберите дату рождения</string>
-    <string name="error_birth_date_not_valid">Проверьте дату рождения</string>
-    <string name="error_hobby_not_selected">Пожалуйста, введите хобби</string>
+    <string name="onboarding_tittle">Welcome!</string>
+    <string name="onboarding_container_title">Help us to understand your child better</string>
+    <string name="question1_title">Basic information</string>
+    <string name="question2_title">Additional information</string>
+    <string name="question3_title">Birthdate and interests</string>
+    <string name="button_back">Previous</string>
+    <string name="button_next">Next</string>
+    <string name="button_cancel">Close</string>
+    <string name="button_finish">Finish</string>
+    <string name="text_gender_question">Please indicate your child\'s gender</string>
+    <string name="text_boy">Boy</string>
+    <string name="text_girl">Girl</string>
+    <string name="text_child_name_question">What is your child\'s name?</string>
+    <string name="text_user_name_question">What is your name?</string>
+    <string name="text_name_hint">Enter your name</string>
+    <string name="text_user_email_question">Enter your email</string>
+    <string name="text_email_hint">Email</string>
+    <string name="text_question2fragment">You should have reached this fragment only if your child is a boy. Click that this is true</string>
+    <string name="text_birth_date_question">When was your child born?</string>
+    <string name="text_birth_date_hint">DD.MM.YYYY</string>
+    <string name="text_select_date_hint">Select your child\'s birth date</string>
+    <string name="text_select_date_helper">Click to select a date</string>
+    <string name="text_child_age">Child\'s full age:</string>
+    <string name="text_hobby_question">What does your child like to do while having fun alone?</string>
+    <string name="text_hobby_hint">Write a hobby</string>
+    <string name="text_hobby_question2">Select the activities your child enjoys</string>
+    <string name="error_hobbies_not_selected">Select at least one of options</string>
+    <string name="hobby_drawing">Drawing</string>
+    <string name="hobby_construction">Construction</string>
+    <string name="hobby_musical_instruments">Musical instruments</string>
+    <string name="hobby_football">Football</string>
+    <string name="hobby_books">Books</string>
+    <string name="hobby_learning_languages">Learning foreign languages</string>
+    <string name="hobby_math">Math</string>
+    <string name="hobby_chess">Chess</string>
+    <string name="hobby_swimming">Swimming</string>
+    <string name="hobby_martial_arts">Martial arts</string>
+    <string name="hobby_choreography">Choreography</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="error_gender_not_selected">Please select the child\'s gender</string>
+    <string name="error_child_name_not_selected">Please enter the child\'s name</string>
+    <string name="error_email_not_selected">Please enter your email</string>
+    <string name="error_user_name_not_selected">Please enter your name</string>
+    <string name="error_birth_date_not_selected">Please select your date of birth</string>
+    <string name="error_birth_date_not_valid">Check your date of birth</string>
+    <string name="error_hobby_not_selected">Please enter your hobby</string>
 
     <!-- Paywall -->
-    <string name="paywall_text_analysing">Анализируем ваши ответы</string>
-    <string name="paywall_title">Результаты опроса проанализированы</string>
-    <string name="paywall_boy_text">У вас замечательный мальчик</string>
-    <string name="paywall_girl_text">У вас замечательная девочка</string>
-    <string name="paywall_text">Для доступа к полному функционалу приложения вы можете оформить подписку</string>
-    <string name="paywall_button">Оплатить подписку</string>
-    <string name="button_go_to_profile">Перейти в профиль</string>
+    <string name="paywall_text_analysing">Analyzing your responses</string>
+    <string name="paywall_title">Inquirer results analyzed</string>
+    <string name="paywall_boy_text">You have a wonderful boy</string>
+    <string name="paywall_girl_text">You have a wonderful girl</string>
+    <string name="paywall_text">You can subscribe to access the full functionality of the app</string>
+    <string name="paywall_button">Pay for subscription</string>
+    <string name="button_go_to_profile">Go to profile</string>
 
     <!-- Profile -->
-    <string name="profile_title">Профиль</string>
-    <string name="profile_text_title">Ваш профиль</string>
-    <string name="profile_title_user_name">Ваше имя:</string>
-    <string name="profile_title_gender">Пол вашего ребенка:</string>
-    <string name="profile_title_gender_question">Проверка: это мальчик?</string>
-    <string name="profile_title_name">Имя вашего ребенка:</string>
-    <string name="profile_title_hobby">Хобби вашего ребенка:</string>
-    <string name="profile_title_child_age">Возраст вашего ребенка:</string>
-    <string name="profile_title_birth_date">Дата рождения ребенка:</string>
-    <string name="profile_title_display_email">Ваша почта для связи:</string>
-    <string name="profile_title_auth_email">Ваша почта для входа:</string>
-    <string name="profile_change_email">Изменить</string>
-    <string name="profile_email_not_verified">Почта не подтверждена</string>
-    <string name="profile_verify_email">Подтвердить</string>
-    <string name="profile_button_register">Зарегистрироваться *</string>
-    <string name="profile_text_warning">* Вы не зарегистрированы. Ваши данные пропадут при очистке памяти приложения. Советуем вам зарегистрировать аккаунт для хранения ваших данных во избежании их потери.</string>
-    <string name="profile_button_save_fields_to_server">Сохранить данные на сервер</string>
-    <string name="profile_button_download_fields_from_server">Загрузить данные с сервера (обновить поля)</string>
-    <string name="profile_button_refill_fields">Пройти опрос заново (изменить поля)</string>
-    <string name="profile_button_log_in">У меня уже есть аккаунт **</string>
-    <string name="profile_text_warning_data">** Введенные сейчас данные заменятся на те, которые сохранены на аккаунте.</string>
-    <string name="profile_button_log_out">Выйти</string>
-    <string name="change_display_email_title">Изменить почту для связи</string>
-    <string name="change_auth_email_title">Изменить почту для входа</string>
-    <string name="text_new_email_hint">Введите новый email</string>
-    <string name="text_password_hint">Введите ваш пароль</string>
-    <string name="save">Сохранить</string>
-    <string name="display_email_updated_successfully">Почта для связи успешно обновлена</string>
-    <string name="auth_email_updated_successfully">Почта для входа успешно обновлена</string>
-    <string name="profile_toast_data_updated">Данные успешно сохранены</string>
-    <string name="profile_toast_data_updating_error">Данные не сохранены. Вы можете повторить попытку позже</string>
-    <string name="profile_email_verification_send">Верификация почты отправлена. Пожалуйста, проверьте почтовый ящик</string>
-    <string name="profile_email_verified_successfully">Email успешно подтверждён!</string>
+    <string name="profile_title">Profile</string>
+    <string name="profile_text_title">Your profile</string>
+    <string name="profile_title_user_name">Your Name:</string>
+    <string name="profile_title_gender">Your child\'s gender:</string>
+    <string name="profile_title_gender_question">Check: Is it a boy?</string>
+    <string name="profile_title_name">Your child\'s name:</string>
+    <string name="profile_title_hobby">Your child\'s hobby:</string>
+    <string name="profile_title_child_age">Your child\'s age:</string>
+    <string name="profile_title_birth_date">Child\'s birthdate:</string>
+    <string name="profile_title_display_email">Your contact email:</string>
+    <string name="profile_title_auth_email">Your login email:</string>
+    <string name="profile_change_email">Change</string>
+    <string name="profile_email_not_verified">Email not verified</string>
+    <string name="profile_verify_email">Verify</string>
+    <string name="profile_button_register">Register *</string>
+    <string name="profile_text_warning">* You are not registered. Your data will disappear when you clear the app\'s memory. We recommend that you register an account to store your data to prevent loss.</string>
+    <string name="profile_button_save_fields_to_server">Save data to the server</string>
+    <string name="profile_button_download_fields_from_server">Download data from the server (update fields)</string>
+    <string name="profile_button_refill_fields">Retake the inquirer (change fields)</string>
+    <string name="profile_button_log_in">I already have an account **</string>
+    <string name="profile_text_warning_data">** The data you enter now will be replaced with the data saved in your account.</string>
+    <string name="profile_button_log_out">Log out</string>
+    <string name="change_display_email_title">Change your contact email</string>
+    <string name="change_auth_email_title">Change login email</string>
+    <string name="text_new_email_hint">Enter a new email</string>
+    <string name="text_password_hint">Enter your password</string>
+    <string name="save">Save</string>
+    <string name="display_email_updated_successfully">Contact email successfully updated</string>
+    <string name="auth_email_updated_successfully">Login email successfully updated</string>
+    <string name="profile_toast_data_updated">Data successfully saved</string>
+    <string name="profile_toast_data_updating_error">Data not saved. You can try again later</string>
+    <string name="profile_email_verification_send">Email verification sent. Please check your inbox</string>
+    <string name="profile_email_verified_successfully">Email successfully verified!</string>
 
     <!-- Home -->
-    <string name="home_title">Главная</string>
-    <string name="home_title_part1">Чем сегодня</string>
-    <string name="home_title_part2_girl">занималась</string>
-    <string name="home_title_part2_boy">занимался</string>
-    <string name="home_title_part3">ваш замечательный ребенок</string>
-    <string name="home_text">Ресурсного вам дня!</string>
+    <string name="home_title">Home</string>
+    <string name="home_title_part1">What</string>
+    <string name="home_title_part2_girl">was up to</string>
+    <string name="home_title_part2_boy">was up to</string>
+    <string name="home_title_part3">your wonderful child</string>
+    <string name="home_title_all_girl">What was %s up to today?</string>
+    <string name="home_title_all_boy">What was %s up to today?</string>
+    <string name="home_text">Have a resourceful day!</string>
 
     <!-- Info -->
-    <string name="info_title">Полезное</string>
-    <string name="info_title_empty">Здесь будет разамещена полезная информация для вас</string>
+    <string name="info_title">Info</string>
+    <string name="info_title_empty">Useful information for you will be posted here</string>
 
     <!-- Для сообщений об ошибке и проч (ErrorType). Вы можете вставлять другие переменные или форматированный текст в строку, используя символ %s для строк или %d для чисел, а также передавая дополнительные аргументы в метод getString() -->
-    <string name="forbidden_action">Действие запрещено</string>
-    <string name="email_empty_error">Почта не может быть пустой</string>
-    <string name="email_format_error">Не верный формат почты</string>
-    <string name="email_length_error">В пароле должно быть минимум %d символов</string>
-    <string name="email_already_registered_error">Указанный email уже зарегистрирован</string>
-    <string name="password_empty_error">Пароль не может быть пустой</string>
-    <string name="password_letters_error">Пароль должен содержать цифры и буквы</string>
-    <string name="password_match_error">Пароли не совпадают</string>
-    <string name="password_too_weak_error">Слабый пароль</string>
-    <string name="terms_error">Пожалуйста, согласитесь с условиями</string>
-    <string name="logged_in_text">Успешный вход, переход на страницу профиля</string>
-    <string name="registered_text">Регистрация успешна, переход на страницу профиля</string>
-    <string name="field_empty_error">Поле не может быть пустым</string>
-    <string name="auth_data_error">Не верный email или пароль</string>
-    <string name="too_many_attempts_error">Слишком много попыток. Попробуйте позже</string>
-    <string name="login_failed_error">Ошибка входа</string>
-    <string name="register_failed_error">Ошибка регистрации</string>
-    <string name="logout_failed_error">Ошибка выхода</string>
-    <string name="not_authenticated_error">Ошибка входа - пользователь не вошел в аккаунт</string>
-    <string name="internet_error">Проблемы с интернет-соединением</string>
-    <string name="data_not_saved_error">Не удалось сохранить данные</string>
-    <string name="sending_email_verification_error">Не удалось запрос на верификацию почты</string>
-    <string name="unexpected_error">Произошла непредвиденная ошибка</string>
-    <string name="failed_to_save_user_name_local">Не удалось сохранить ваше имя на вашем телефоне</string>
-    <string name="failed_to_save_email_local">Не удалось сохранить email на вашем телефоне</string>
-    <string name="failed_to_save_gender_local">Не удалось сохранить пол ребенка на вашем телефоне</string>
-    <string name="failed_to_save_child_name_local">Не удалось сохранить имя ребенка на вашем телефоне</string>
-    <string name="failed_to_save_is_it_a_boy_local">Не удалось сохранить is it a boy на вашем телефоне</string>
-    <string name="failed_to_save_birth_date_local">Не удалось сохранить день рождения ребенка на вашем телефоне</string>
-    <string name="failed_to_save_hobby_local">Не удалось сохранить хобби на вашем телефоне</string>
-    <string name="failed_to_save_onboarding_state_local">Не удалось сохранить статус онбординга вашем телефоне</string>
-    <string name="failed_to_clear_data">Ошибка при очистке данных</string>
-    <string name="failed_to_load_local_data">Не удалось загрузить данные свашего телефона</string>
-    <string name="not_valid_user_data_for_saving_to_firebase">Данные не валидны для сохранения - есть пустые поля</string>
-    <string name="current_email_not_verified">Текущий email не верифицирован</string>
+    <string name="forbidden_action">Action prohibited</string>
+    <string name="email_empty_error">Email cannot be empty</string>
+    <string name="email_format_error">Invalid email format</string>
+    <string name="email_length_error">Password must be at least %d characters</string>
+    <string name="email_already_registered_error">The specified email is already registered</string>
+    <string name="password_empty_error">Password cannot be empty</string>
+    <string name="password_letters_error">Password must contain numbers and letters</string>
+    <string name="password_match_error">Passwords do not match</string>
+    <string name="password_too_weak_error">Weak password</string>
+    <string name="terms_error">Please agree to the terms</string>
+    <string name="logged_in_text">Successful login, proceeding to profile page</string>
+    <string name="registered_text">Registration successful, proceeding to profile page</string>
+    <string name="field_empty_error">Field cannot be empty</string>
+    <string name="auth_data_error">Incorrect email or password</string>
+    <string name="too_many_attempts_error">Too many attempts. Try again later</string>
+    <string name="login_failed_error">Login failed</string>
+    <string name="register_failed_error">Registration failed</string>
+    <string name="logout_failed_error">Logout failed</string>
+    <string name="not_authenticated_error">Login failed - user not logged in</string>
+    <string name="internet_error">Internet connection issues</string>
+    <string name="data_not_saved_error">Failed to save data</string>
+    <string name="sending_email_verification_error">Failed to verify email</string>
+    <string name="unexpected_error">An unexpected error occurred</string>
+    <string name="failed_to_save_user_name_local">Failed to save your name on your phone</string>
+    <string name="failed_to_save_email_local">Failed to save email on your phone</string>
+    <string name="failed_to_save_gender_local">Failed to save child\'s gender on your phone</string>
+    <string name="failed_to_save_child_name_local">Failed to save child\'s name on your phone</string>
+    <string name="failed_to_save_is_it_a_boy_local">Failed to save \'Is it a boy\' on your phone</string>
+    <string name="failed_to_save_birth_date_local">Failed to save child\'s birthday on your phone</string>
+    <string name="failed_to_save_hobby_local">Failed to save hobby on your phone</string>
+    <string name="failed_to_save_onboarding_state_local">Failed to save the onboarding state on your phone</string>
+    <string name="failed_to_clear_data">Error clearing data</string>
+    <string name="failed_to_load_local_data">Failed to load data from your phone</string>
+    <string name="not_valid_user_data_for_saving_to_firebase">Data is not valid for saving - there are empty fields</string>
+    <string name="current_email_not_verified">Current email not verified</string>
     <string name="email_verification_needed">A verification email has been sent to your new email address. Please verify it before continuing.</string>
     <string name="verification_email_sent_explanation">Verification email sent. Your login email will be updated automatically after verification.</string>
-    <string name="auth_email_updated_successfully_please_verify">Почта для входа успешно обновлена. Верификация выслана нам на почту</string>
-    <string name="wrong_password_while_changing_email">Не верный пароль</string>
+    <string name="auth_email_updated_successfully_please_verify">Your login email has been successfully updated. Verification has been sent to our email</string>
+    <string name="wrong_password_while_changing_email">Incorrect password</string>
 
     <!-- Dialogs -->
-    <string name="data_save_error_title">Ошибка сохранения</string>
-    <string name="data_save_error_message">Ошибка при соединении с сервером, данные не сохранены. Повторить?</string>
-    <string name="data_save_loading_message">Сохранение данных…</string>
-    <string name="retry">Повторить</string>
-    <string name="cancel">Отмена</string>
-    <string name="confirm_dialog_title">Подтверждение</string>
-    <string name="are_you_sure_confirm">Вы уверены? Текущие ответы будут стёрты и перезаписаны.</string>
-    <string name="are_you_sure_confirm2">Вы уверены, что хотите выйти из онбординга?</string>
-    <string name="quit_confirm">Вы уверены, что хотите выйти?</string>
-    <string name="local_onboarding_saving_error_title">Ошибка</string>
-    <string name="local_onboarding_saving_error_text">Не получилось сохранить статус пройденного опроса на вашем телефоне. Повторить попытку?</string>
-    <string name="local_onboarding_saving_error_toast">При следующем запуске программы опрос запустится снова</string>
+    <string name="data_save_error_title">Saving error</string>
+    <string name="data_save_error_message">Error connecting to the server, data not saved. Retry?</string>
+    <string name="data_save_loading_message">Saving data…</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm_dialog_title">Confirm</string>
+    <string name="are_you_sure_confirm">Are you sure? Current responses will be erased and overwritten.</string>
+    <string name="are_you_sure_confirm2">Are you sure you want to exit onboarding?</string>
+    <string name="quit_confirm">Are you sure you want to exit?</string>
+    <string name="local_onboarding_saving_error_title">Error</string>
+    <string name="local_onboarding_saving_error_text">Unable to save completed survey status on your phone. Try again?</string>
+    <string name="local_onboarding_saving_error_toast">The inquirer will start again the next time you launch the app</string>
 
     <!-- Other -->
 </resources>

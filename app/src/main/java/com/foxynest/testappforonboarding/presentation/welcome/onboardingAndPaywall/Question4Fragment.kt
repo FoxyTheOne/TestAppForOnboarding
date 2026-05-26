@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion4Binding
+import com.foxynest.testappforonboarding.domain.entities.HobbyLocalizer
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.google.android.material.chip.Chip
@@ -36,12 +37,24 @@ class Question4Fragment : BaseOnboardingFragment() {
         restoreSelectedHobbies()
     }
 
+//    private fun initChips() {
+//        val hobbiesArray = resources.getStringArray(R.array.hobbies_array)
+//        hobbiesArray.forEach { hobby ->
+//            val chip =
+//                layoutInflater.inflate(R.layout.item_chip, binding?.chipGroupHobbies, false) as Chip
+//            chip.text = hobby
+//            chip.isCheckable = true
+//            binding?.chipGroupHobbies?.addView(chip)
+//        }
+//    }
+
     private fun initChips() {
-        val hobbiesArray = resources.getStringArray(R.array.hobbies_array)
-        hobbiesArray.forEach { hobby ->
+        val hobbyKeys = resources.getStringArray(R.array.hobbies_array)
+        hobbyKeys.forEach { key ->
             val chip =
                 layoutInflater.inflate(R.layout.item_chip, binding?.chipGroupHobbies, false) as Chip
-            chip.text = hobby
+            chip.text = HobbyLocalizer.getDisplayName(requireContext(), key)
+            chip.tag = key
             chip.isCheckable = true
             binding?.chipGroupHobbies?.addView(chip)
         }
@@ -49,13 +62,28 @@ class Question4Fragment : BaseOnboardingFragment() {
 
     private fun restoreSelectedHobbies() {
 //        val savedHobbies = mainViewModel.answers[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] ?: ""
+
+//        val savedHobbies = mainViewModel.onboardingAnswersLiveData.value?.childHobbies ?: ""
+//        if (savedHobbies.isNotBlank()) {
+//            val selectedList = savedHobbies.split(CommonConstants.HOBBIES_DELIMITER)
+//            for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
+//                val chip = binding?.chipGroupHobbies?.getChildAt(i) as? Chip
+//                chip?.let {
+//                    if (it.text.toString() in selectedList) {
+//                        it.isChecked = true
+//                    }
+//                }
+//            }
+//        }
+
         val savedHobbies = mainViewModel.onboardingAnswersLiveData.value?.childHobbies ?: ""
         if (savedHobbies.isNotBlank()) {
-            val selectedList = savedHobbies.split(CommonConstants.HOBBIES_DELIMITER)
+            val selectedKeys = savedHobbies.split(CommonConstants.HOBBIES_DELIMITER)
             for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
                 val chip = binding?.chipGroupHobbies?.getChildAt(i) as? Chip
                 chip?.let {
-                    if (it.text.toString() in selectedList) {
+                    val key = it.tag as? String
+                    if (key != null && key in selectedKeys) {
                         it.isChecked = true
                     }
                 }
@@ -95,14 +123,24 @@ class Question4Fragment : BaseOnboardingFragment() {
     }
 
     private fun getSelectedHobbies(): List<String> {
-        val selected = mutableListOf<String>()
+//        val selected = mutableListOf<String>()
+//        for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
+//            val chip = binding?.chipGroupHobbies?.getChildAt(i) as? Chip
+//            if (chip?.isChecked == true) {
+//                chip.text?.toString()?.let { selected.add(it) }
+//            }
+//        }
+//        return selected
+
+        val selectedKeys = mutableListOf<String>()
         for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
             val chip = binding?.chipGroupHobbies?.getChildAt(i) as? Chip
             if (chip?.isChecked == true) {
-                chip.text?.toString()?.let { selected.add(it) }
+                val key = chip.tag as? String
+                key?.let { selectedKeys.add(it) }
             }
         }
-        return selected
+        return selectedKeys
     }
 
     private fun showError(show: Boolean) {

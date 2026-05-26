@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="hobbies_array">
+        <item>drawing</item>
+        <item>construction</item>
+        <item>musical_instruments</item>
+        <item>football</item>
+        <item>books</item>
+        <item>learning_languages</item>
+        <item>math</item>
+        <item>chess</item>
+        <item>swimming</item>
+        <item>martial_arts</item>
+        <item>choreography</item>
+    </string-array>
+</resources>

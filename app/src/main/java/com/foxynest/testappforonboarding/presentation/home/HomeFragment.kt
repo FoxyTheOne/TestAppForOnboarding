@@ -51,7 +51,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        homeViewModel.showWelcomeFragmentIfOnboardingIsNotComplete()
+//        homeViewModel.showWelcomeFragmentIfOnboardingIsNotComplete() - перенесен в splash screen
 
         // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
         // So, we need to do this way:
@@ -102,7 +102,11 @@ class HomeFragment : Fragment() {
                         mainViewModel.checkLoggedInStateGetUser()
                     } else {
                         // Пользователь не авторизован:
-                        showHelloInHome(mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity))
+                        showHelloInHome(
+                            mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+                                activity
+                            )
+                        )
                     }
 
                 }
@@ -136,11 +140,18 @@ class HomeFragment : Fragment() {
     private fun setupLocalObservers() {
         if (localFieldsObserver == null) {
             localFieldsObserver = Observer<Any> {
-                showHelloInHome(mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity))
+                showHelloInHome(
+                    mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
+                        activity
+                    )
+                )
             }
 
             // Подписываемся на все необходимые LiveData
-            mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner, localFieldsObserver!!)
+            mainViewModel.onboardingAnswersLiveData.observe(
+                viewLifecycleOwner,
+                localFieldsObserver!!
+            )
         }
     }
 
@@ -150,38 +161,39 @@ class HomeFragment : Fragment() {
     }
 
     fun getHomeTitleText(user: UserPresentation): String {
-        val textToShow = StringBuilder()
-        textToShow.append(getString(R.string.home_title_part1) + " ")
-
 //        when (mainViewModel.genderLiveData.value) {
-        val gender = user.childGender
-        Log.d(TAG, "Пол ребенка = $gender")
-        when (gender) {
-            Gender.BOY.genderName -> {
-                textToShow.append(context?.resources?.getString(R.string.home_title_part2_boy))
-                Log.d(TAG, "gender = $gender, мы в ветке ${Gender.BOY.genderName}")
-            }
+//        val gender = user.childGender
+        val genderEnum = Gender.fromString(user.childGender)
+        Log.d(TAG, "Пол ребенка = $genderEnum")
+//        var textToShowString: String? = null
 
-            Gender.GIRL.genderName -> {
-                textToShow.append(context?.resources?.getString(R.string.home_title_part2_girl))
-                Log.d(TAG, "gender = $gender, мы в ветке ${Gender.GIRL.genderName}")
-            }
-
-            else -> {
-                textToShow.append(context?.resources?.getString(R.string.home_title_part2_boy))
-                Log.d(TAG, "Пол ребенка = $gender , мы в ветке else")
-            }
-        }
-
-        if (user.childName.isNotBlank() && user.childName != "null") {
-            textToShow.append(" ${user.childName}")
+        val childName = if (user.childName.isNotBlank() && user.childName != "null") {
+            user.childName
         } else {
-            textToShow.append(" " + getString(R.string.home_title_part3))
+            getString(R.string.home_title_part3)
         }
 
-        textToShow.append("?")
+        val textToShow = when (genderEnum) {
+            Gender.BOY -> getString(R.string.home_title_all_boy, childName)
+            Gender.GIRL -> getString(R.string.home_title_all_girl, childName)
+        }
 
-        return textToShow.toString()
+//        when (gender) {
+//            Gender.BOY.genderName -> {
+//                textToShowString = getString(R.string.home_title_all_boy, childName)
+//                Log.d(TAG, "gender = $gender, мы в ветке ${Gender.BOY.genderName}")
+//            }
+//            Gender.GIRL.genderName -> {
+//                textToShowString = getString(R.string.home_title_all_girl, childName)
+//                Log.d(TAG, "gender = $gender, мы в ветке ${Gender.GIRL.genderName}")
+//            }
+//            else -> {
+//                textToShowString = getString(R.string.home_title_all_boy, childName)
+//                Log.d(TAG, "Пол ребенка = $gender , мы в ветке else")
+//            }
+//        }
+
+        return textToShow
     }
 
     // VIEW BINDING -> 3. onDestroyView()

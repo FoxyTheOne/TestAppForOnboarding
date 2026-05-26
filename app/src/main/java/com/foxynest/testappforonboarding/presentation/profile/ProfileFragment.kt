@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentProfileBinding
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.entities.Gender
+import com.foxynest.testappforonboarding.domain.entities.HobbyLocalizer
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
@@ -509,25 +511,41 @@ class ProfileFragment : Fragment() {
         // Проверяем, чтобы userName не был равен "null"
         if (user.userName != "null") {
             binding?.textUserNameAnswer?.text = user.userName
-            binding?.textGenderAnswer?.text = user.childGender
+
+            val genderEnum = Gender.fromString(user.childGender)
+            binding?.textGenderAnswer?.text = genderEnum.getDisplayName(requireContext())
+//            binding?.textGenderAnswer?.text = user.childGender
+
             binding?.textGenderAnswerIsItABoy?.text = user.isItABoy
             binding?.textChildNameAnswer?.text = user.childName
             // HOBBY
-            val hobbies = user.childHobbies
-            if (hobbies.isNotBlank()) {
-                val hobbiesList = hobbies.split(HOBBIES_DELIMITER)
-                binding?.textHobbyAnswer?.text = hobbiesList.joinToString("\n")
-            } else {
-                binding?.textHobbyAnswer?.text = ""
-            }
+//            val hobbies = user.childHobbies
+//            if (hobbies.isNotBlank()) {
+//                val hobbiesList = hobbies.split(HOBBIES_DELIMITER)
+//                binding?.textHobbyAnswer?.text = hobbiesList.joinToString("\n")
+//            } else {
+//                binding?.textHobbyAnswer?.text = ""
+//            }
+            val hobbiesKeys = user.childHobbies.split(HOBBIES_DELIMITER)
+            val hobbyDisplayNames =
+                hobbiesKeys.map { HobbyLocalizer.getDisplayName(requireContext(), it) }
+            binding?.textHobbyAnswer?.text = hobbyDisplayNames.joinToString("\n")
+
             // ВЫЧИСЛЯЕМ возраст из даты рождения
             val age = calculateAgeFromBirthDate(user.childBirthDate)
             binding?.textChildAgeAnswer?.text = if (age >= 0) age.toString() else ""
+
             // ФОРМАТИРУЕМ дату для красивого отображения
+//            binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(
+//                user.childBirthDate,
+//                getString(R.string.localization)
+//            )
+
             binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(
                 user.childBirthDate,
-                getString(R.string.localization)
+                requireContext()
             )
+
             // Email для входа
             binding?.textAuthEmailAnswer?.text = user.authEmail
 

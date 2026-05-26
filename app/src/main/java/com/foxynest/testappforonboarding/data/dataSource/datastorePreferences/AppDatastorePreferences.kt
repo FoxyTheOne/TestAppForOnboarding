@@ -3,6 +3,7 @@ package com.foxynest.testappforonboarding.data.dataSource.datastorePreferences
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
@@ -11,6 +12,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -24,6 +26,10 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
 
     // Ключи для онбординга
     object PreferencesKeys {
+        // Migration. Теперь миграция запустится только один раз – при первом запуске после обновления приложения.
+        val DATA_SCHEMA_VERSION = intPreferencesKey("data_schema_version")
+
+        // Onboarding
         val IS_ONBOARDING_COMPLETED = booleanPreferencesKey("is_onboarding_completed")
 
         // ЕДИНСТВЕННЫЙ ключ для всех ответов онбординга
@@ -74,6 +80,19 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
             prefs.remove(PreferencesKeys.ONBOARDING_ANSWERS)
             // Сбрасываем статус онбординга на false
             prefs.remove(PreferencesKeys.IS_ONBOARDING_COMPLETED)
+        }
+    }
+
+    // Migration. Теперь миграция запустится только один раз – при первом запуске после обновления приложения.
+    override suspend fun getSchemaVersion(): Int {
+        return context.dataStore.data.map { prefs ->
+            prefs[PreferencesKeys.DATA_SCHEMA_VERSION] ?: 0
+        }.first()
+    }
+
+    override suspend fun setSchemaVersion(version: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.DATA_SCHEMA_VERSION] = version
         }
     }
 }

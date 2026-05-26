@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.presentation.profile
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -158,26 +159,48 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun formatBirthDateForDisplay(birthDateString: String, localization: String): String {
-        if (birthDateString.isBlank()) return ""
+//    fun formatBirthDateForDisplay(birthDateString: String, localization: String): String {
+//        if (birthDateString.isBlank()) return ""
+//
+//        return try {
+//            // Парсим из формата хранения (yyyy-MM-dd)
+//            val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+//            val date = inputFormatter.parse(birthDateString)
+//
+//            if (date != null) {
+//                // Форматируем для отображения (19 мая 2020)
+//                val outputFormatter =
+//                    SimpleDateFormat("d MMMM yyyy", Locale(localization))
+//                outputFormatter.format(date)
+//            } else {
+//                Log.e(TAG, "Error formatting birth date: $birthDateString, date = null")
+//                birthDateString // Возвращаем оригинальную строку в случае ошибки
+//            }
+//        } catch (e: Exception) {
+//            Log.e(TAG, "Error formatting birth date: $birthDateString", e)
+//            birthDateString // Возвращаем оригинальную строку в случае ошибки
+//        }
+//    }
+
+    fun formatBirthDateForDisplay(dateString: String, context: Context): String {
+        if (dateString.isBlank()) return ""
 
         return try {
             // Парсим из формата хранения (yyyy-MM-dd)
-            val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-            val date = inputFormatter.parse(birthDateString)
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val date = inputFormat.parse(dateString)
 
             if (date != null) {
                 // Форматируем для отображения (19 мая 2020)
-                val outputFormatter =
-                    SimpleDateFormat("d MMMM yyyy", Locale(localization))
-                outputFormatter.format(date)
+                val outputFormat = android.text.format.DateFormat.getDateFormat(context)
+                outputFormat.format(date)
             } else {
-                Log.e(TAG, "Error formatting birth date: $birthDateString, date = null")
-                birthDateString // Возвращаем оригинальную строку в случае ошибки
+                Log.e(TAG, "Error formatting birth date: $dateString, date = null")
+                dateString // Возвращаем оригинальную строку в случае ошибки
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error formatting birth date: $birthDateString", e)
-            birthDateString // Возвращаем оригинальную строку в случае ошибки
+            Log.e(TAG, "Error formatting birth date: $dateString", e)
+            dateString // Возвращаем оригинальную строку в случае ошибки
         }
     }
 

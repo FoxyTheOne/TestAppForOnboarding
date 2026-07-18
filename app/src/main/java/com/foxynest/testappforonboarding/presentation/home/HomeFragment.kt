@@ -163,7 +163,7 @@ class HomeFragment : Fragment() {
     fun getHomeTitleText(user: UserPresentation): String {
 //        when (mainViewModel.genderLiveData.value) {
 //        val gender = user.childGender
-        val genderEnum = Gender.fromString(user.childGender)
+        val genderEnum = Gender.genderFromString(user.childGender)
         Log.d(TAG, "Пол ребенка = $genderEnum")
 //        var textToShowString: String? = null
 

@@ -21,7 +21,6 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.ActivityMainBinding
-import com.foxynest.testappforonboarding.domain.entities.onboarding.AnswerNames
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.BaseDialogFragment
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.QuitDialog
@@ -95,14 +94,20 @@ class MainActivity : AppCompatActivity() {
                     in ONBOARDING_FRAGMENTS -> {
                         // Запрещаем возврат в онбординге – просто ничего не делаем
                         // Можно также показать тост "Действие запрещено"
-                        Toast.makeText(this@MainActivity, R.string.forbidden_action, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@MainActivity,
+                            R.string.forbidden_action,
+                            Toast.LENGTH_SHORT
+                        ).show()
                         return
                     }
+
                     in mainAppFragments -> {
                         // Показываем диалог подтверждения выхода
                         showQuitDialog()
                         return
                     }
+
                     else -> {
                         // Для остальных случаев - стандартное поведение (выход из Activity или навигация назад)
                         // Если фрагментов нет или это корневой экран - закрываем Activity
@@ -241,7 +246,8 @@ class MainActivity : AppCompatActivity() {
                 if (destId != R.id.navigation_welcome
                     && destId != R.id.navigation_login
                     && destId != R.id.navigation_register
-                    && destId != R.id.navigation_paywall) {
+                    && destId != R.id.navigation_paywall
+                ) {
                     binding?.onboardingTitle?.visibility = View.VISIBLE
                     binding?.onboardingProgress?.visibility = View.VISIBLE
 
@@ -335,6 +341,22 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
+//    // Делаем смену языка мгновенной
+//    override fun onConfigurationChanged(newConfig: Configuration) {
+//        super.onConfigurationChanged(newConfig)
+//        // Здесь можно обновить тексты в текущем фрагменте или во всей Activity
+//        binding?.navView?.menu?.findItem(0)?.setTitle(R.string.profile_title)
+//        binding?.navView?.menu?.findItem(1)?.setTitle(R.string.home_title)
+//        binding?.navView?.menu?.findItem(2)?.setTitle(R.string.info_title)
+//
+//        // Также можно оповестить фрагменты о необходимости обновить UI
+//        supportFragmentManager.fragments.forEach { fragment ->
+//            if (fragment is ProfileFragment) {
+//                fragment.onLanguageChanged()
+//            }
+//        }
+//    }
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroy() {

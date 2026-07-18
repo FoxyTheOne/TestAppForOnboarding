@@ -1,5 +1,8 @@
 package com.foxynest.testappforonboarding
 
+import com.foxynest.testappforonboarding.domain.entities.language.LanguageManager
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.ISetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
@@ -25,10 +28,20 @@ class ProfileViewModelTests {
         val mockSendEmailUC = mockk<ISendEmailVerificationUC>()
         val mockCheckEmailUC = mockk<ICheckEmailVerifiedUC>()
         val mockLogoutUC = mockk<ILogoutUC>()
+        val mockGetAppLanguageUC = mockk<IGetAppLanguageUC>()
+        val mockSetAppLanguageUC = mockk<ISetAppLanguageUC>()
+        val mockLanguageManager = mockk<LanguageManager>()
 
         coEvery { mockSendEmailUC.execute() } returns Resource.success(null)
 
-        val viewModel = ProfileViewModel(mockSendEmailUC, mockCheckEmailUC, mockLogoutUC)
+        val viewModel = ProfileViewModel(
+            mockSendEmailUC,
+            mockCheckEmailUC,
+            mockLogoutUC,
+            mockGetAppLanguageUC,
+            mockSetAppLanguageUC,
+            mockLanguageManager
+        )
 
         // When
         viewModel.sendVerificationEmail()
@@ -45,10 +58,20 @@ class ProfileViewModelTests {
         val mockSendEmailUC = mockk<ISendEmailVerificationUC>()
         val mockCheckEmailUC = mockk<ICheckEmailVerifiedUC>()
         val mockLogoutUC = mockk<ILogoutUC>()
+        val mockGetAppLanguageUC = mockk<IGetAppLanguageUC>()
+        val mockSetAppLanguageUC = mockk<ISetAppLanguageUC>()
+        val mockLanguageManager = mockk<LanguageManager>()
 
         coEvery { mockLogoutUC.execute() } returns Resource.success(null)
 
-        val viewModel = ProfileViewModel(mockSendEmailUC, mockCheckEmailUC, mockLogoutUC)
+        val viewModel = ProfileViewModel(
+            mockSendEmailUC,
+            mockCheckEmailUC,
+            mockLogoutUC,
+            mockGetAppLanguageUC,
+            mockSetAppLanguageUC,
+            mockLanguageManager
+        )
 
         // When
         viewModel.logout()

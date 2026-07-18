@@ -13,8 +13,9 @@ enum class Gender {
         GIRL -> context.getString(R.string.text_girl)
     }
 
+    // Вы уже создали DataMigrationHelper, который преобразует старые русские строки в ключи "BOY"/"GIRL" при первом запуске. После миграции все данные в DataStore и Firebase будут хранить только ключи. Поэтому в нормальной работе fromString никогда не получит русское значение. Это правильно и безопасно
     companion object {
-        fun fromString(key: String?): Gender = when (key?.uppercase()) {
+        fun genderFromString(key: String?): Gender = when (key?.uppercase()) {
             "BOY" -> BOY
             "GIRL" -> GIRL
             else -> BOY // или бросить исключение, но для безопасности используем BOY

@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
 import com.foxynest.testappforonboarding.domain.entities.Gender
@@ -134,7 +133,7 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
     private fun subscribeOnLiveData() {
         mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner) { answers ->
-            val genderEnum = Gender.fromString(answers.childGender)
+            val genderEnum = Gender.genderFromString(answers.childGender)
             val textToShow = when (genderEnum) {
                 Gender.BOY -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
                 Gender.GIRL -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)

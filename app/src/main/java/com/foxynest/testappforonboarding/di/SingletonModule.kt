@@ -2,8 +2,16 @@ package com.foxynest.testappforonboarding.di
 
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.AppDatastorePreferences
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
+import com.foxynest.testappforonboarding.data.dataSource.sharedPreferences.AppSharedPreference
+import com.foxynest.testappforonboarding.data.dataSource.sharedPreferences.IAppSharedPreference
+import com.foxynest.testappforonboarding.data.repository.AppLanguageRepository
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
+import com.foxynest.testappforonboarding.domain.iRepository.IAppLanguageRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.GetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.ISetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.SetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.CheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
@@ -96,4 +104,20 @@ abstract class SingletonModule {
     abstract fun bindsUpdateEmailUCInteractor(
         updateEmailUC: UpdateEmailUC
     ): IUpdateEmailUC
+
+    // Language
+    @Binds
+    abstract fun bindsSetAppLanguageInteractor(
+        setAppLanguageUC: SetAppLanguageUC
+    ): ISetAppLanguageUC
+
+    @Binds
+    abstract fun bindsGetAppLanguageInteractor(
+        getAppLanguageUC: GetAppLanguageUC
+    ): IGetAppLanguageUC
+
+    @Binds
+    abstract fun bindsAppLanguageRepository(
+        appLanguageRepository: AppLanguageRepository
+    ): IAppLanguageRepository
 }

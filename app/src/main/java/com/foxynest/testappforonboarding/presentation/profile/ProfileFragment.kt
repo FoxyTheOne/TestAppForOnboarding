@@ -18,6 +18,7 @@ import com.foxynest.testappforonboarding.databinding.FragmentProfileBinding
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.domain.entities.HobbyLocalizer
+import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
@@ -35,6 +36,7 @@ import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialo
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -58,6 +60,9 @@ class ProfileFragment : Fragment() {
     private lateinit var mainViewModel: MainViewModel
     private val profileViewModel by viewModels<ProfileViewModel>()
 
+    // Переменная для метода setupLanguageSwitcher() при выборе radiobutton для избежания вечного цикла
+    private var currentLang: LanguageEnum? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -70,6 +75,8 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setupLanguageSwitcher()
 
         // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
         // So, we need to do this way:
@@ -512,7 +519,7 @@ class ProfileFragment : Fragment() {
         if (user.userName != "null") {
             binding?.textUserNameAnswer?.text = user.userName
 
-            val genderEnum = Gender.fromString(user.childGender)
+            val genderEnum = Gender.genderFromString(user.childGender)
             binding?.textGenderAnswer?.text = genderEnum.getDisplayName(requireContext())
 //            binding?.textGenderAnswer?.text = user.childGender
 
@@ -685,6 +692,83 @@ class ProfileFragment : Fragment() {
             getString(R.string.profile_email_verified_successfully),
             Toast.LENGTH_SHORT
         ).show()
+    }
+
+//    private fun setupLanguageSwitcher() {
+//        lifecycleScope.launch {
+//            profileViewModel.currentLanguageFlow.collect { lang ->
+//                binding?.apply {
+//                    when (lang) {
+//                        LanguageEnum.RU -> rbRussian.isChecked = true
+//                        LanguageEnum.EN -> rbEnglish.isChecked = true
+//                        LanguageEnum.SYSTEM -> rbSystem.isChecked = true
+//                        else -> rbSystem.isChecked = true
+//                    }
+//                }
+//            }
+//        }
+//
+//        binding?.rgLanguage?.setOnCheckedChangeListener { _, checkedId ->
+//            val newLang = when (checkedId) {
+//                R.id.rbSystem -> LanguageEnum.SYSTEM
+//                R.id.rbRussian -> LanguageEnum.RU
+//                R.id.rbEnglish -> LanguageEnum.EN
+//                else -> return@setOnCheckedChangeListener
+//            }
+//            profileViewModel.changeLanguage(newLang)
+//        }
+//
+////        lifecycleScope.launch {
+////            profileViewModel.restartEventFlow.collect {
+////                requireActivity().recreate()
+////            }
+////        }
+//    }
+
+    private fun setupLanguageSwitcher() {
+        var isUpdatingProgrammatically = false
+
+        lifecycleScope.launch {
+            // Сначала получает null, потом вызывается метод getAppLanguageFlow и сюда прилетает последний выбранный язык перед выключением
+            // Так же попадаем сюда при изменении языка в программе, чтобы переставить выбранную кнопку на нужный язык
+            profileViewModel.currentLanguageFlow.collect { lang ->
+                Log.d(TAG, "LANG Updating programmatically: collecting currentLanguageFlow, lang = $lang")
+                isUpdatingProgrammatically = true
+//                Меняем выбранную radio button исходя из отображаемого языка
+                binding?.apply {
+                    when (lang) {
+                        LanguageEnum.RU -> rbRussian.isChecked = true
+                        LanguageEnum.EN -> rbEnglish.isChecked = true
+                        LanguageEnum.SYSTEM -> rbSystem.isChecked = true
+                        else -> rbSystem.isChecked = true
+                    }
+                }
+                currentLang = lang
+                isUpdatingProgrammatically = false
+            }
+        }
+
+        binding?.rgLanguage?.setOnCheckedChangeListener { _, checkedId ->
+            if (isUpdatingProgrammatically) return@setOnCheckedChangeListener
+
+            Log.d(TAG, "LANG Radio button clicked. CurrentLang = $currentLang")
+            val newLang = when (checkedId) {
+                R.id.rbSystem -> LanguageEnum.SYSTEM
+                R.id.rbRussian -> LanguageEnum.RU
+                R.id.rbEnglish -> LanguageEnum.EN
+                else -> return@setOnCheckedChangeListener
+            }
+            Log.d(TAG, "LANG newLang = $newLang")
+
+            // Проверяем, что язык действительно изменился, чтобы избежать цикла
+//            val currentLang = profileViewModel.currentLanguageFlow.value
+            if (newLang != currentLang) {
+                Log.d(TAG, "LANG Changing language to newLang = $newLang")
+                profileViewModel.changeLanguage(newLang)
+                Log.d(TAG, "LANG Changing currentLang to newLang = $newLang")
+                currentLang = newLang
+            }
+        }
     }
 
     // VIEW BINDING -> 3. onDestroyView()

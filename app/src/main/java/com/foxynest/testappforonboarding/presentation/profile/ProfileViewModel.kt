@@ -7,6 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
+import com.foxynest.testappforonboarding.domain.entities.language.LanguageManager
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.ISetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
@@ -16,8 +20,12 @@ import com.foxynest.testappforonboarding.other.Status
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -28,7 +36,10 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val sendEmailVerificationUC: ISendEmailVerificationUC,
     private val checkEmailVerifiedUC: ICheckEmailVerifiedUC,
-    private val logoutUC: ILogoutUC
+    private val logoutUC: ILogoutUC,
+    private val getLanguageUC: IGetAppLanguageUC,
+    private val setLanguageUC: ISetAppLanguageUC,
+    private val languageManager: LanguageManager
 ) : ViewModel() {
     companion object {
         private const val TAG = "ProfileViewModel"
@@ -61,10 +72,25 @@ class ProfileViewModel @Inject constructor(
     private val _logoutStateFlow = MutableStateFlow<Resource<ErrorType>>(Resource.init(null))
     val logoutStateFlow: StateFlow<Resource<ErrorType>> = _logoutStateFlow
 
+    // Language
+    private val _currentLanguageFlow = MutableStateFlow<LanguageEnum?>(null)
+    val currentLanguageFlow: StateFlow<LanguageEnum?> = _currentLanguageFlow.asStateFlow()
+    private val _restartEventFlow = MutableSharedFlow<Unit>()
+    val restartEventFlow: SharedFlow<Unit> = _restartEventFlow.asSharedFlow()
+
     init {
         // Начинаем проверку при создании ViewModel
         startVerificationCheck()
 //        checkEmailVerificationStatus()
+        loadCurrentLanguage()
+    }
+
+    fun changeLanguage(languageCode: LanguageEnum) {
+        viewModelScope.launch {
+            languageManager.setLanguage(languageCode, save = true)
+            // Перезапускаем Activity для применения новой локали (AppCompatDelegate уже делает это)
+            Log.d(TAG, "LANG Вызван метод changeLanguage languageCode = $languageCode")
+        }
     }
 
     fun checkEmailVerificationStatus(force: Boolean = false) {
@@ -230,6 +256,13 @@ class ProfileViewModel @Inject constructor(
 //        verificationCheckJob?.cancel()
 //        verificationCheckJob = null
 //    }
+
+    private fun loadCurrentLanguage() {
+        viewModelScope.launch {
+            val lang = getLanguageUC()
+            _currentLanguageFlow.value = lang
+        }
+    }
 
     private fun startVerificationCheck() {
         // Останавливаем предыдущую проверку, если есть

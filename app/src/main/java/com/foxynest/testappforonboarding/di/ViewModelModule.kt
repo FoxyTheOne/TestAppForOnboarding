@@ -1,9 +1,15 @@
 package com.foxynest.testappforonboarding.di
 
+import com.foxynest.testappforonboarding.data.repository.AppLanguageRepository
 import com.foxynest.testappforonboarding.data.repository.MigrateUserDataRepository
 import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
+import com.foxynest.testappforonboarding.domain.iRepository.IAppLanguageRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IMigrateUserDataRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.GetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.ISetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.SetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginValidateEmailUC
@@ -75,4 +81,19 @@ abstract class ViewModelModule {
     abstract fun bindsMigrateUserDataRepository(
         migrateUserDataRepository: MigrateUserDataRepository
     ): IMigrateUserDataRepository
+
+//    @Binds
+//    abstract fun bindsSetAppLanguageInteractor(
+//        setAppLanguageUC: SetAppLanguageUC
+//    ): ISetAppLanguageUC
+//
+//    @Binds
+//    abstract fun bindsGetAppLanguageInteractor(
+//        getAppLanguageUC: GetAppLanguageUC
+//    ): IGetAppLanguageUC
+//
+//    @Binds
+//    abstract fun bindsAppLanguageRepository(
+//        appLanguageRepository: AppLanguageRepository
+//    ): IAppLanguageRepository
 }

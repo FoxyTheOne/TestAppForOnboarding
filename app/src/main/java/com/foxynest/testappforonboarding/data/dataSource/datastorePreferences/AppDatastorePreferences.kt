@@ -6,12 +6,14 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.DATASTORE_NAME
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -21,7 +23,6 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
 
     // Делегат для создания DataStore
     private val Context.dataStore by preferencesDataStore(DATASTORE_NAME)
-
     private val gson = Gson()
 
     // Ключи для онбординга
@@ -34,6 +35,9 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
 
         // ЕДИНСТВЕННЫЙ ключ для всех ответов онбординга
         val ONBOARDING_ANSWERS = stringPreferencesKey("onboarding_answers_json")
+
+        // Переключение языка
+        val APP_LANGUAGE = stringPreferencesKey("app_language")
     }
 
     // Сохраняем весь объект целиком
@@ -95,4 +99,15 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
             prefs[PreferencesKeys.DATA_SCHEMA_VERSION] = version
         }
     }
+
+    // Переключение языка
+    override suspend fun saveAppLanguage(languageCode: LanguageEnum) {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.APP_LANGUAGE] = languageCode.toString().lowercase()
+        }
+    }
+
+    override fun getAppLanguageFlow(): Flow<String> = context.dataStore.data
+        .map { prefs -> prefs[PreferencesKeys.APP_LANGUAGE] ?: "system" }
+        .catch { emit("system") } // на случай ошибки
 }

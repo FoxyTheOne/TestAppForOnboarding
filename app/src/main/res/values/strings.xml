@@ -108,6 +108,11 @@
     <string name="profile_toast_data_updating_error">Data not saved. You can try again later</string>
     <string name="profile_email_verification_send">Email verification sent. Please check your inbox</string>
     <string name="profile_email_verified_successfully">Email successfully verified!</string>
+    <string name="profile_language_settings">Language</string>
+    <string name="profile_lang_system">System</string>
+    <string name="profile_lang_en">English</string>
+    <string name="profile_lang_ru">Русский</string>
+    <string name="profile_restart_to_apply_language">Restart app to apply language change</string>
 
     <!-- Home -->
     <string name="home_title">Home</string>

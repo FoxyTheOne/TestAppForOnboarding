@@ -90,47 +90,47 @@ class Question1Fragment : BaseOnboardingFragment() {
 //                checkedRadioButtonId?.let {
 //                    val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
 
-                    val selectedGender = when (checkedRadioButtonId) {
-                        R.id.gender_answer_boy -> Gender.BOY.name
-                        R.id.gender_answer_girl -> Gender.GIRL.name
-                        else -> null
-                    }
+                val selectedGender = when (checkedRadioButtonId) {
+                    R.id.gender_answer_boy -> Gender.BOY.name
+                    R.id.gender_answer_girl -> Gender.GIRL.name
+                    else -> null
+                }
 
-                    // Используем единый метод обновления
-                    mainViewModel.updateOnboardingAnswers { answers ->
-                        answers.copy(
-                            userName = userNameAnswer,
+                // Используем единый метод обновления
+                mainViewModel.updateOnboardingAnswers { answers ->
+                    answers.copy(
+                        userName = userNameAnswer,
 //                            childGender = selectedRadioButton?.text.toString(),
-                            childGender = selectedGender ?: Gender.BOY.name,
-                            childName = childNameAnswer
+                        childGender = selectedGender ?: Gender.BOY.name,
+                        childName = childNameAnswer
+                    )
+                }
+
+                when {
+                    radioGenderAnswerBoy?.isChecked == true -> {
+                        // Передаем аргумент при навигации на Question2Fragment
+                        val args = Bundle().apply {
+                            putString("source_fragment", sourceFragment)
+                        }
+                        safeNavigate(
+                            R.id.navigation_question1,
+                            R.id.action_navigation_question1_to_question2Fragment,
+                            args
                         )
                     }
 
-                    when {
-                        radioGenderAnswerBoy?.isChecked == true -> {
-                            // Передаем аргумент при навигации на Question2Fragment
-                            val args = Bundle().apply {
-                                putString("source_fragment", sourceFragment)
-                            }
-                            safeNavigate(
-                                R.id.navigation_question1,
-                                R.id.action_navigation_question1_to_question2Fragment,
-                                args
-                            )
+                    radioGenderAnswerGirl?.isChecked == true -> {
+                        // Передаем аргумент при навигации на Question3Fragment
+                        val args = Bundle().apply {
+                            putString("source_fragment", sourceFragment)
                         }
-
-                        radioGenderAnswerGirl?.isChecked == true -> {
-                            // Передаем аргумент при навигации на Question3Fragment
-                            val args = Bundle().apply {
-                                putString("source_fragment", sourceFragment)
-                            }
-                            safeNavigate(
-                                R.id.navigation_question1,
-                                R.id.action_navigation_question1_to_navigation_question3,
-                                args
-                            )
-                        }
+                        safeNavigate(
+                            R.id.navigation_question1,
+                            R.id.action_navigation_question1_to_navigation_question3,
+                            args
+                        )
                     }
+                }
 //                }
 
             }

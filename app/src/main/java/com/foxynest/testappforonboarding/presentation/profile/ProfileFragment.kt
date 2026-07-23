@@ -36,7 +36,6 @@ import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialo
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -526,13 +525,6 @@ class ProfileFragment : Fragment() {
             binding?.textGenderAnswerIsItABoy?.text = user.isItABoy
             binding?.textChildNameAnswer?.text = user.childName
             // HOBBY
-//            val hobbies = user.childHobbies
-//            if (hobbies.isNotBlank()) {
-//                val hobbiesList = hobbies.split(HOBBIES_DELIMITER)
-//                binding?.textHobbyAnswer?.text = hobbiesList.joinToString("\n")
-//            } else {
-//                binding?.textHobbyAnswer?.text = ""
-//            }
             val hobbiesKeys = user.childHobbies.split(HOBBIES_DELIMITER)
             val hobbyDisplayNames =
                 hobbiesKeys.map { HobbyLocalizer.getDisplayName(requireContext(), it) }
@@ -543,11 +535,6 @@ class ProfileFragment : Fragment() {
             binding?.textChildAgeAnswer?.text = if (age >= 0) age.toString() else ""
 
             // ФОРМАТИРУЕМ дату для красивого отображения
-//            binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(
-//                user.childBirthDate,
-//                getString(R.string.localization)
-//            )
-
             binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(
                 user.childBirthDate,
                 requireContext()
@@ -556,7 +543,7 @@ class ProfileFragment : Fragment() {
             // Email для входа
             binding?.textAuthEmailAnswer?.text = user.authEmail
 
-//            // Показываем/скрываем почту и кнопку верификации в зависимости от статуса email
+            // Показываем/скрываем почту и кнопку верификации в зависимости от статуса email
             if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
                 showLogOutButtons(false)
             } else {
@@ -694,37 +681,6 @@ class ProfileFragment : Fragment() {
         ).show()
     }
 
-//    private fun setupLanguageSwitcher() {
-//        lifecycleScope.launch {
-//            profileViewModel.currentLanguageFlow.collect { lang ->
-//                binding?.apply {
-//                    when (lang) {
-//                        LanguageEnum.RU -> rbRussian.isChecked = true
-//                        LanguageEnum.EN -> rbEnglish.isChecked = true
-//                        LanguageEnum.SYSTEM -> rbSystem.isChecked = true
-//                        else -> rbSystem.isChecked = true
-//                    }
-//                }
-//            }
-//        }
-//
-//        binding?.rgLanguage?.setOnCheckedChangeListener { _, checkedId ->
-//            val newLang = when (checkedId) {
-//                R.id.rbSystem -> LanguageEnum.SYSTEM
-//                R.id.rbRussian -> LanguageEnum.RU
-//                R.id.rbEnglish -> LanguageEnum.EN
-//                else -> return@setOnCheckedChangeListener
-//            }
-//            profileViewModel.changeLanguage(newLang)
-//        }
-//
-////        lifecycleScope.launch {
-////            profileViewModel.restartEventFlow.collect {
-////                requireActivity().recreate()
-////            }
-////        }
-//    }
-
     private fun setupLanguageSwitcher() {
         var isUpdatingProgrammatically = false
 
@@ -732,7 +688,10 @@ class ProfileFragment : Fragment() {
             // Сначала получает null, потом вызывается метод getAppLanguageFlow и сюда прилетает последний выбранный язык перед выключением
             // Так же попадаем сюда при изменении языка в программе, чтобы переставить выбранную кнопку на нужный язык
             profileViewModel.currentLanguageFlow.collect { lang ->
-                Log.d(TAG, "LANG Updating programmatically: collecting currentLanguageFlow, lang = $lang")
+                Log.d(
+                    TAG,
+                    "LANG Updating programmatically: collecting currentLanguageFlow, lang = $lang"
+                )
                 isUpdatingProgrammatically = true
 //                Меняем выбранную radio button исходя из отображаемого языка
                 binding?.apply {

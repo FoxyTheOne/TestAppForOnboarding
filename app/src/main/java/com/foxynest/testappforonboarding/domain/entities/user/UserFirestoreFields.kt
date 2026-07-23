@@ -20,7 +20,6 @@ object UserFirestoreFields {
     const val CHILD_GENDER = "childGender"
     const val CHILD_IS_IT_A_BOY = "childIsItABoy"
     const val CHILD_NAME = "childName"
-//    const val CHILD_HOBBY = "childHobby"
     const val CHILD_HOBBIES = "childHobbies"
     const val CHILD_BIRTH_DATE = "childBirthDate"
     const val CREATED_AT = "createdAt"

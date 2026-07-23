@@ -51,7 +51,7 @@ class MainViewModel @Inject constructor(
     }
 
     // ONBOARDING
-    // ЕДИНСТВЕННАЯ LiveData для всех ответов
+    // ЕДИНАЯ LiveData для всех ответов
     private val _onboardingAnswersLiveData = MutableLiveData<OnboardingAnswers>(OnboardingAnswers())
     val onboardingAnswersLiveData: LiveData<OnboardingAnswers> = _onboardingAnswersLiveData
 
@@ -169,12 +169,6 @@ class MainViewModel @Inject constructor(
                     onboardingUC.saveOnboardingAnswers(backup)
                     onboardingBackup = null
                 }
-                // Если бэкапа нет – ничего не восстанавливаем, значит данных и не было
-//                ?: run {
-//                Log.d(TAG, "No backup to restore")
-//                // Если бэкапа нет, перезагружаем из DataStore
-//                loadOnboardingData()
-//            }
             } catch (e: Exception) {
                 Log.e(TAG, "Error cancelling onboarding", e)
                 _errorMessageLiveData.postValue(
@@ -207,7 +201,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 onboardingUC.saveOnboardingState(false)
-//                onboardingUC.saveOnboardingAnswers(OnboardingAnswers())  // очищаем
                 onboardingUC.clearAllOnboardingData()
                 _checkedUserInfo.value = Resource.init(null)
             } catch (e: Exception) {
@@ -382,50 +375,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    // Запустить метод для получения этих данных можно, когда открывается PAYWALL FRAGMENT - в этот момент опрос уже точно пройден
-//    fun getAnswersFromOnboardingSaveToFirebaseAndUse() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            Log.d(TAG, "=== SAVE TO FIREBASE ===")
-//
-//            // Проверим, осуществлён ли вход
-//            val currentUser = getCurrentUserUC.execute().data
-//
-////            // ЗАГРУЖАЕМ ДАННЫЕ ИЗ DATASTORE ВСЕ СРАЗУ (синхронно) и кладём их в LiveData
-////            loadDataFromDatastore()
-//
-//            // Сохранение в firebase только если осуществлён ли вход, чтобы обновить поля
-//            if (currentUser != null) {
-//                // Создаём UserPresentation на основе пройденного опроса
-//                val updatedUser = answers.createUpdatedUserFromAnswersInViewModel(currentUser)
-//
-//                // Проверяем, что данные не пустые перед сохранением в Firebase
-//                val hasDataToSave = updatedUser.isUserDataValid()
-//
-//                if (hasDataToSave) {
-//                    // Если всё хорошо - сохранение данных в firestore и в _profileUpdatedLiveData
-//                    Log.d(TAG, "Saving valid user data to Firebase: $updatedUser")
-//                    _profileUpdatedLiveData.postValue(updateProfileUC.execute(updatedUser))
-//                } else {
-//                    Log.w(
-//                        TAG,
-//                        "No valid data to save to Firebase - skipping update. User: $updatedUser"
-//                    )
-//                    // Можно показать уведомление пользователю
-//                    _errorMessageLiveData.postValue(
-//                        MyEvent(
-//                            Resource.error(
-//                                "Не все обязательные поля заполнены",
-//                                ErrorType.FIELD_EMPTY_ERROR
-//                            )
-//                        )
-//                    )
-//                }
-//            } else {
-//                Log.d(TAG, "User not logged in - skipping Firebase save")
-//            }
-//        }
-//    }
-
     /**
      * OTHER
      */
@@ -438,130 +387,6 @@ class MainViewModel @Inject constructor(
     /**
      * PRIVATE METHODS
      */
-//    private suspend fun getCurrentAnswersForBackup(): OnboardingAnswers? {
-//        Log.d(TAG, "getCurrentAnswersForBackup called")
-//
-//        // TODO проверить логику
-//        // Проверяем, авторизован ли пользователь
-//        val currentUser = getCurrentUserUC.execute().data
-//        Log.d(TAG, "Current user is null: ${currentUser == null}")
-//
-//        // Сохранять только не пустые данные
-//        val backupAnswers = if (currentUser != null) {
-//            // Если пользователь авторизован - берем данные из Firebase
-//            // Проверяем, есть ли реальные данные
-//            if (currentUser.isUserDataValid()) {
-//                Log.d(TAG, "Creating backup from Firebase user")
-//                OnboardingAnswers(
-//                    userName = currentUser.userName,
-//                    childGender = currentUser.childGender,
-//                    isItABoy = currentUser.isItABoy,
-//                    childName = currentUser.childName,
-//                    childBirthDate = currentUser.childBirthDate,
-//                    childHobbies = currentUser.childHobbies
-//                )
-//            } else {
-//                Log.d(TAG, "Firebase user has no valid data, returning null")
-//                null
-//            }
-//        } else {
-//            // Если не авторизован - собираем из DataStore
-//            Log.d(TAG, "Creating backup from DataStore")
-//
-//            // Собираем только непустые данные
-//            val answersMap = mutableMapOf<String, String>()
-//            var hasValidData = false
-//
-//            // Используем маппинги
-//            answerMappings.forEach { mapping ->
-//                val value = mapping.getter() ?: mapping.defaultValue
-//                // Сохраняем только если значение непустое и не равно defaultValue для строковых полей
-//                val shouldSave = when {
-//                    // для IS_IT_A_BOY_ANSWER
-//                    mapping.answerName == AnswerNames.IS_IT_A_BOY_ANSWER ->
-//                        value != "Нет" && value.isNotBlank()
-//                    // Для остальных ответов
-//                    else -> value.isNotBlank()
-//                }
-//
-//                // shouldSave = true значит значения не дефолтные
-//                if (shouldSave) {
-//                    answersMap[mapping.answerName.toString()] = value
-//                    hasValidData = true
-//                    Log.d(TAG, "${mapping.answerName}: $value - WILL SAVE")
-//                } else {
-//                    Log.d(TAG, "${mapping.answerName}: $value - SKIP")
-//                }
-//            }
-//
-//            if (hasValidData) {
-//                Log.d(TAG, "Creating backup from answersMap")
-//                answersMap.createOnboardingAnswersFromMap()
-//            } else {
-//                Log.d(TAG, "No valid data in DataStore for backup")
-//                null
-//            }
-//
-////            answerMappings.forEach { mapping ->
-////                val value = mapping.getter() ?: mapping.defaultValue
-////                answersMap[mapping.answerName.toString()] = value
-////                Log.d(TAG, "${mapping.answerName}: $value")
-////            }
-////
-////            // Также загружаем из существующих LiveData для надежности
-////            val currentLiveData = _onboardingAnswersLiveData.value
-////            if (currentLiveData != null && currentLiveData != OnboardingAnswers()) {
-////                // Если в LiveData уже есть данные, используем их
-////                Log.d(TAG, "Using data from LiveData")
-////                currentLiveData
-////            } else {
-////                Log.d(TAG, "Creating from answersMap")
-////                answersMap.createOnboardingAnswersFromMap()
-////            }
-//        }
-//
-//        Log.d(TAG, "Backup created: ${backupAnswers != null}")
-//        return backupAnswers
-//    }
-
-    /**
-     * Сюда добавляем новые ответы
-     */
-//    private fun updateAnswersMapFromBackup(backup: OnboardingAnswers) {
-//        _answers.clear()
-//        _answers[AnswerNames.USER_NAME_ANSWER.toString()] = backup.userName
-//        _answers[AnswerNames.CHILD_GENDER_ANSWER.toString()] = backup.childGender
-//        _answers[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] = backup.isItABoy
-//        _answers[AnswerNames.CHILD_NAME_ANSWER.toString()] = backup.childName
-//        _answers[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] = backup.childBirthDate
-//        _answers[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] = backup.childHobbies
-//    }
-
-//    // Добавим extension функцию для конвертации Map в OnboardingAnswers
-//    private fun Map<String, String>.createOnboardingAnswersFromMap(): OnboardingAnswers {
-//        return OnboardingAnswers(
-//            userName = this[AnswerNames.USER_NAME_ANSWER.toString()] ?: "",
-//            childGender = this[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: "",
-//            isItABoy = this[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: "",
-//            childName = this[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: "",
-//            childBirthDate = this[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: "",
-//            childHobbies = this[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] ?: ""
-//        )
-//    }
-
-    // Изменяем метод загрузки данных при старте
-//    private fun loadOnboardingDataOnStart() {
-//        viewModelScope.launch(dispatcher) {
-//            // Загружаем данные только если пользователь не зарегистрирован
-//            // Это предотвращает перезапись данных из Firebase
-//            val currentUser = getCurrentUserUC.execute().data
-//
-//            if (currentUser == null) {
-//                loadDataFromDatastore()
-//            }
-//            _onboardingDataLoaded.postValue(true)
-//        }
-//    }
     // Загрузка данных из DataStore при старте
     private fun loadOnboardingDataOnStart() {
         viewModelScope.launch {

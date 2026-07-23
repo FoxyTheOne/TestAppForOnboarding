@@ -15,10 +15,8 @@ import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
 import java.util.TimeZone
 
 @AndroidEntryPoint
@@ -155,16 +153,6 @@ class Question3Fragment : BaseOnboardingFragment() {
 
         datePicker.show(childFragmentManager, "DATE_PICKER")
     }
-
-//    private fun onDateSelected(selectedDateMillis: Long) {
-//        // Форматируем для отображения (день.месяц.год)
-//        val displayFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-//        val displayDate = displayFormatter.format(Date(selectedDateMillis))
-//        binding?.editTextBirthDate?.setText(displayDate)
-//
-//        // Сразу рассчитываем и отображаем возраст
-//        calculateAndDisplayAge(Date(selectedDateMillis))
-//    }
 
     private fun onDateSelected(selectedDateMillis: Long) {
         // Форматируем для отображения (день.месяц.год)

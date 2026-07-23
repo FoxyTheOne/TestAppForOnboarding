@@ -95,7 +95,8 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _loginStateFlow.value = Resource.loading(null)
 
-            val result = loginUC.execute(currentState.email.lowercase().trim(), currentState.password)
+            val result =
+                loginUC.execute(currentState.email.lowercase().trim(), currentState.password)
             _loginStateFlow.value = result
 
             // ДОБАВЛЯЕМ: Обновляем состояние формы при ошибке

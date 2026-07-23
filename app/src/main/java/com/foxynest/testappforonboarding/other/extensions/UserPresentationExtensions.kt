@@ -11,40 +11,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 
-// Extension функции для UserPresentation
-//fun FirebaseUser.toUserPresentation(
-//    firebaseUid: String,
-//    firebaseEmail: String,
-//    firebaseIsEmailVerified: Boolean,
-//    firebaseUserName: String,
-//    firebaseChildGender: String,
-//    firebaseIsItABoy: String,
-//    firebaseChildName: String,
-//    firebaseChildHobby: String,
-//    firebaseChildBirthDate: String
-//): UserPresentation = UserPresentation(
-//    firebaseUid,
-//    firebaseEmail,
-//    firebaseIsEmailVerified,
-//    firebaseUserName,
-//    firebaseChildGender,
-//    firebaseChildName,
-//    firebaseChildHobby,
-//    firebaseIsItABoy,
-//    firebaseChildBirthDate
-//)
-
-//fun UserPresentation.toFirestoreMap(): Map<String, Any> {
-//    return mapOf(
-//        UserFirestoreFields.EMAIL to this.email.lowercase().trim(),
-//        UserFirestoreFields.USERNAME to this.userName,
-//        UserFirestoreFields.CHILD_GENDER to this.childGender,
-//        UserFirestoreFields.CHILD_IS_IT_A_BOY to this.isItABoy,
-//        UserFirestoreFields.CHILD_NAME to this.childName,
-//        UserFirestoreFields.CHILD_HOBBY to this.childHobby,
-//        UserFirestoreFields.CHILD_BIRTH_DATE to this.childBirthDate
-//    )
-//}
 fun UserPresentation.toFirestoreMap(): Map<String, Any> {
     return mapOf(
         UserFirestoreFields.USERNAME to this.userName,
@@ -69,19 +35,6 @@ fun UserPresentation.toFirestoreMapWithCreationTimestamp(): Map<String, Any> {
 }
 
 // Extension функция для DocumentSnapshot
-//fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresentation {
-//    return UserPresentation(
-//        uid = firebaseUser.uid,
-//        email = getString(UserFirestoreFields.EMAIL) ?: firebaseUser.email ?: "",
-//        isEmailVerified = firebaseUser.isEmailVerified,
-//        userName = getString(UserFirestoreFields.USERNAME) ?: "",
-//        childGender = getString(UserFirestoreFields.CHILD_GENDER) ?: "",
-//        isItABoy = getString(UserFirestoreFields.CHILD_IS_IT_A_BOY) ?: "",
-//        childName = getString(UserFirestoreFields.CHILD_NAME) ?: "",
-//        childHobby = getString(UserFirestoreFields.CHILD_HOBBY) ?: "",
-//        childBirthDate = getString(UserFirestoreFields.CHILD_BIRTH_DATE) ?: ""
-//    )
-//}
 fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresentation {
     return UserPresentation(
         uid = firebaseUser.uid,
@@ -125,12 +78,4 @@ fun Map<String, String>.createUpdatedUserFromAnswersInViewModel(currentUser: Use
         childHobbies = this[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] ?: "",
         childBirthDate = this[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: ""
     )
-//    return currentUser.copy(
-//        userName = this[AnswerNames.USER_NAME_ANSWER.toString()] ?: currentUser.userName,
-//        childGender = this[AnswerNames.CHILD_GENDER_ANSWER.toString()] ?: currentUser.childGender,
-//        isItABoy = this[AnswerNames.IS_IT_A_BOY_ANSWER.toString()] ?: currentUser.isItABoy,
-//        childName = this[AnswerNames.CHILD_NAME_ANSWER.toString()] ?: currentUser.childName,
-//        childHobbies = this[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] ?: currentUser.childHobbies,
-//        childBirthDate = this[AnswerNames.CHILD_BIRTH_DATE_ANSWER.toString()] ?: currentUser.childBirthDate
-//    )
 }

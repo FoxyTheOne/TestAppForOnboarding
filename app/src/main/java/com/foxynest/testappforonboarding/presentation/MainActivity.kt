@@ -33,7 +33,9 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
 
-        // Список фрагментов онбординга, где кнопка назад должна быть заблокирована
+        /**
+         * Список фрагментов онбординга, где кнопка назад должна быть заблокирована
+         */
         private val ONBOARDING_FRAGMENTS = setOf(
             R.id.navigation_welcome,
             R.id.navigation_login,
@@ -45,7 +47,9 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // Список основных фрагментов приложения, где кнопка назад должна показывать диалог выхода
+    /**
+     * Список основных фрагментов приложения, где кнопка назад должна показывать диалог выхода
+     */
     private val mainAppFragments = setOf(
         R.id.navigation_home,
         R.id.navigation_profile,
@@ -85,7 +89,9 @@ class MainActivity : AppCompatActivity() {
 //        mainViewModel.getAndUseAnswersFromOnboarding()
         mainViewModel.checkLoggedInStateGetUser() // -> проверяем в каждом фрагменте отдельно (home, profile, info)
 
-        // Регистрируем обработчик кнопки "Назад"
+        /**
+         * Регистрируем обработчик кнопки "Назад"
+         */
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val currentDestination = navController.currentDestination?.id
@@ -110,8 +116,8 @@ class MainActivity : AppCompatActivity() {
 
                     else -> {
                         // Для остальных случаев - стандартное поведение (выход из Activity или навигация назад)
-                        // Если фрагментов нет или это корневой экран - закрываем Activity
                         if (supportFragmentManager.backStackEntryCount == 0 && navController.graph.startDestinationId == currentDestination) {
+                            // Если фрагментов нет или это корневой экран - закрываем Activity
                             finish()
                         } else {
                             navController.navigateUp()
@@ -272,28 +278,6 @@ class MainActivity : AppCompatActivity() {
         setupContentPadding()
     }
 
-//    override fun onBackPressed() {
-//        val currentDestination = navController.currentDestination?.id
-//
-//        when {
-//            currentDestination in ONBOARDING_FRAGMENTS -> {
-//                // Запрещаем возврат в онбординге
-//                return
-//            }
-//
-//            currentDestination in mainAppFragments -> {
-//                // Показываем диалог подтверждения выхода
-//                showQuitDialog()
-//                return
-//            }
-//
-//            else -> {
-//                // Для остальных случаев - стандартное поведение
-//                super.onBackPressed()
-//            }
-//        }
-//    }
-
     /**
      * DIALOGS
      */
@@ -341,22 +325,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
-
-//    // Делаем смену языка мгновенной
-//    override fun onConfigurationChanged(newConfig: Configuration) {
-//        super.onConfigurationChanged(newConfig)
-//        // Здесь можно обновить тексты в текущем фрагменте или во всей Activity
-//        binding?.navView?.menu?.findItem(0)?.setTitle(R.string.profile_title)
-//        binding?.navView?.menu?.findItem(1)?.setTitle(R.string.home_title)
-//        binding?.navView?.menu?.findItem(2)?.setTitle(R.string.info_title)
-//
-//        // Также можно оповестить фрагменты о необходимости обновить UI
-//        supportFragmentManager.fragments.forEach { fragment ->
-//            if (fragment is ProfileFragment) {
-//                fragment.onLanguageChanged()
-//            }
-//        }
-//    }
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroy() {

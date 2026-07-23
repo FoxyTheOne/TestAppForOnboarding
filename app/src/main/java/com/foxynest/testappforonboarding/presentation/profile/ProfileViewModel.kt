@@ -96,19 +96,6 @@ class ProfileViewModel @Inject constructor(
     fun checkEmailVerificationStatus(force: Boolean = false) {
         if (isChecking && !force) return
 
-//        viewModelScope.launch {
-////            _isEmailVerified.value = checkEmailVerifiedUC.execute()
-//
-//            val isVerified = checkEmailVerifiedUC.execute()
-//            if (_isEmailVerified.value != isVerified) {
-//                _isEmailVerified.value = isVerified
-//                Log.d(TAG, "Email verification status changed: $isVerified")
-//            }
-//            if (!_isEmailVerified.value) {
-//                startPeriodicVerificationCheck()
-//            }
-//        }
-
         viewModelScope.launch {
             isChecking = true
             try {
@@ -156,12 +143,6 @@ class ProfileViewModel @Inject constructor(
                     // Запускаем интенсивную проверку на 2 минуты
                     startIntensiveVerificationCheck()
 
-//                    // Блокируем кнопку на 60 секунд
-//                    delay(60000)
-//
-//                    _isVerificationButtonEnabled.value = true
-//                    _isEmailVerificationSent.value = false
-
                     // Блокируем кнопку на 60 секунд
                     launch {
                         delay(BUTTON_BLOCK_DURATION)
@@ -184,29 +165,6 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
-
-//    fun formatBirthDateForDisplay(birthDateString: String, localization: String): String {
-//        if (birthDateString.isBlank()) return ""
-//
-//        return try {
-//            // Парсим из формата хранения (yyyy-MM-dd)
-//            val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-//            val date = inputFormatter.parse(birthDateString)
-//
-//            if (date != null) {
-//                // Форматируем для отображения (19 мая 2020)
-//                val outputFormatter =
-//                    SimpleDateFormat("d MMMM yyyy", Locale(localization))
-//                outputFormatter.format(date)
-//            } else {
-//                Log.e(TAG, "Error formatting birth date: $birthDateString, date = null")
-//                birthDateString // Возвращаем оригинальную строку в случае ошибки
-//            }
-//        } catch (e: Exception) {
-//            Log.e(TAG, "Error formatting birth date: $birthDateString", e)
-//            birthDateString // Возвращаем оригинальную строку в случае ошибки
-//        }
-//    }
 
     fun formatBirthDateForDisplay(dateString: String, context: Context): String {
         if (dateString.isBlank()) return ""
@@ -240,23 +198,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-//    private fun startPeriodicVerificationCheck() {
-//        stopPeriodicVerificationCheck()
-//
-//        verificationCheckJob = viewModelScope.launch {
-//            while (isActive) {
-//                if (_isEmailVerified.value) return@launch
-//                checkEmailVerificationStatus()
-//                delay(VERIFICATION_CHECK_INTERVAL)
-//            }
-//        }
-//    }
-//
-//    private fun stopPeriodicVerificationCheck() {
-//        verificationCheckJob?.cancel()
-//        verificationCheckJob = null
-//    }
-
     private fun loadCurrentLanguage() {
         viewModelScope.launch {
             val lang = getLanguageUC()
@@ -283,26 +224,6 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
-
-
-//    private fun startIntensiveVerificationCheck() {
-//        viewModelScope.launch {
-//            // Первые 2 минуты проверяем каждые 3 секунды
-//            repeat(40) { // 120 секунд / 3 = 40 раз
-//                delay(3000L)
-//                checkEmailVerificationStatus()
-//
-//                // Если email подтверждён, останавливаем проверку
-//                if (_isEmailVerified.value) {
-//                    return@launch
-//                }
-//            }
-//
-//            // Возвращаемся к обычной проверке
-//            _isVerificationButtonEnabled.value = true
-//            _isEmailVerificationSent.value = false
-//        }
-//    }
 
     private fun startIntensiveVerificationCheck() {
         intensiveCheckEndTime = System.currentTimeMillis() + INTENSIVE_CHECK_DURATION

@@ -17,7 +17,7 @@ import javax.inject.Inject
  *
  * We need use cases because they are an excellent way to follow the single responsibility principle.
  * So we have a class for every single bit of logic we have in our project.
- * Typically each use case consists of just one function which executes that use case (which validates the email for instance)
+ * Typically, each use case consists of just one function which executes that use case (which validates the email for instance)
  */
 class UpdateProfileUC @Inject constructor(
     private val authRepository: AuthRepository

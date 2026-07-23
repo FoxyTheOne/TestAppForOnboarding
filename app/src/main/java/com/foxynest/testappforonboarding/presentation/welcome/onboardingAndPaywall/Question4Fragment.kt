@@ -37,17 +37,6 @@ class Question4Fragment : BaseOnboardingFragment() {
         restoreSelectedHobbies()
     }
 
-//    private fun initChips() {
-//        val hobbiesArray = resources.getStringArray(R.array.hobbies_array)
-//        hobbiesArray.forEach { hobby ->
-//            val chip =
-//                layoutInflater.inflate(R.layout.item_chip, binding?.chipGroupHobbies, false) as Chip
-//            chip.text = hobby
-//            chip.isCheckable = true
-//            binding?.chipGroupHobbies?.addView(chip)
-//        }
-//    }
-
     private fun initChips() {
         val hobbyKeys = resources.getStringArray(R.array.hobbies_array)
         hobbyKeys.forEach { key ->
@@ -61,21 +50,6 @@ class Question4Fragment : BaseOnboardingFragment() {
     }
 
     private fun restoreSelectedHobbies() {
-//        val savedHobbies = mainViewModel.answers[AnswerNames.CHILD_HOBBIES_ANSWER.toString()] ?: ""
-
-//        val savedHobbies = mainViewModel.onboardingAnswersLiveData.value?.childHobbies ?: ""
-//        if (savedHobbies.isNotBlank()) {
-//            val selectedList = savedHobbies.split(CommonConstants.HOBBIES_DELIMITER)
-//            for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
-//                val chip = binding?.chipGroupHobbies?.getChildAt(i) as? Chip
-//                chip?.let {
-//                    if (it.text.toString() in selectedList) {
-//                        it.isChecked = true
-//                    }
-//                }
-//            }
-//        }
-
         val savedHobbies = mainViewModel.onboardingAnswersLiveData.value?.childHobbies ?: ""
         if (savedHobbies.isNotBlank()) {
             val selectedKeys = savedHobbies.split(CommonConstants.HOBBIES_DELIMITER)
@@ -123,15 +97,6 @@ class Question4Fragment : BaseOnboardingFragment() {
     }
 
     private fun getSelectedHobbies(): List<String> {
-//        val selected = mutableListOf<String>()
-//        for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
-//            val chip = binding?.chipGroupHobbies?.getChildAt(i) as? Chip
-//            if (chip?.isChecked == true) {
-//                chip.text?.toString()?.let { selected.add(it) }
-//            }
-//        }
-//        return selected
-
         val selectedKeys = mutableListOf<String>()
         for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
             val chip = binding?.chipGroupHobbies?.getChildAt(i) as? Chip

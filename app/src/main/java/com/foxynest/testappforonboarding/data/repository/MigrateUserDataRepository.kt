@@ -16,11 +16,6 @@ class MigrateUserDataRepository @Inject constructor(
         private const val CURRENT_SCHEMA_VERSION = 1
     }
 
-//    override suspend fun migrateIfNeeded() {
-//        migrateLocalData()
-//        migrateFirebaseDataIfNeeded()
-//    }
-
     override suspend fun migrateIfNeeded() {
         val currentVersion = localDataStore.getSchemaVersion()
         if (currentVersion >= CURRENT_SCHEMA_VERSION) {

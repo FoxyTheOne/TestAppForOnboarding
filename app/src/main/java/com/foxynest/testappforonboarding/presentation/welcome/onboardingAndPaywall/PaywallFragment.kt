@@ -117,11 +117,17 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
     private fun initListeners() {
         binding?.imageClose?.setOnClickListener {
-            safeNavigate(R.id.navigation_paywall, R.id.action_navigation_paywall_to_navigation_profile)
+            safeNavigate(
+                R.id.navigation_paywall,
+                R.id.action_navigation_paywall_to_navigation_profile
+            )
         }
 
         binding?.buttonGoToProfile?.setOnClickListener {
-            safeNavigate(R.id.navigation_paywall, R.id.action_navigation_paywall_to_navigation_profile)
+            safeNavigate(
+                R.id.navigation_paywall,
+                R.id.action_navigation_paywall_to_navigation_profile
+            )
         }
 
         binding?.buttonPaywall?.setOnClickListener {
@@ -134,16 +140,13 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
     private fun subscribeOnLiveData() {
         mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner) { answers ->
             val genderEnum = Gender.genderFromString(answers.childGender)
-            val textToShow = when (genderEnum) {
-                Gender.BOY -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
-                Gender.GIRL -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)
-            }
+            when (genderEnum) {
+                Gender.BOY -> binding?.textPaywallAppeal?.text =
+                    getString(R.string.paywall_boy_text)
 
-//            when (answers.childGender) {
-//                "Мальчик" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_boy_text)
-//                "Девочка" -> binding?.textPaywallAppeal?.text = getString(R.string.paywall_girl_text)
-//                else -> Unit
-//            }
+                Gender.GIRL -> binding?.textPaywallAppeal?.text =
+                    getString(R.string.paywall_girl_text)
+            }
         }
 
         // TODO Повторить бы то же самое в профиле - вдруг этот фрагмент уже будет закрыт. Но там нет связи с этой LiveData
@@ -166,7 +169,11 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
                 },
                 negativeAction = {
                     // Пользователь отменил
-                    Toast.makeText(requireContext(), R.string.local_onboarding_saving_error_toast, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.local_onboarding_saving_error_toast,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             )
             .show(parentFragmentManager, ConfirmOnboardingRestartDialog.TAG)

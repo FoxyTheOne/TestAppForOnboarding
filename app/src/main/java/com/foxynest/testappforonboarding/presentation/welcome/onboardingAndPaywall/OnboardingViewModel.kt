@@ -48,7 +48,9 @@ class OnboardingViewModel @Inject constructor(
     val errorMessageLiveData: LiveData<MyEvent<Resource<Boolean>>> =
         _errorMessageLiveData // And another LiveData, that equals to previous, so that classes can't change it
 
-    // Карта зависимостей для очистки ответов
+    /**
+     * Карта зависимостей для очистки ответов
+     */
     private val dependentAnswers = mutableMapOf<Int, List<AnswerNames>>().apply {
         // Если возвращаемся на Question1, очищаем ответы Question2 и Question3
         put(
@@ -65,9 +67,11 @@ class OnboardingViewModel @Inject constructor(
                 AnswerNames.CHILD_HOBBIES_ANSWER
             )
         )
-        put(R.id.navigation_question3, listOf(
-            AnswerNames.CHILD_HOBBIES_ANSWER
-        ))
+        put(
+            R.id.navigation_question3, listOf(
+                AnswerNames.CHILD_HOBBIES_ANSWER
+            )
+        )
     }
 
     fun updateProgress(destinationId: Int) {

@@ -4,6 +4,8 @@ import android.app.Application
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.flow.first
@@ -12,9 +14,12 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application() {
+class App : Application(), Configuration.Provider {
     @Inject
     lateinit var dataStore: IAppDatastorePreferences
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     override fun onCreate() {
         super.onCreate()
@@ -27,6 +32,11 @@ class App : Application() {
         }
         applySavedLanguage()
     }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
     private fun applySavedLanguage() {
         val languageCode = runBlocking {

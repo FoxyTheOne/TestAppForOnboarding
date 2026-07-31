@@ -110,12 +110,12 @@ class AuthRepository @Inject constructor(
 
     override suspend fun logout(): Resource<ErrorType> = firebaseAuthDataSource.logout()
 
-    override suspend fun getCurrentUser(): Resource<UserPresentation?> =
+    override suspend fun getCurrentFirebaseUser(): Resource<UserPresentation?> =
         firebaseAuthDataSource.getCurrentUser()
 
     override fun getAuthState(): Flow<FirebaseUser?> = firebaseAuthDataSource.getAuthState()
 
-    override suspend fun updateProfile(user: UserPresentation): Resource<ErrorType> {
+    override suspend fun updateFirebaseProfile(user: UserPresentation): Resource<ErrorType> {
         val result = firebaseAuthDataSource.updateProfile(user)
         return when (result.status) {
             Status.SUCCESS -> Resource.success(null)

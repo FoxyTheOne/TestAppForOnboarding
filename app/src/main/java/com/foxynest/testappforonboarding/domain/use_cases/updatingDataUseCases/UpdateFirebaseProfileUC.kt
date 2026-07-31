@@ -19,12 +19,12 @@ import javax.inject.Inject
  * So we have a class for every single bit of logic we have in our project.
  * Typically, each use case consists of just one function which executes that use case (which validates the email for instance)
  */
-class UpdateProfileUC @Inject constructor(
+class UpdateFirebaseProfileUC @Inject constructor(
     private val authRepository: AuthRepository
-) : IUpdateProfileUC {
+) : IUpdateFirebaseProfileUC {
     override suspend fun execute(user: UserPresentation): Resource<ErrorType> {
         return if (user.isUserDataValid()) {
-            authRepository.updateProfile(user)
+            authRepository.updateFirebaseProfile(user)
         } else {
             Resource.error(
                 "Данные не валидны для сохранения - есть пустые поля",

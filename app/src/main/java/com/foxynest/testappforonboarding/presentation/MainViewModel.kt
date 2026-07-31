@@ -10,11 +10,12 @@ import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.notification.IScheduleBirthdayNotificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
-import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateFirebaseProfileUC
 import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
@@ -39,11 +40,12 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val onboardingUC: IOnboardingUC,
-    private val updateProfileUC: IUpdateProfileUC,
-    private val getCurrentUserUC: IGetCurrentUserUC,
+    private val updateFirebaseProfileUC: IUpdateFirebaseProfileUC,
+    private val getCurrentFirebaseUserUC: IGetCurrentFirebaseUserUC,
     private val getAuthStateFlowUC: IGetAuthStateFlowUC,
     private val loginValidateEmailUC: ILoginValidateEmailUC,
     private val updateEmailUC: IUpdateEmailUC,
+    private val scheduleBirthdayNotificationUC: IScheduleBirthdayNotificationUC,
     @DispatcherIO private val dispatcher: CoroutineDispatcher = Dispatchers.IO // TODO расставить dispatcher или удалить тесты
 ) : ViewModel() {
     companion object {
@@ -192,6 +194,7 @@ class MainViewModel @Inject constructor(
         isOnboardingCancelled = false
         onboardingBackup = null
         Log.d(TAG, "Onboarding completed: backup cleared")
+        refreshBirthdayNotification()
     }
 
     /**
@@ -203,6 +206,7 @@ class MainViewModel @Inject constructor(
                 onboardingUC.saveOnboardingState(false)
                 onboardingUC.clearAllOnboardingData()
                 _checkedUserInfo.value = Resource.init(null)
+                refreshBirthdayNotification()
             } catch (e: Exception) {
                 Log.e(TAG, "Error clearing user data on logout", e)
                 _errorMessageLiveData.postValue(
@@ -229,6 +233,7 @@ class MainViewModel @Inject constructor(
             try {
                 onboardingUC.saveOnboardingAnswers(updated)
                 Log.d(TAG, "Saved onboarding answers: $updated")
+                refreshBirthdayNotification()
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to save onboarding answers", e)
                 _errorMessageLiveData.postValue(
@@ -284,11 +289,11 @@ class MainViewModel @Inject constructor(
             _retrySaveState.postValue(Resource.loading(null))
 
             // Получаем текущие данные из ViewModel и пытаемся сохранить снова
-            val currentUser = getCurrentUserUC.execute().data
-            if (currentUser != null) {
+            val currentFirebaseUser = getCurrentFirebaseUserUC.execute().data
+            if (currentFirebaseUser != null) {
                 // Повторно собираем данные для сохранения
                 val currentAnswers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
-                val updatedUser = currentUser.copy(
+                val updatedUser = currentFirebaseUser.copy(
                     userName = currentAnswers.userName,
                     childGender = currentAnswers.childGender,
                     isItABoy = currentAnswers.isItABoy,
@@ -297,7 +302,7 @@ class MainViewModel @Inject constructor(
                     childHobbies = currentAnswers.childHobbies
                 )
 
-                val result = updateProfileUC.execute(updatedUser)
+                val result = updateFirebaseProfileUC.execute(updatedUser)
 
                 // Отправляем результат в отдельный LiveData для повторных попыток
                 _retrySaveState.postValue(result)
@@ -305,6 +310,7 @@ class MainViewModel @Inject constructor(
                 // Также обновляем основной LiveData для согласованности
                 if (result.status == Status.SUCCESS) {
                     _profileUpdatedLiveData.postValue(result)
+                    refreshBirthdayNotification()
                 }
             } else {
                 _retrySaveState.postValue(Resource.error("User not authenticated", null))
@@ -342,11 +348,11 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "=== SAVE TO FIREBASE ===")
 
-            val currentUser = getCurrentUserUC.execute().data
+            val currentFirebaseUser = getCurrentFirebaseUserUC.execute().data
             val currentAnswers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
 
-            if (currentUser != null) {
-                val updatedUser = currentUser.copy(
+            if (currentFirebaseUser != null) {
+                val updatedUser = currentFirebaseUser.copy(
                     userName = currentAnswers.userName,
                     childGender = currentAnswers.childGender,
                     isItABoy = currentAnswers.isItABoy,
@@ -357,7 +363,8 @@ class MainViewModel @Inject constructor(
 
                 if (updatedUser.isUserDataValid()) {
                     Log.d(TAG, "Saving valid user data to Firebase: $updatedUser")
-                    _profileUpdatedLiveData.postValue(updateProfileUC.execute(updatedUser))
+                    _profileUpdatedLiveData.postValue(updateFirebaseProfileUC.execute(updatedUser))
+                    refreshBirthdayNotification()
                 } else {
                     Log.w(TAG, "No valid data to save to Firebase")
                     _errorMessageLiveData.postValue(
@@ -380,7 +387,15 @@ class MainViewModel @Inject constructor(
      */
     fun checkLoggedInStateGetUser() {
         viewModelScope.launch {
-            _checkedUserInfo.value = getCurrentUserUC.execute()
+            _checkedUserInfo.value = getCurrentFirebaseUserUC.execute()
+        }
+    }
+
+    // Вызываем после сохранения онбординга
+    // (в методах updateOnboardingAnswers, completeOnboarding, getAnswersFromOnboardingSaveToFirebaseAndUse)
+    fun refreshBirthdayNotification() {
+        viewModelScope.launch(Dispatchers.IO) {
+            scheduleBirthdayNotificationUC.invoke()
         }
     }
 
@@ -393,6 +408,8 @@ class MainViewModel @Inject constructor(
             onboardingUC.getOnboardingAnswersFlow().collect { answers ->
                 _onboardingAnswersLiveData.postValue(answers)
                 Log.d(TAG, "Loaded onboarding answers: $answers")
+                // После загрузки планируем уведомление (если данные валидны)
+                refreshBirthdayNotification()
             }
         }
     }

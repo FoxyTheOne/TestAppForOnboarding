@@ -65,6 +65,16 @@ fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: Frag
     )
 }
 
+fun OnboardingAnswers.createUserFromAnswersForNotRegisteredUser(): UserPresentation =
+    UserPresentation(
+        userName = this.userName,
+        childGender = this.childGender,
+        isItABoy = this.isItABoy,
+        childName = this.childName,
+        childHobbies = this.childHobbies,
+        childBirthDate = this.childBirthDate
+    )
+
 // Для answers: Map<String, String> в MainViewModel
 fun Map<String, String>.createUpdatedUserFromAnswersInViewModel(currentUser: UserPresentation): UserPresentation {
     return UserPresentation(

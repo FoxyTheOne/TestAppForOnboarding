@@ -1,17 +1,7 @@
 package com.foxynest.testappforonboarding.presentation.welcome
 
-import android.os.Bundle
-import android.util.Log
-import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import com.foxynest.testappforonboarding.R
-import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /**
  * Базовый фрагмент для расширения фрагментами с онбордингом.

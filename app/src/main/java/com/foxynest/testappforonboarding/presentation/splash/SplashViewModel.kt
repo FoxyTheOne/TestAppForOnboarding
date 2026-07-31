@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.R
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.migrate.IMigrateUserDataUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class SplashViewModel @Inject constructor(
     private val migrateUserDataUC: IMigrateUserDataUC,
     private val onboardingUC: IOnboardingUC,
-    private val getCurrentUserUC: IGetCurrentUserUC
+    private val getCurrentUserUC: IGetCurrentFirebaseUserUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "SplashViewModel"

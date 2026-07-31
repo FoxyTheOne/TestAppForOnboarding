@@ -1,39 +1,46 @@
 package com.foxynest.testappforonboarding.di
 
+import android.content.Context
+import androidx.work.WorkManager
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.AppDatastorePreferences
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
-import com.foxynest.testappforonboarding.data.dataSource.sharedPreferences.AppSharedPreference
-import com.foxynest.testappforonboarding.data.dataSource.sharedPreferences.IAppSharedPreference
 import com.foxynest.testappforonboarding.data.repository.AppLanguageRepository
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
+import com.foxynest.testappforonboarding.data.repository.BirthdayNotificationManager
+import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IAppLanguageRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
+import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationManager
+import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.GetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.ISetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.SetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.GetCurrentUserPresentationUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IGetCurrentUserPresentationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.CheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.SendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetAuthStateFlowUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
-import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateFirebaseProfileUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LogoutUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateEmailUC
-import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateFirebaseProfileUC
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -52,6 +59,12 @@ abstract class SingletonModule {
         @Provides
         @Singleton
         fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+        @Provides
+        @Singleton
+        fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
+            return WorkManager.getInstance(context)
+        }
     }
 
     @Binds
@@ -72,8 +85,8 @@ abstract class SingletonModule {
 
     @Binds
     abstract fun bindsGetCurrentLogInStateInteractor(
-        getCurrentLogInStateInteractor: GetCurrentUserUC
-    ): IGetCurrentUserUC
+        getCurrentLogInStateInteractor: GetCurrentFirebaseUserUC
+    ): IGetCurrentFirebaseUserUC
 
     @Binds
     abstract fun bindsSendEmailVerificationInteractor(
@@ -97,13 +110,18 @@ abstract class SingletonModule {
 
     @Binds
     abstract fun bindsUpdateProfileInteractor(
-        updateProfileInteractor: UpdateProfileUC
-    ): IUpdateProfileUC
+        updateProfileInteractor: UpdateFirebaseProfileUC
+    ): IUpdateFirebaseProfileUC
 
     @Binds
     abstract fun bindsUpdateEmailUCInteractor(
         updateEmailUC: UpdateEmailUC
     ): IUpdateEmailUC
+
+    @Binds
+    abstract fun bindsGetCurrentUserPresentationInteractor(
+        getCurrentUserPresentationUC: GetCurrentUserPresentationUC
+    ): IGetCurrentUserPresentationUC
 
     // Language
     @Binds
@@ -120,4 +138,16 @@ abstract class SingletonModule {
     abstract fun bindsAppLanguageRepository(
         appLanguageRepository: AppLanguageRepository
     ): IAppLanguageRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindsBirthdayNotificationManager(
+        birthdayNotificationManager: BirthdayNotificationManager
+    ): IBirthdayNotificationManager
+
+    @Binds
+    @Singleton
+    abstract fun bindsOnboardingRepository(
+        onboardingRepository: OnboardingRepository
+    ): IOnboardingRepository
 }

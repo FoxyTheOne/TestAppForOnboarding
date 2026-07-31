@@ -1,7 +1,9 @@
 package com.foxynest.testappforonboarding.di
 
+import com.foxynest.testappforonboarding.data.repository.BirthdayNotificationManager
 import com.foxynest.testappforonboarding.data.repository.MigrateUserDataRepository
 import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
+import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationManager
 import com.foxynest.testappforonboarding.domain.iRepository.IMigrateUserDataRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
@@ -16,6 +18,8 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidateRepeatedPasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.migrate.IMigrateUserDataUC
 import com.foxynest.testappforonboarding.domain.use_cases.migrate.MigrateUserDataUC
+import com.foxynest.testappforonboarding.domain.use_cases.notification.IScheduleBirthdayNotificationUC
+import com.foxynest.testappforonboarding.domain.use_cases.notification.ScheduleBirthdayNotificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.OnboardingUC
 import dagger.Binds
@@ -61,10 +65,10 @@ abstract class ViewModelModule {
         loginValidatePasswordInteractor: LoginValidatePasswordUC
     ): ILoginValidatePasswordUC
 
-    @Binds
-    abstract fun bindsOnboardingRepository(
-        onboardingRepository: OnboardingRepository
-    ): IOnboardingRepository
+//    @Binds
+//    abstract fun bindsOnboardingRepository(
+//        onboardingRepository: OnboardingRepository
+//    ): IOnboardingRepository
 
     @Binds
     abstract fun bindsMigrateUserDataInteractor(
@@ -75,4 +79,11 @@ abstract class ViewModelModule {
     abstract fun bindsMigrateUserDataRepository(
         migrateUserDataRepository: MigrateUserDataRepository
     ): IMigrateUserDataRepository
+
+
+    // test
+    @Binds
+    abstract fun bindsScheduleBirthdayNotificationInteractor(
+        scheduleBirthdayNotificationUC: ScheduleBirthdayNotificationUC
+    ): IScheduleBirthdayNotificationUC
 }

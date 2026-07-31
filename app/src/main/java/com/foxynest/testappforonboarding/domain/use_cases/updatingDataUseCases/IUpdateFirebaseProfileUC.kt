@@ -4,6 +4,6 @@ import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 
-interface IUpdateProfileUC {
+interface IUpdateFirebaseProfileUC {
     suspend fun execute(user: UserPresentation): Resource<ErrorType>
 }

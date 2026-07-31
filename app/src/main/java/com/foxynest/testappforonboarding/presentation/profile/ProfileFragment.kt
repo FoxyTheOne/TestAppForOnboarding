@@ -549,6 +549,8 @@ class ProfileFragment : Fragment() {
             } else {
                 showLogOutButtons(true)
             }
+
+            mainViewModel.refreshBirthdayNotification()
         }
     }
 

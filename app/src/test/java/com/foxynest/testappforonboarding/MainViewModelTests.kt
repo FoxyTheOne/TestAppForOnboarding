@@ -1,19 +1,15 @@
 package com.foxynest.testappforonboarding
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateProfileUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateFirebaseProfileUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import io.mockk.MockKAnnotations
-import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
-import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 
 class MainViewModelTests {
     @get:Rule
@@ -25,7 +21,7 @@ class MainViewModelTests {
     private lateinit var onboardingUC: IOnboardingUC
 
     @MockK
-    private lateinit var updateProfileUC: IUpdateProfileUC
+    private lateinit var updateProfileUC: IUpdateFirebaseProfileUC
 
     private lateinit var viewModel: MainViewModel
 
@@ -35,8 +31,8 @@ class MainViewModelTests {
 
         viewModel = MainViewModel(
             onboardingUC = onboardingUC,
-            updateProfileUC = updateProfileUC,
-            getCurrentUserUC = mockk(),
+            updateFirebaseProfileUC = updateProfileUC,
+            getCurrentFirebaseUserUC = mockk(),
             getAuthStateFlowUC = mockk(),
             loginValidateEmailUC = mockk(),
             updateEmailUC = mockk(),

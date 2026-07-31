@@ -5,8 +5,8 @@ import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
 
-class GetCurrentUserUC @Inject constructor(
+class GetCurrentFirebaseUserUC @Inject constructor(
     private val authRepository: AuthRepository
-) : IGetCurrentUserUC {
-    override suspend fun execute(): Resource<UserPresentation?> = authRepository.getCurrentUser()
+) : IGetCurrentFirebaseUserUC {
+    override suspend fun execute(): Resource<UserPresentation?> = authRepository.getCurrentFirebaseUser()
 }

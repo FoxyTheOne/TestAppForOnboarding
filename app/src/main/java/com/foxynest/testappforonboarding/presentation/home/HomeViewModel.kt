@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getCurrentUserUC: IGetCurrentUserUC,
+    private val getCurrentUserUC: IGetCurrentFirebaseUserUC,
     private val onboardingUC: IOnboardingUC
 ) : ViewModel() {
     companion object {

@@ -236,7 +236,12 @@ class MainViewModel @Inject constructor(
                 Log.d(TAG, "Saved onboarding answers: $updated")
                 // Немедленная проверка. Чтобы не было конфликтов или повотрных уведомлений, делаем эту проверку один раз, после прохождения онбординга
                 // TODO Если сделаем возможность изменять отдельные поля без онбординга, то там нужно дуюлировать эту немедленную проверку (например поля, от которых ничего не зависит - имя, дата рождения)
-                scheduleBirthdayNotificationUC.checkAndNotifyIfBirthdayToday(updated.childName, updated.childBirthDate)
+                if (isOnboardingCompleted) {
+                    scheduleBirthdayNotificationUC.checkAndNotifyIfBirthdayToday(
+                        updated.childName,
+                        updated.childBirthDate
+                    )
+                }
                 refreshBirthdayNotificationWithParameters(updated.childName, updated.childBirthDate)
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to save onboarding answers", e)
@@ -314,7 +319,10 @@ class MainViewModel @Inject constructor(
                 // Также обновляем основной LiveData для согласованности
                 if (result.status == Status.SUCCESS) {
                     _profileUpdatedLiveData.postValue(result)
-                    refreshBirthdayNotificationWithParameters(updatedUser.childName, updatedUser.childBirthDate)
+                    refreshBirthdayNotificationWithParameters(
+                        updatedUser.childName,
+                        updatedUser.childBirthDate
+                    )
                 }
             } else {
                 _retrySaveState.postValue(Resource.error("User not authenticated", null))
@@ -368,7 +376,10 @@ class MainViewModel @Inject constructor(
                 if (updatedUser.isUserDataValid()) {
                     Log.d(TAG, "Saving valid user data to Firebase: $updatedUser")
                     _profileUpdatedLiveData.postValue(updateFirebaseProfileUC.execute(updatedUser))
-                    refreshBirthdayNotificationWithParameters(updatedUser.childName, updatedUser.childBirthDate)
+                    refreshBirthdayNotificationWithParameters(
+                        updatedUser.childName,
+                        updatedUser.childBirthDate
+                    )
                 } else {
                     Log.w(TAG, "No valid data to save to Firebase")
                     _errorMessageLiveData.postValue(
@@ -397,6 +408,7 @@ class MainViewModel @Inject constructor(
 
     // Вызываем после сохранения онбординга
     // (в методах updateOnboardingAnswers, completeOnboarding, getAnswersFromOnboardingSaveToFirebaseAndUse)
+    // TODO можно ли убрать
     fun refreshBirthdayNotification() {
         viewModelScope.launch(Dispatchers.IO) {
             scheduleBirthdayNotificationUC.scheduleWithoutParameters()

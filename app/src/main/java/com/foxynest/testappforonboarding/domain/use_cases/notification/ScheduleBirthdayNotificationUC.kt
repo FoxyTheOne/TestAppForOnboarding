@@ -16,7 +16,8 @@ class ScheduleBirthdayNotificationUC @Inject constructor(
     private val getCurrentUserUC: IGetCurrentUserPresentationUC,
     private val notificationManager: IBirthdayNotificationManager
 ) : IScheduleBirthdayNotificationUC {
-    override suspend fun invoke() {
+    // TODO повторный запрос данных мне не нравится, оставляю на крайний случай. Получается, мы сохраняем данные и сразу же запрашиваем их здесь, а вдруг ещё не успели данные сохраниться? Не будет ли конфликтов? Хотелось бы этот метод вообще убрать, но пока не знаю, как
+    override suspend fun scheduleWithoutParameters() {
         val result = getCurrentUserUC.invoke()
         if (result.status == Status.SUCCESS) {
             val user = result.data
@@ -32,6 +33,30 @@ class ScheduleBirthdayNotificationUC @Inject constructor(
         } else {
             notificationManager.cancelBirthdayNotification()
         }
+    }
+
+    override suspend fun scheduleWithParameters(
+        childName: String,
+        childBirthDate: String
+    ) {
+        if (childName.isNotBlank() &&
+            childName != "null" &&
+            childBirthDate != "null" &&
+            childBirthDate.isNotBlank()
+        ) {
+            notificationManager.scheduleBirthdayNotification(childName, childBirthDate)
+        } else {
+            // Нет данных – отменяем уведомление
+            notificationManager.cancelBirthdayNotification()
+        }
+    }
+
+    override suspend fun checkAndNotifyIfBirthdayToday(
+        childName: String,
+        childBirthDate: String
+    ) {
+        // НЕМЕДЛЕННАЯ ПРОВЕРКА
+        notificationManager.checkAndNotifyIfBirthdayToday(childName, childBirthDate)
     }
 }
 

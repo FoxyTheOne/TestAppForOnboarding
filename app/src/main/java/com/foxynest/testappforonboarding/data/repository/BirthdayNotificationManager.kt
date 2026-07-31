@@ -8,11 +8,14 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.foxynest.testappforonboarding.data.workManager.BirthdayNotificationWorker
 import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationManager
+import com.foxynest.testappforonboarding.other.extensions.isTodayBirthday
+import com.foxynest.testappforonboarding.utils.NotificationHelper
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class BirthdayNotificationManager @Inject constructor(
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val notificationHelper: NotificationHelper
 ) : IBirthdayNotificationManager {
 
     companion object {
@@ -52,6 +55,12 @@ class BirthdayNotificationManager @Inject constructor(
             ExistingPeriodicWorkPolicy.REPLACE,
             workRequest
         )
+    }
+
+    override suspend fun checkAndNotifyIfBirthdayToday(childName: String, birthDate: String) {
+        if (birthDate.isTodayBirthday()) {
+            notificationHelper.showBirthdayNotificationIfPermitted(childName)
+        }
     }
 
     override suspend fun cancelBirthdayNotification() {

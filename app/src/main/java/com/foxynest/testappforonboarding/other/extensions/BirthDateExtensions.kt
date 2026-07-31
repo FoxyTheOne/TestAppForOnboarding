@@ -46,3 +46,31 @@ fun Long.convertDateMillisToMySaveFormat(): String {
         ""
     }
 }
+
+fun String.parseBirthDateStringToCalendarDate(): Calendar? {
+    val birthDate = this
+    return try {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val date = formatter.parse(birthDate) ?: return null
+        Calendar.getInstance().apply { time = date }
+    } catch (_: Exception) {
+        null
+    }
+}
+
+fun String.isTodayBirthday(): Boolean {
+    val birthDate = this
+    return try {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val date = formatter.parse(birthDate) ?: return false
+        val calendar = Calendar.getInstance()
+        val today = Calendar.getInstance()
+        calendar.time = date
+//        today.get(Calendar.DAY_OF_YEAR) == calendar.get(Calendar.DAY_OF_YEAR)
+        // Чтобы не было ошибки в високосный год, лучше сравнивать месяца
+        today.get(Calendar.MONTH) == calendar.get(Calendar.MONTH) &&
+                today.get(Calendar.DAY_OF_MONTH) == calendar.get(Calendar.DAY_OF_MONTH)
+    } catch (e: Exception) {
+        false
+    }
+}

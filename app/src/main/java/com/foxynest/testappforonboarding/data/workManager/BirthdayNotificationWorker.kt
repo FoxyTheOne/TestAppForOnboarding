@@ -6,6 +6,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IGetCurrentUserPresentationUC
 import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.other.extensions.isTodayBirthday
+import com.foxynest.testappforonboarding.utils.NotificationHelper
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -38,25 +40,12 @@ class BirthdayNotificationWorker @AssistedInject constructor(
             return Result.failure()
         }
 
-        return if (isTodayBirthday(user.childBirthDate)) {
+        return if (user.childBirthDate.isTodayBirthday()) {
             notificationHelper.showBirthdayNotificationIfPermitted(user.childName)
             Result.success()
         } else {
             // Не день рождения – ничего не делаем, но возвращаем success, чтобы WorkManager не перезапускал с ошибкой
             Result.success()
-        }
-    }
-
-    private fun isTodayBirthday(birthDate: String): Boolean {
-        return try {
-            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-            val date = formatter.parse(birthDate) ?: return false
-            val calendar = Calendar.getInstance()
-            val today = Calendar.getInstance()
-            calendar.time = date
-            today.get(Calendar.DAY_OF_YEAR) == calendar.get(Calendar.DAY_OF_YEAR)
-        } catch (e: Exception) {
-            false
         }
     }
 

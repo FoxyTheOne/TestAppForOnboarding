@@ -206,7 +206,8 @@ class MainViewModel @Inject constructor(
                 onboardingUC.saveOnboardingState(false)
                 onboardingUC.clearAllOnboardingData()
                 _checkedUserInfo.value = Resource.init(null)
-                refreshBirthdayNotification()
+                // Clear notification
+                refreshBirthdayNotificationWithParameters("", "")
             } catch (e: Exception) {
                 Log.e(TAG, "Error clearing user data on logout", e)
                 _errorMessageLiveData.postValue(
@@ -233,7 +234,10 @@ class MainViewModel @Inject constructor(
             try {
                 onboardingUC.saveOnboardingAnswers(updated)
                 Log.d(TAG, "Saved onboarding answers: $updated")
-                refreshBirthdayNotification()
+                // Немедленная проверка. Чтобы не было конфликтов или повотрных уведомлений, делаем эту проверку один раз, после прохождения онбординга
+                // TODO Если сделаем возможность изменять отдельные поля без онбординга, то там нужно дуюлировать эту немедленную проверку (например поля, от которых ничего не зависит - имя, дата рождения)
+                scheduleBirthdayNotificationUC.checkAndNotifyIfBirthdayToday(updated.childName, updated.childBirthDate)
+                refreshBirthdayNotificationWithParameters(updated.childName, updated.childBirthDate)
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to save onboarding answers", e)
                 _errorMessageLiveData.postValue(
@@ -310,7 +314,7 @@ class MainViewModel @Inject constructor(
                 // Также обновляем основной LiveData для согласованности
                 if (result.status == Status.SUCCESS) {
                     _profileUpdatedLiveData.postValue(result)
-                    refreshBirthdayNotification()
+                    refreshBirthdayNotificationWithParameters(updatedUser.childName, updatedUser.childBirthDate)
                 }
             } else {
                 _retrySaveState.postValue(Resource.error("User not authenticated", null))
@@ -364,7 +368,7 @@ class MainViewModel @Inject constructor(
                 if (updatedUser.isUserDataValid()) {
                     Log.d(TAG, "Saving valid user data to Firebase: $updatedUser")
                     _profileUpdatedLiveData.postValue(updateFirebaseProfileUC.execute(updatedUser))
-                    refreshBirthdayNotification()
+                    refreshBirthdayNotificationWithParameters(updatedUser.childName, updatedUser.childBirthDate)
                 } else {
                     Log.w(TAG, "No valid data to save to Firebase")
                     _errorMessageLiveData.postValue(
@@ -395,7 +399,13 @@ class MainViewModel @Inject constructor(
     // (в методах updateOnboardingAnswers, completeOnboarding, getAnswersFromOnboardingSaveToFirebaseAndUse)
     fun refreshBirthdayNotification() {
         viewModelScope.launch(Dispatchers.IO) {
-            scheduleBirthdayNotificationUC.invoke()
+            scheduleBirthdayNotificationUC.scheduleWithoutParameters()
+        }
+    }
+
+    fun refreshBirthdayNotificationWithParameters(childName: String, childBirthDate: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            scheduleBirthdayNotificationUC.scheduleWithParameters(childName, childBirthDate)
         }
     }
 

@@ -550,7 +550,7 @@ class ProfileFragment : Fragment() {
                 showLogOutButtons(true)
             }
 
-            mainViewModel.refreshBirthdayNotification()
+            mainViewModel.refreshBirthdayNotificationWithParameters(user.childName, user.childBirthDate)
         }
     }
 

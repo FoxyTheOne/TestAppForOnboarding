@@ -36,6 +36,7 @@ class MainViewModelTests {
             getAuthStateFlowUC = mockk(),
             loginValidateEmailUC = mockk(),
             updateEmailUC = mockk(),
+            scheduleBirthdayNotificationUC = mockk(),
             dispatcher = testDispatcher // Нужно добавить в конструктор
         )
     }

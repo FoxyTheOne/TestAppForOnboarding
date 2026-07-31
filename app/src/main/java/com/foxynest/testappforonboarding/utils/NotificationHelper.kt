@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.data.workManager
+package com.foxynest.testappforonboarding.utils
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -18,6 +18,7 @@ import com.foxynest.testappforonboarding.presentation.MainActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
+// TODO сделать текст локализованным
 class NotificationHelper @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
@@ -57,6 +58,10 @@ class NotificationHelper @Inject constructor(
             context, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        // PendingIntent.FLAG_UPDATE_CURRENT - если уведомлений будет несколько, они могут перезаписывать друг друга.
+        // Это нормально в данном случае, когда уведомление раз в году.
+        // В иных случаях лучше использовать уникальный requestCode.
+        // TODO Или если мы будем вводить несколько детей в одном аккаунте в будущем (например, на основе childName.hashCode()).
 
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notifications_black_24dp) // ваша иконка
@@ -73,15 +78,4 @@ class NotificationHelper @Inject constructor(
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
     }
-
-//    private fun hasNotificationPermission(): Boolean {
-//        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            ContextCompat.checkSelfPermission(
-//                context,
-//                Manifest.permission.POST_NOTIFICATIONS
-//            ) == PackageManager.PERMISSION_GRANTED
-//        } else {
-//            true
-//        }
-//    }
 }

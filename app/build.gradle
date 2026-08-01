@@ -158,7 +158,10 @@ dependencies {
 
     // Тестирование - основные тестовые библиотеки
     testImplementation 'androidx.test:core:1.5.0'
+    // For local unit tests (src/test)
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    // For instrumented tests on a device/emulator (src/androidTest)
+    androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
     testImplementation 'io.mockk:mockk:1.13.8'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
 

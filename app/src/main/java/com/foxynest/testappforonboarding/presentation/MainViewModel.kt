@@ -194,7 +194,9 @@ class MainViewModel @Inject constructor(
         isOnboardingCancelled = false
         onboardingBackup = null
         Log.d(TAG, "Onboarding completed: backup cleared")
-        refreshBirthdayNotification()
+
+        val answers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
+        scheduleBirthdayNotification(answers.childName, answers.childBirthDate)
     }
 
     /**
@@ -206,8 +208,9 @@ class MainViewModel @Inject constructor(
                 onboardingUC.saveOnboardingState(false)
                 onboardingUC.clearAllOnboardingData()
                 _checkedUserInfo.value = Resource.init(null)
+
                 // Clear notification
-                refreshBirthdayNotificationWithParameters("", "")
+                scheduleBirthdayNotification("", "")
             } catch (e: Exception) {
                 Log.e(TAG, "Error clearing user data on logout", e)
                 _errorMessageLiveData.postValue(
@@ -234,15 +237,15 @@ class MainViewModel @Inject constructor(
             try {
                 onboardingUC.saveOnboardingAnswers(updated)
                 Log.d(TAG, "Saved onboarding answers: $updated")
-                // Немедленная проверка. Чтобы не было конфликтов или повотрных уведомлений, делаем эту проверку один раз, после прохождения онбординга
+                // checkAndNotifyRightNowIfBirthdayToday() - немедленная проверка. Чтобы не было конфликтов или повотрных уведомлений, делаем эту проверку один раз, после прохождения онбординга
                 // TODO Если сделаем возможность изменять отдельные поля без онбординга, то там нужно дуюлировать эту немедленную проверку (например поля, от которых ничего не зависит - имя, дата рождения)
                 if (isOnboardingCompleted) {
-                    scheduleBirthdayNotificationUC.checkAndNotifyIfBirthdayToday(
-                        updated.childName,
-                        updated.childBirthDate
+                    scheduleBirthdayNotificationUC.checkAndNotifyRightNowIfBirthdayToday(
+                        childName = updated.childName,
+                        childBirthDate = updated.childBirthDate
                     )
                 }
-                refreshBirthdayNotificationWithParameters(updated.childName, updated.childBirthDate)
+                scheduleBirthdayNotification(updated.childName, updated.childBirthDate)
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to save onboarding answers", e)
                 _errorMessageLiveData.postValue(
@@ -319,9 +322,9 @@ class MainViewModel @Inject constructor(
                 // Также обновляем основной LiveData для согласованности
                 if (result.status == Status.SUCCESS) {
                     _profileUpdatedLiveData.postValue(result)
-                    refreshBirthdayNotificationWithParameters(
-                        updatedUser.childName,
-                        updatedUser.childBirthDate
+                    scheduleBirthdayNotification(
+                        childName = updatedUser.childName,
+                        childBirthDate = updatedUser.childBirthDate
                     )
                 }
             } else {
@@ -376,9 +379,9 @@ class MainViewModel @Inject constructor(
                 if (updatedUser.isUserDataValid()) {
                     Log.d(TAG, "Saving valid user data to Firebase: $updatedUser")
                     _profileUpdatedLiveData.postValue(updateFirebaseProfileUC.execute(updatedUser))
-                    refreshBirthdayNotificationWithParameters(
-                        updatedUser.childName,
-                        updatedUser.childBirthDate
+                    scheduleBirthdayNotification(
+                        childName = updatedUser.childName,
+                        childBirthDate = updatedUser.childBirthDate
                     )
                 } else {
                     Log.w(TAG, "No valid data to save to Firebase")
@@ -406,18 +409,9 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    // Вызываем после сохранения онбординга
-    // (в методах updateOnboardingAnswers, completeOnboarding, getAnswersFromOnboardingSaveToFirebaseAndUse)
-    // TODO можно ли убрать
-    fun refreshBirthdayNotification() {
-        viewModelScope.launch(Dispatchers.IO) {
-            scheduleBirthdayNotificationUC.scheduleWithoutParameters()
-        }
-    }
-
-    fun refreshBirthdayNotificationWithParameters(childName: String, childBirthDate: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            scheduleBirthdayNotificationUC.scheduleWithParameters(childName, childBirthDate)
+    fun scheduleBirthdayNotification(childName: String, childBirthDate: String) {
+        viewModelScope.launch(dispatcher) {
+            scheduleBirthdayNotificationUC.scheduleBirthdayNotification(childName, childBirthDate)
         }
     }
 
@@ -430,8 +424,8 @@ class MainViewModel @Inject constructor(
             onboardingUC.getOnboardingAnswersFlow().collect { answers ->
                 _onboardingAnswersLiveData.postValue(answers)
                 Log.d(TAG, "Loaded onboarding answers: $answers")
-                // После загрузки планируем уведомление (если данные валидны)
-                refreshBirthdayNotification()
+                // Планируем (или отменяем) уведомление
+                scheduleBirthdayNotification(answers.childName, answers.childBirthDate)
             }
         }
     }

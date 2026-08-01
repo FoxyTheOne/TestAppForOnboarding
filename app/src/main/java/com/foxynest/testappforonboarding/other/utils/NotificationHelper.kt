@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.utils
+package com.foxynest.testappforonboarding.other.utils
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -14,8 +14,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.foxynest.testappforonboarding.R
+import com.foxynest.testappforonboarding.other.extensions.isTodayBirthday
 import com.foxynest.testappforonboarding.presentation.MainActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.Date
 import javax.inject.Inject
 
 // TODO сделать текст локализованным
@@ -77,5 +79,11 @@ class NotificationHelper @Inject constructor(
             .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
+    }
+
+    fun checkAndNotifyIfBirthdayToday(childName: String, birthDate: String, today: Date) {
+        if (birthDate.isTodayBirthday(today)) {
+            showBirthdayNotificationIfPermitted(childName)
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.data.dataSource.datastorePreferences
 
+import com.foxynest.testappforonboarding.domain.entities.BirthdayNotificationData
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,11 @@ interface IAppDatastorePreferences {
 
     // Получение данных
     fun getOnboardingAnswersFlow(): Flow<OnboardingAnswers>
+
+    // Уведомление на день рождения
+    suspend fun saveBirthdayNotificationData(birthNotifData: BirthdayNotificationData)
+    fun getBirthdayNotificationDataFlow(): Flow<BirthdayNotificationData>
+    suspend fun clearBirthdayNotificationData()
 
     // Переключение языка в приложении
     suspend fun saveAppLanguage(languageCode: LanguageEnum) // "system", "ru", "en"

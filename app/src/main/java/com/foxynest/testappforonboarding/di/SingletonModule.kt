@@ -6,11 +6,11 @@ import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.Ap
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import com.foxynest.testappforonboarding.data.repository.AppLanguageRepository
 import com.foxynest.testappforonboarding.data.repository.AuthRepository
-import com.foxynest.testappforonboarding.data.repository.BirthdayNotificationManager
+import com.foxynest.testappforonboarding.data.repository.BirthdayNotificationRepository
 import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IAppLanguageRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
-import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationManager
+import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.GetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
@@ -34,6 +34,8 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.Log
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateFirebaseProfileUC
+import com.foxynest.testappforonboarding.other.timeProvider.ITimeProvider
+import com.foxynest.testappforonboarding.other.timeProvider.SystemTimeProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Binds
@@ -65,6 +67,9 @@ abstract class SingletonModule {
         fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
             return WorkManager.getInstance(context)
         }
+
+        @Provides
+        fun provideTimeProvider(): ITimeProvider = SystemTimeProvider()
     }
 
     @Binds
@@ -142,8 +147,8 @@ abstract class SingletonModule {
     @Binds
     @Singleton
     abstract fun bindsBirthdayNotificationManager(
-        birthdayNotificationManager: BirthdayNotificationManager
-    ): IBirthdayNotificationManager
+        birthdayNotificationManager: BirthdayNotificationRepository
+    ): IBirthdayNotificationRepository
 
     @Binds
     @Singleton

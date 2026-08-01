@@ -30,6 +30,7 @@ class GetCurrentUserPresentationUC @Inject constructor(
             // 2. Иначе берём из DataStore
             val answers = onboardingRepository.getOnboardingAnswersFlow().first()
             return if (
+            // TODO можно сделать extention на проверку полей
                 !answers.userName.isNullOrBlank() && answers.userName != "null" &&
                 !answers.childName.isNullOrBlank() && answers.childName != "null" &&
                 !answers.childBirthDate.isNullOrBlank() && answers.childBirthDate != "null"

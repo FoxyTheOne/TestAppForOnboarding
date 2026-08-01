@@ -3,17 +3,27 @@ package com.foxynest.testappforonboarding.data.workManager
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IGetCurrentUserPresentationUC
+import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
+import com.foxynest.testappforonboarding.data.repository.AuthRepository
+import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
+import com.foxynest.testappforonboarding.domain.entities.isValidData
+import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.other.constants.BirthdayNotificationConstants.BIRTHDAY_NOTIF_UNIQUE_WORK_NAME
+import com.foxynest.testappforonboarding.other.extensions.calculateWorkerDelayToNextMorning
+import com.foxynest.testappforonboarding.other.extensions.createUserFromAnswersForNotRegisteredUser
 import com.foxynest.testappforonboarding.other.extensions.isTodayBirthday
-import com.foxynest.testappforonboarding.utils.NotificationHelper
+import com.foxynest.testappforonboarding.other.timeProvider.ITimeProvider
+import com.foxynest.testappforonboarding.other.utils.NotificationHelper
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
+import kotlinx.coroutines.flow.first
+import java.util.concurrent.TimeUnit
 
 /**
  * Отвечает за планирование работы:
@@ -25,28 +35,29 @@ import java.util.Locale
 class BirthdayNotificationWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
-    private val getCurrentUserUC: IGetCurrentUserPresentationUC,
-    private val notificationHelper: NotificationHelper
+    private val dataStore: IAppDatastorePreferences,
+    private val notificationHelper: NotificationHelper,
+    private val timeProvider: ITimeProvider
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val userResult = getCurrentUserUC.invoke()
-        if (userResult.status != Status.SUCCESS) {
+        // 1. Получаем сохраненные данные
+        val birthdayNotificationData = dataStore.getBirthdayNotificationDataFlow().first()
+        val childName = birthdayNotificationData.childName
+        val birthDate = birthdayNotificationData.childBirthDate
+
+        if (!birthdayNotificationData.isValidData()) {
             return Result.failure()
         }
 
-        val user = userResult.data ?: return Result.failure()
-        if (user.childName.isBlank() || user.childBirthDate.isBlank()) {
-            return Result.failure()
+        // 2. Проверяем, сегодня ли день рождения
+        val today = timeProvider.getCurrentTime()
+        if (birthDate.isTodayBirthday(today)) {
+            notificationHelper.showBirthdayNotificationIfPermitted(childName)
         }
 
-        return if (user.childBirthDate.isTodayBirthday()) {
-            notificationHelper.showBirthdayNotificationIfPermitted(user.childName)
-            Result.success()
-        } else {
-            // Не день рождения – ничего не делаем, но возвращаем success, чтобы WorkManager не перезапускал с ошибкой
-            Result.success()
-        }
+        // 3. Всегда возвращаем success — работа будет повторяться автоматически
+        return Result.success()
     }
 
     @AssistedFactory

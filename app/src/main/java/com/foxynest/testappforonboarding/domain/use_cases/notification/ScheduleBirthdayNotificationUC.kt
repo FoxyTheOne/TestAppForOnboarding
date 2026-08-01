@@ -1,8 +1,8 @@
 package com.foxynest.testappforonboarding.domain.use_cases.notification
 
-import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationManager
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IGetCurrentUserPresentationUC
-import com.foxynest.testappforonboarding.other.Status
+import com.foxynest.testappforonboarding.domain.entities.BirthdayNotificationData
+import com.foxynest.testappforonboarding.domain.entities.isValidData
+import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationRepository
 import javax.inject.Inject
 
 /**
@@ -13,36 +13,16 @@ import javax.inject.Inject
  * преобразование моделей в модели нижнего уровня перед тем, как нижний уровень сможет их использовать.
  */
 class ScheduleBirthdayNotificationUC @Inject constructor(
-    private val getCurrentUserUC: IGetCurrentUserPresentationUC,
-    private val notificationManager: IBirthdayNotificationManager
+    private val notificationManager: IBirthdayNotificationRepository
 ) : IScheduleBirthdayNotificationUC {
-    // TODO повторный запрос данных мне не нравится, оставляю на крайний случай. Получается, мы сохраняем данные и сразу же запрашиваем их здесь, а вдруг ещё не успели данные сохраниться? Не будет ли конфликтов? Хотелось бы этот метод вообще убрать, но пока не знаю, как
-    override suspend fun scheduleWithoutParameters() {
-        val result = getCurrentUserUC.invoke()
-        if (result.status == Status.SUCCESS) {
-            val user = result.data
-            if (user != null && user.childName.isNotBlank() && user.childBirthDate.isNotBlank()) {
-                notificationManager.scheduleBirthdayNotification(
-                    user.childName,
-                    user.childBirthDate
-                )
-            } else {
-                // Нет данных – отменяем уведомление
-                notificationManager.cancelBirthdayNotification()
-            }
-        } else {
-            notificationManager.cancelBirthdayNotification()
-        }
-    }
-
-    override suspend fun scheduleWithParameters(
+    override suspend fun scheduleBirthdayNotification(
         childName: String,
         childBirthDate: String
     ) {
-        if (childName.isNotBlank() &&
-            childName != "null" &&
-            childBirthDate != "null" &&
-            childBirthDate.isNotBlank()
+        if (BirthdayNotificationData(
+                childName = childName,
+                childBirthDate = childBirthDate
+            ).isValidData()
         ) {
             notificationManager.scheduleBirthdayNotification(childName, childBirthDate)
         } else {
@@ -51,11 +31,11 @@ class ScheduleBirthdayNotificationUC @Inject constructor(
         }
     }
 
-    override suspend fun checkAndNotifyIfBirthdayToday(
+    // НЕМЕДЛЕННАЯ ПРОВЕРКА (без планирования, на случай если ДР сегодня)
+    override suspend fun checkAndNotifyRightNowIfBirthdayToday(
         childName: String,
         childBirthDate: String
     ) {
-        // НЕМЕДЛЕННАЯ ПРОВЕРКА
         notificationManager.checkAndNotifyIfBirthdayToday(childName, childBirthDate)
     }
 }

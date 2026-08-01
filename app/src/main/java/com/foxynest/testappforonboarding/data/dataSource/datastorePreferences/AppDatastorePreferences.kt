@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.foxynest.testappforonboarding.domain.entities.BirthdayNotificationData
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.DATASTORE_NAME
@@ -38,6 +39,9 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
 
         // Переключение языка
         val APP_LANGUAGE = stringPreferencesKey("app_language")
+
+        // Birthday notification
+        val BIRTHDAY_NOTIF_DATA = stringPreferencesKey("birthday_notification_data")
     }
 
     // Сохраняем весь объект целиком
@@ -65,6 +69,36 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
                 }
             }
         }
+
+    override suspend fun saveBirthdayNotificationData(birthNotifData: BirthdayNotificationData) {
+        val jsonString = gson.toJson(birthNotifData)
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.BIRTHDAY_NOTIF_DATA] = jsonString
+        }
+    }
+
+    override fun getBirthdayNotificationDataFlow(): Flow<BirthdayNotificationData> = context.dataStore.data
+        .map { prefs ->
+            val jsonString = prefs[PreferencesKeys.BIRTHDAY_NOTIF_DATA]
+            if (jsonString.isNullOrBlank()) {
+                BirthdayNotificationData()  // данные не найдены – пустой объект
+            } else {
+                try {
+                    // Десериализуем JSON обратно в BirthdayNotificationData
+                    val type = object : TypeToken<BirthdayNotificationData>() {}.type
+                    gson.fromJson(jsonString, type) ?: BirthdayNotificationData()
+                } catch (e: Exception) {
+                    // Ошибка парсинга – возвращаем пустой объект
+                    BirthdayNotificationData()
+                }
+            }
+        }
+
+    override suspend fun clearBirthdayNotificationData() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(PreferencesKeys.BIRTHDAY_NOTIF_DATA) // полностью удаляем ключ
+        }
+    }
 
     override suspend fun saveOnboardingState(isCompleted: Boolean) {
         context.dataStore.edit { preferences ->

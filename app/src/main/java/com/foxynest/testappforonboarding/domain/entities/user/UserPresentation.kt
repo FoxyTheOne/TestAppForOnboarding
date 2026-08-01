@@ -19,3 +19,10 @@ data class UserPresentation(
     val childHobbies: String = "",
     val childBirthDate: String = ""
 ) : Parcelable
+
+fun UserPresentation.isValidData(): Boolean {
+    return authEmail.isNotBlank() && authEmail != "null" &&
+            userName.isNotBlank() && userName != "null" &&
+            childName.isNotBlank() && childName != "null" &&
+            childBirthDate.isNotBlank() && childBirthDate != "null"
+}

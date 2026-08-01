@@ -1,11 +1,7 @@
 package com.foxynest.testappforonboarding.di
 
-import com.foxynest.testappforonboarding.data.repository.BirthdayNotificationManager
 import com.foxynest.testappforonboarding.data.repository.MigrateUserDataRepository
-import com.foxynest.testappforonboarding.data.repository.OnboardingRepository
-import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationManager
 import com.foxynest.testappforonboarding.domain.iRepository.IMigrateUserDataRepository
-import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginValidateEmailUC

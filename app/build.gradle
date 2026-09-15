@@ -202,6 +202,7 @@ dependencies {
     implementation "androidx.hilt:hilt-work:1.2.0"
     // Hilt compiler (use ksp or kapt depending on your project setup)
     ksp "androidx.hilt:hilt-compiler:1.2.0"
+    implementation 'com.google.guava:guava:31.1-android' // для метода workManager.getWorkInfosForUniqueWork()
 }
 
 //kapt {

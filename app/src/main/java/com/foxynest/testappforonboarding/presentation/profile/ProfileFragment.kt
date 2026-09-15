@@ -20,13 +20,14 @@ import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.domain.entities.HobbyLocalizer
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.isValidData
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.HOBBIES_DELIMITER
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
-import com.foxynest.testappforonboarding.other.extensions.calculateChildAge
+import com.foxynest.testappforonboarding.other.extensions.calculateAge
 import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
-import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
+import com.foxynest.testappforonboarding.other.extensions.parseDateToLocalDate
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainActivity
@@ -37,10 +38,6 @@ import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.Conf
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -141,6 +138,15 @@ class ProfileFragment : Fragment() {
             safeNavigate(R.id.navigation_profile, direction)
         }
 
+//            // Для тестирования, вызов вокера по кнопке - убрать, когда заработает TODO
+//        binding?.buttonRegisterAndLogin?.setOnLongClickListener {
+//            val request = OneTimeWorkRequestBuilder<BirthdayNotificationWorker>()
+//                .setInitialDelay(1, TimeUnit.SECONDS)
+//                .build()
+//            WorkManager.getInstance(requireContext()).enqueue(request)
+//            true
+//        }
+
         binding?.buttonLogOut?.setOnClickListener {
             // 1. Выйти из аккаунта
             profileViewModel.logout()
@@ -158,11 +164,11 @@ class ProfileFragment : Fragment() {
 
     private fun subscribeOnObservers() {
         // 1. Ждем загрузки данных онбординга
-        mainViewModel.onboardingDataLoaded.observe(viewLifecycleOwner) { isLoaded ->
-            if (isLoaded) {
-                checkAndDisplayUserData()
-            }
-        }
+//        mainViewModel.onboardingDataLoaded.observe(viewLifecycleOwner) { isLoaded ->
+//            if (isLoaded) {
+//                checkAndDisplayUserData()
+//            }
+//        }
 
         // 2. Подписка на состояние пользователя
         viewLifecycleOwner.lifecycleScope.launch {
@@ -193,7 +199,7 @@ class ProfileFragment : Fragment() {
                             mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
                                 activity
                             )
-                        if (localUser.isUserDataValid()) {
+                        if (localUser.isValidData()) {
                             fillFieldsInProfile(localUser)
                         }
                         // 2. Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data, убираем кнопки "log out" и "обновить поля"
@@ -482,7 +488,7 @@ class ProfileFragment : Fragment() {
             // Если данных нет, создаем из локальных LiveData
             val localUser =
                 mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
-            if (localUser.isUserDataValid()) {
+            if (localUser.isValidData()) {
                 fillFieldsInProfile(localUser)
             }
             showLogOutButtons(false)
@@ -506,7 +512,7 @@ class ProfileFragment : Fragment() {
                 mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
                     activity
                 )
-            if (localUser.isUserDataValid()) {
+            if (localUser.isValidData()) {
                 fillFieldsInProfile(localUser)
             }
             showLogOutButtons(false)
@@ -515,7 +521,8 @@ class ProfileFragment : Fragment() {
 
     private fun fillFieldsInProfile(user: UserPresentation) {
         // Проверяем, чтобы userName не был равен "null"
-        if (user.userName != "null") {
+//        if (user.userName != "null") {
+        if (user.isValidData()) {
             binding?.textUserNameAnswer?.text = user.userName
 
             val genderEnum = Gender.genderFromString(user.childGender)
@@ -543,46 +550,56 @@ class ProfileFragment : Fragment() {
             // Email для входа
             binding?.textAuthEmailAnswer?.text = user.authEmail
 
-            // Показываем/скрываем почту и кнопку верификации в зависимости от статуса email
-            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
-                showLogOutButtons(false)
-            } else {
-                showLogOutButtons(true)
-            }
+//            // Показываем/скрываем почту и кнопку верификации в зависимости от статуса email - делаем это на основе состояния authStateFlow
+//            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
+//                showLogOutButtons(false)
+//            } else {
+//                showLogOutButtons(true)
+//            }
 
-            mainViewModel.scheduleBirthdayNotification(
-                childName = user.childName,
-                childBirthDate = user.childBirthDate
-            )
+//            mainViewModel.scheduleBirthdayNotification(
+//                childName = user.childName,
+//                childBirthDate = user.childBirthDate
+//            )
         }
     }
 
+//    private fun calculateAgeFromBirthDate(birthDateString: String): Int {
+//        if (birthDateString.isBlank()) return 0
+//        var birthDate: Date? = null
+//
+//        try {
+//            // Парсим из формата хранения (yyyy-MM-dd)
+//            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+//            birthDate = formatter.parse(birthDateString)
+//        } catch (e: ParseException) {
+//            Log.d(TAG, "Ошибка форматирования даты ${e.printStackTrace()}")
+//        }
+//
+//        val resultAge = birthDate?.calculateChildAge()
+//
+//        return when (resultAge?.status) {
+//            Status.SUCCESS -> {
+//                val age: Int = resultAge.data ?: 0
+//                age
+//            }
+//
+//            Status.ERROR -> {
+//                0
+//            } // TODO toast?
+//            else -> {
+//                0
+//            } // nothing
+//        }
+//    }
+
     private fun calculateAgeFromBirthDate(birthDateString: String): Int {
         if (birthDateString.isBlank()) return 0
-        var birthDate: Date? = null
-
-        try {
-            // Парсим из формата хранения (yyyy-MM-dd)
-            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-            birthDate = formatter.parse(birthDateString)
-        } catch (e: ParseException) {
-            Log.d(TAG, "Ошибка форматирования даты ${e.printStackTrace()}")
-        }
-
-        val resultAge = birthDate?.calculateChildAge()
-
-        return when (resultAge?.status) {
-            Status.SUCCESS -> {
-                val age: Int = resultAge.data ?: 0
-                age
-            }
-
-            Status.ERROR -> {
-                0
-            } // TODO toast?
-            else -> {
-                0
-            } // nothing
+        val birthDate = birthDateString.parseDateToLocalDate() ?: return 0
+        val age = birthDate.calculateAge()
+        return when (age.status) {
+            Status.SUCCESS -> age.data ?: 0
+            else -> 0
         }
     }
 

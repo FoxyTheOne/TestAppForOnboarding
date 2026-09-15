@@ -14,17 +14,15 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.foxynest.testappforonboarding.R
-import com.foxynest.testappforonboarding.other.extensions.isTodayBirthday
 import com.foxynest.testappforonboarding.presentation.MainActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.util.Date
 import javax.inject.Inject
 
 // TODO сделать текст локализованным
 class NotificationHelper @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-    fun showBirthdayNotificationIfPermitted(childName: String) {
+    fun showBirthdayNotificationIfPermitted(childName: String, birthDay: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     context,
@@ -37,7 +35,8 @@ class NotificationHelper @Inject constructor(
         }
 
         val channelId = "birthday_channel"
-        val notificationId = System.currentTimeMillis().toInt()
+//        val notificationId = System.currentTimeMillis().toInt()
+        val notificationId = (childName + birthDay).hashCode()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -81,9 +80,9 @@ class NotificationHelper @Inject constructor(
         NotificationManagerCompat.from(context).notify(notificationId, notification)
     }
 
-    fun checkAndNotifyIfBirthdayToday(childName: String, birthDate: String, today: Date) {
-        if (birthDate.isTodayBirthday(today)) {
-            showBirthdayNotificationIfPermitted(childName)
-        }
-    }
+//    fun checkAndNotifyIfBirthdayToday(childName: String, birthDate: String, today: Date) {
+//        if (birthDate.isBirthdayToday(today)) {
+//            showBirthdayNotificationIfPermitted(childName)
+//        }
+//    }
 }

@@ -26,6 +26,9 @@ interface IAppDatastorePreferences {
     fun getBirthdayNotificationDataFlow(): Flow<BirthdayNotificationData>
     suspend fun clearBirthdayNotificationData()
 
+    suspend fun getLastNotifiedYear(): Int
+    suspend fun saveLastNotifiedYear(year: Int)
+
     // Переключение языка в приложении
     suspend fun saveAppLanguage(languageCode: LanguageEnum) // "system", "ru", "en"
     fun getAppLanguageFlow(): Flow<String> // всегда возвращает валидный язык, по умолчанию "system"

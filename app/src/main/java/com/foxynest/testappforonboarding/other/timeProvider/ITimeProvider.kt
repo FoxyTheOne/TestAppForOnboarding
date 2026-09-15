@@ -1,7 +1,13 @@
 package com.foxynest.testappforonboarding.other.timeProvider
 
-import java.util.Date
+import java.time.LocalDate
+import java.time.LocalDateTime
+
+//interface ITimeProvider {
+//    fun getCurrentTime(): Date
+//}
 
 interface ITimeProvider {
-    fun getCurrentTime(): Date
+    fun getCurrentDate(): LocalDate
+    fun getCurrentDateTime(): LocalDateTime
 }

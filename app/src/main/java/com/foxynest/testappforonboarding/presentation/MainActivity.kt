@@ -127,6 +127,9 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        // Если пользователь удалил и заново установил приложение, будильник теряется, хотя данные в DataStore могут сохраниться (если не очищались). Чтобы восстановить планирование, нужно при первом запуске приложения (или при запуске после установки) проверить наличие данных о ребёнке и перепланировать уведомление.
+        mainViewModel.planningBirthdayNotificationOnStart()
+
         setupNotificationPermission()
         observeOnboardingState() // Подписываемся на изменения онбординга
         subscribeToObservers()

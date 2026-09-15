@@ -6,9 +6,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.di.DispatcherIO
+import com.foxynest.testappforonboarding.domain.entities.BirthdayNotificationData
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.entities.isValidData
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.isValidData
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IGetCurrentUserPresentationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
@@ -20,7 +24,6 @@ import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.extensions.hasValidData
-import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +45,7 @@ class MainViewModel @Inject constructor(
     private val onboardingUC: IOnboardingUC,
     private val updateFirebaseProfileUC: IUpdateFirebaseProfileUC,
     private val getCurrentFirebaseUserUC: IGetCurrentFirebaseUserUC,
+    private val getCurrentUserPresentationUC: IGetCurrentUserPresentationUC,
     private val getAuthStateFlowUC: IGetAuthStateFlowUC,
     private val loginValidateEmailUC: ILoginValidateEmailUC,
     private val updateEmailUC: IUpdateEmailUC,
@@ -101,9 +105,9 @@ class MainViewModel @Inject constructor(
     private val _retrySaveState = MutableLiveData<Resource<ErrorType>>()
     val retrySaveState: LiveData<Resource<ErrorType>> = _retrySaveState
 
-    // Создадим отдельную LiveData для управления загрузкой данных
-    private val _onboardingDataLoaded = MutableLiveData<Boolean>(false)
-    val onboardingDataLoaded: LiveData<Boolean> = _onboardingDataLoaded
+//    // Создадим отдельную LiveData для управления загрузкой данных
+//    private val _onboardingDataLoaded = MutableLiveData<Boolean>(false)
+//    val onboardingDataLoaded: LiveData<Boolean> = _onboardingDataLoaded
 
     // Инициализация ViewModel с загрузкой данных
     init {
@@ -195,8 +199,8 @@ class MainViewModel @Inject constructor(
         onboardingBackup = null
         Log.d(TAG, "Onboarding completed: backup cleared")
 
-        val answers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
-        scheduleBirthdayNotification(answers.childName, answers.childBirthDate)
+//        val answers = _onboardingAnswersLiveData.value ?: OnboardingAnswers()
+//        scheduleBirthdayNotification(answers.childName, answers.childBirthDate)
     }
 
     /**
@@ -237,14 +241,14 @@ class MainViewModel @Inject constructor(
             try {
                 onboardingUC.saveOnboardingAnswers(updated)
                 Log.d(TAG, "Saved onboarding answers: $updated")
-                // checkAndNotifyRightNowIfBirthdayToday() - немедленная проверка. Чтобы не было конфликтов или повотрных уведомлений, делаем эту проверку один раз, после прохождения онбординга
-                // TODO Если сделаем возможность изменять отдельные поля без онбординга, то там нужно дуюлировать эту немедленную проверку (например поля, от которых ничего не зависит - имя, дата рождения)
-                if (isOnboardingCompleted) {
-                    scheduleBirthdayNotificationUC.checkAndNotifyRightNowIfBirthdayToday(
-                        childName = updated.childName,
-                        childBirthDate = updated.childBirthDate
-                    )
-                }
+//                // checkAndNotifyRightNowIfBirthdayToday() - немедленная проверка. Чтобы не было конфликтов или повотрных уведомлений, делаем эту проверку один раз, после прохождения онбординга
+//                // TODO Если сделаем возможность изменять отдельные поля без онбординга, то там нужно дуюлировать эту немедленную проверку (например поля, от которых ничего не зависит - имя, дата рождения)
+//                if (isOnboardingCompleted) {
+//                    scheduleBirthdayNotificationUC.checkAndNotifyRightNowIfBirthdayToday(
+//                        childName = updated.childName,
+//                        childBirthDate = updated.childBirthDate
+//                    )
+//                }
                 scheduleBirthdayNotification(updated.childName, updated.childBirthDate)
             } catch (e: IOException) {
                 Log.e(TAG, "Failed to save onboarding answers", e)
@@ -376,7 +380,7 @@ class MainViewModel @Inject constructor(
                     childHobbies = currentAnswers.childHobbies
                 )
 
-                if (updatedUser.isUserDataValid()) {
+                if (updatedUser.isValidData()) {
                     Log.d(TAG, "Saving valid user data to Firebase: $updatedUser")
                     _profileUpdatedLiveData.postValue(updateFirebaseProfileUC.execute(updatedUser))
                     scheduleBirthdayNotification(
@@ -411,6 +415,10 @@ class MainViewModel @Inject constructor(
 
     fun scheduleBirthdayNotification(childName: String, childBirthDate: String) {
         viewModelScope.launch(dispatcher) {
+            Log.d(
+                TAG,
+                "scheduleBirthdayNotification in ViewModel: name=$childName, date=$childBirthDate"
+            )
             scheduleBirthdayNotificationUC.scheduleBirthdayNotification(childName, childBirthDate)
         }
     }
@@ -424,8 +432,22 @@ class MainViewModel @Inject constructor(
             onboardingUC.getOnboardingAnswersFlow().collect { answers ->
                 _onboardingAnswersLiveData.postValue(answers)
                 Log.d(TAG, "Loaded onboarding answers: $answers")
-                // Планируем (или отменяем) уведомление
-                scheduleBirthdayNotification(answers.childName, answers.childBirthDate)
+//                // Планируем (или отменяем) уведомление
+//                scheduleBirthdayNotification(answers.childName, answers.childBirthDate)
+            }
+        }
+    }
+
+    fun planningBirthdayNotificationOnStart() {
+        // Планирование при старте
+        viewModelScope.launch {
+            val user = getCurrentUserPresentationUC().data
+            val birthdayData = BirthdayNotificationData(childName = user?.childName ?: "", childBirthDate = user?.childBirthDate?: "")
+            if (birthdayData.isValidData()) {
+                scheduleBirthdayNotificationUC.scheduleBirthdayNotification(
+                    birthdayData.childName,
+                    birthdayData.childBirthDate
+                )
             }
         }
     }

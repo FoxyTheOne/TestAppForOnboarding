@@ -13,7 +13,7 @@ import javax.inject.Inject
  * преобразование моделей в модели нижнего уровня перед тем, как нижний уровень сможет их использовать.
  */
 class ScheduleBirthdayNotificationUC @Inject constructor(
-    private val notificationManager: IBirthdayNotificationRepository
+    private val birthdayNotificationRepository: IBirthdayNotificationRepository
 ) : IScheduleBirthdayNotificationUC {
     override suspend fun scheduleBirthdayNotification(
         childName: String,
@@ -24,19 +24,22 @@ class ScheduleBirthdayNotificationUC @Inject constructor(
                 childBirthDate = childBirthDate
             ).isValidData()
         ) {
-            notificationManager.scheduleBirthdayNotification(childName, childBirthDate)
+            return birthdayNotificationRepository.scheduleBirthdayNotification(
+                childName,
+                childBirthDate
+            )
+//            birthdayNotificationRepository.schedule(childName, childBirthDate)
         } else {
             // Нет данных – отменяем уведомление
-            notificationManager.cancelBirthdayNotification()
+            birthdayNotificationRepository.cancelBirthdayNotification()
         }
     }
 
     // НЕМЕДЛЕННАЯ ПРОВЕРКА (без планирования, на случай если ДР сегодня)
-    override suspend fun checkAndNotifyRightNowIfBirthdayToday(
-        childName: String,
-        childBirthDate: String
-    ) {
-        notificationManager.checkAndNotifyIfBirthdayToday(childName, childBirthDate)
-    }
+//    override suspend fun checkAndNotifyRightNowIfBirthdayToday(
+//        childName: String,
+//        childBirthDate: String
+//    ) {
+//        birthdayNotificationRepository.checkAndNotifyIfBirthdayToday(childName, childBirthDate)
+//    }
 }
-

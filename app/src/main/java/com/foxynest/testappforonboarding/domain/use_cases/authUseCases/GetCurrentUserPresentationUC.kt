@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases
 
+import com.foxynest.testappforonboarding.domain.entities.onboarding.isValidData
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepository
@@ -29,12 +30,7 @@ class GetCurrentUserPresentationUC @Inject constructor(
         } else {
             // 2. Иначе берём из DataStore
             val answers = onboardingRepository.getOnboardingAnswersFlow().first()
-            return if (
-            // TODO можно сделать extention на проверку полей
-                !answers.userName.isNullOrBlank() && answers.userName != "null" &&
-                !answers.childName.isNullOrBlank() && answers.childName != "null" &&
-                !answers.childBirthDate.isNullOrBlank() && answers.childBirthDate != "null"
-            ) {
+            return if (answers.isValidData()) {
                 Resource.success(answers.createUserFromAnswersForNotRegisteredUser())
             } else {
                 Resource.error("Поля пользователя не заполнены", null)

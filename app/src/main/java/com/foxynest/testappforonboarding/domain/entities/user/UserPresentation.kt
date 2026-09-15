@@ -21,8 +21,9 @@ data class UserPresentation(
 ) : Parcelable
 
 fun UserPresentation.isValidData(): Boolean {
-    return authEmail.isNotBlank() && authEmail != "null" &&
-            userName.isNotBlank() && userName != "null" &&
+//    return authEmail.isNotBlank() && authEmail != "null" &&
+    return userName.isNotBlank() && userName != "null" &&
             childName.isNotBlank() && childName != "null" &&
+            childHobbies.isNotBlank() && childHobbies != "null" &&
             childBirthDate.isNotBlank() && childBirthDate != "null"
 }

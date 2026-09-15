@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.di
 
+import android.app.AlarmManager
 import android.content.Context
 import androidx.work.WorkManager
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.AppDatastorePreferences
@@ -28,10 +29,10 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGe
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
-import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateFirebaseProfileUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LogoutUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateFirebaseProfileUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateFirebaseProfileUC
 import com.foxynest.testappforonboarding.other.timeProvider.ITimeProvider
@@ -70,6 +71,12 @@ abstract class SingletonModule {
 
         @Provides
         fun provideTimeProvider(): ITimeProvider = SystemTimeProvider()
+
+        @Provides
+        @Singleton
+        fun provideAlarmManager(@ApplicationContext context: Context): AlarmManager {
+            return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        }
     }
 
     @Binds

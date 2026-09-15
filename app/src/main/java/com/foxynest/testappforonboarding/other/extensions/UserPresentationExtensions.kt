@@ -49,8 +49,8 @@ fun DocumentSnapshot.toUserPresentation(firebaseUser: FirebaseUser): UserPresent
     )
 }
 
-fun UserPresentation.isUserDataValid(): Boolean =
-    this.userName.isNotBlank() && this.childName.isNotBlank() && this.childHobbies.isNotBlank() && this.childBirthDate.isNotBlank()
+//fun UserPresentation.isUserDataValid(): Boolean =
+//    this.userName.isNotBlank() && this.childName.isNotBlank() && this.childHobbies.isNotBlank() && this.childBirthDate.isNotBlank()
 
 fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: FragmentActivity?): UserPresentation {
     // Только для передачи данных для регистрации! Не для передачи в firebase

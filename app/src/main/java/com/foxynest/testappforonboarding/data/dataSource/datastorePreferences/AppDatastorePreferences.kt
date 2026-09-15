@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.AppDatastorePreferences.PreferencesKeys.LAST_NOTIFIED_YEAR_KEY
 import com.foxynest.testappforonboarding.domain.entities.BirthdayNotificationData
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
@@ -42,6 +43,7 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
 
         // Birthday notification
         val BIRTHDAY_NOTIF_DATA = stringPreferencesKey("birthday_notification_data")
+        val LAST_NOTIFIED_YEAR_KEY = intPreferencesKey("last_notified_year")
     }
 
     // Сохраняем весь объект целиком
@@ -77,27 +79,35 @@ class AppDatastorePreferences @Inject constructor(@ApplicationContext val contex
         }
     }
 
-    override fun getBirthdayNotificationDataFlow(): Flow<BirthdayNotificationData> = context.dataStore.data
-        .map { prefs ->
-            val jsonString = prefs[PreferencesKeys.BIRTHDAY_NOTIF_DATA]
-            if (jsonString.isNullOrBlank()) {
-                BirthdayNotificationData()  // данные не найдены – пустой объект
-            } else {
-                try {
-                    // Десериализуем JSON обратно в BirthdayNotificationData
-                    val type = object : TypeToken<BirthdayNotificationData>() {}.type
-                    gson.fromJson(jsonString, type) ?: BirthdayNotificationData()
-                } catch (e: Exception) {
-                    // Ошибка парсинга – возвращаем пустой объект
-                    BirthdayNotificationData()
+    override fun getBirthdayNotificationDataFlow(): Flow<BirthdayNotificationData> =
+        context.dataStore.data
+            .map { prefs ->
+                val jsonString = prefs[PreferencesKeys.BIRTHDAY_NOTIF_DATA]
+                if (jsonString.isNullOrBlank()) {
+                    BirthdayNotificationData()  // данные не найдены – пустой объект
+                } else {
+                    try {
+                        // Десериализуем JSON обратно в BirthdayNotificationData
+                        val type = object : TypeToken<BirthdayNotificationData>() {}.type
+                        gson.fromJson(jsonString, type) ?: BirthdayNotificationData()
+                    } catch (e: Exception) {
+                        // Ошибка парсинга – возвращаем пустой объект
+                        BirthdayNotificationData()
+                    }
                 }
             }
-        }
 
     override suspend fun clearBirthdayNotificationData() {
         context.dataStore.edit { prefs ->
             prefs.remove(PreferencesKeys.BIRTHDAY_NOTIF_DATA) // полностью удаляем ключ
         }
+    }
+
+    override suspend fun getLastNotifiedYear(): Int =
+        context.dataStore.data.map { it[LAST_NOTIFIED_YEAR_KEY] ?: 0 }.first()
+
+    override suspend fun saveLastNotifiedYear(year: Int) {
+        context.dataStore.edit { it[LAST_NOTIFIED_YEAR_KEY] = year }
     }
 
     override suspend fun saveOnboardingState(isCompleted: Boolean) {

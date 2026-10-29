@@ -1,7 +1,7 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
-import com.foxynest.testappforonboarding.data.repository.AuthRepository
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
 
@@ -18,7 +18,7 @@ import javax.inject.Inject
  * Typically each use case consists of just one function which executes that use case (which validates the email for instance)
  */
 class LogoutUC @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: IAuthRepository
 ) : ILogoutUC {
     override suspend fun execute(): Resource<ErrorType> {
         return authRepository.logout()

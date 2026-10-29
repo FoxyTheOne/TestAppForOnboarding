@@ -58,7 +58,7 @@ fun LiveData<OnboardingAnswers>.createUserFromLocalDataInFragment(activity: Frag
     return UserPresentation(
         userName = this.value?.userName ?: "",
         childGender = this.value?.childGender ?: "",
-        isItABoy = this.value?.isItABoy ?: activity?.getString(R.string.no) ?: "",
+        isItABoy = this.value?.isItABoy ?: "",
         childName = this.value?.childName ?: "",
         childHobbies = this.value?.childHobbies ?: "",
         childBirthDate = this.value?.childBirthDate ?: ""

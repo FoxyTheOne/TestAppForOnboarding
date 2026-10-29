@@ -1,39 +1,37 @@
 package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion3Binding
-import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.extensions.calculateAge
+import com.foxynest.testappforonboarding.other.extensions.parseDateToLocalDate
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
-import com.foxynest.testappforonboarding.other.extensions.toLocalDate
 import com.foxynest.testappforonboarding.other.extensions.toMySaveFormatString
 import com.google.android.material.datepicker.CalendarConstraints
+import com.google.android.material.datepicker.DateValidatorPointBackward
 import com.google.android.material.datepicker.MaterialDatePicker
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Calendar
 import java.util.Locale
-import java.util.TimeZone
 
 @AndroidEntryPoint
 class Question3Fragment : BaseOnboardingFragment() {
     companion object {
-        private const val TAG = "Question3Fragment"
+        private const val SELECTED_DATE_KEY = "selected_date"
+        private const val DATE_PICKER_TAG = "DATE_PICKER"
+        private val MIN_BIRTH_DATE: LocalDate = LocalDate.of(1900, 1, 1)
     }
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentQuestion3Binding? = null
 
-//    private var selectedDateInMillis: Long? = null
     private var selectedDate: LocalDate? = null
     override val currentFragmentId: Int = R.id.navigation_question3
 
@@ -50,14 +48,20 @@ class Question3Fragment : BaseOnboardingFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Добавим логирование для отладки
-        Log.d(TAG, "Question3Fragment onViewCreated")
-        Log.d(TAG, "isOnboardingStarted: ${mainViewModel.isOnboardingStarted()}")
-        Log.d(TAG, "isOnboardingCancelled: ${mainViewModel.isOnboardingCancelled()}")
-        Log.d(TAG, "isOnboardingCompleted: ${mainViewModel.isOnboardingCompleted()}")
-        Log.d(TAG, "sourceFragment: $sourceFragment")
+        // Выбранная дата переживает пересоздание экрана (смена языка/темы)
+        savedInstanceState?.getString(SELECTED_DATE_KEY)?.parseDateToLocalDate()
+            ?.let(::onDateSelected)
+
+        // Диалог восстанавливается системой сам, но слушатель – нет
+        (childFragmentManager.findFragmentByTag(DATE_PICKER_TAG) as? MaterialDatePicker<*>)
+            ?.let { restorePickerListener(it) }
 
         initListeners()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        selectedDate?.let { outState.putString(SELECTED_DATE_KEY, it.toMySaveFormatString()) }
     }
 
     private fun initListeners() {
@@ -79,159 +83,81 @@ class Question3Fragment : BaseOnboardingFragment() {
         }
 
         binding?.buttonNext?.setOnClickListener {
-//            val birthDateText = selectedDateInMillis?.convertDateMillisToMySaveFormat() ?: ""
-//            val ageText = binding?.textChildAgeValue?.text?.toString() ?: "0"
-
-            if (validateDateForButtonNext()) {
-                // Все проверки на null должны были быть в areFieldsValid()
-//                mainViewModel.updateBirthDate(birthDateText)
-                mainViewModel.updateBirthDate(selectedDate!!.toMySaveFormatString())
-
-                val args = Bundle().apply {
-                    putString("source_fragment", sourceFragment)
-                }
-                safeNavigate(
-                    R.id.navigation_question3,
-                    R.id.action_navigation_question3_to_navigation_question4,
-                    args
-                )
-            }
+            val date = validateDateForButtonNext() ?: return@setOnClickListener
+            mainViewModel.updateBirthDate(date.toMySaveFormatString())
+            safeNavigate(
+                R.id.navigation_question3,
+                R.id.action_navigation_question3_to_navigation_question4,
+                sourceArgs()
+            )
         }
     }
 
-//    private fun validateDate(
-//        birthDateText: String?, // в формате MM/dd/yyyy
-//        ageText: String?
-//    ): Boolean {
-//        var isValid = true
-//
-//        // Проверка даты рождения
-//        if (birthDateText.isNullOrBlank() || selectedDateInMillis == null) {
-//            binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_selected)
-//            isValid = false
-//        } else {
-//            binding?.textFieldBirthDate?.error = null
-//        }
-//
-//        // Проверка возраста (должен быть больше 0)
-//        val age = ageText?.toIntOrNull() ?: 0
-//        if (age < 0) {
-//            if (isValid) { // Показываем ошибку возраста только если дата валидна
-//                binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_valid)
-//            }
-//            isValid = false
-//        }
-//
-//        return isValid
-//    }
+    private fun validateDateForButtonNext(): LocalDate? {
+        val date = selectedDate
+        val error = when {
+            date == null -> getString(R.string.error_birth_date_not_selected)
+            // Раньше проверялся только возраст < 0, а он равен 0 для любой даты в ближайшие 12 месяцев
+            date.isAfter(LocalDate.now()) || date.isBefore(MIN_BIRTH_DATE) ->
+                getString(R.string.error_birth_date_not_valid)
 
-    private fun validateDateForButtonNext(): Boolean {
-        var isValid = true
-
-        if (selectedDate == null) {
-            binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_selected)
-            isValid = false
-        } else {
-            // Проверяем возраст (должен быть > 0)
-            val age = selectedDate!!.calculateAge().data ?: 0
-            if (age < 0) {
-                binding?.textFieldBirthDate?.error = getString(R.string.error_birth_date_not_valid)
-                isValid = false
-            } else {
-                binding?.textFieldBirthDate?.error = null
-            }
+            else -> null
         }
-        return isValid
+        binding?.textFieldBirthDate?.error = error
+        return if (error == null) date else null
     }
 
     private fun showDatePicker() {
-        // Устанавливаем ограничения даты (например, от 1900 года до сегодня)
-        val constraintsBuilder = CalendarConstraints.Builder()
-        val today = MaterialDatePicker.todayInUtcMilliseconds()
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        if (childFragmentManager.findFragmentByTag(DATE_PICKER_TAG) != null) return
 
-        // Минимальная дата - 1 января 1900
-        calendar.set(1900, 0, 1)
-        val minDate = calendar.timeInMillis
-
-        // Максимальная дата - сегодня
-        val maxDate = today
-
-        constraintsBuilder.setStart(minDate)
-        constraintsBuilder.setEnd(maxDate)
-
-//        // Если уже выбрана дата, устанавливаем её как начальную
-//        if (selectedDateInMillis != null) {
-//            constraintsBuilder.setOpenAt(selectedDateInMillis!!)
-//        }
-
-        // Если уже выбрана дата, устанавливаем её как начальную (конвертируем в UTC millis)
-        val initialSelection = selectedDate?.let {
-            it.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        } ?: today
-
-        constraintsBuilder.setOpenAt(initialSelection)
+        // MaterialDatePicker работает с полночью UTC. Любые переводы через ZoneId.systemDefault()
+        // сдвигают дату на день: в часовых поясах западнее UTC сохранялся вчерашний день
+        val todayUtcMillis = LocalDate.now().toUtcMillis()
+        val constraints = CalendarConstraints.Builder()
+            .setStart(MIN_BIRTH_DATE.toUtcMillis())
+            .setEnd(todayUtcMillis)
+            // setEnd ограничивает только пролистывание месяцев; выбрать будущий день текущего месяца мешает валидатор
+            .setValidator(DateValidatorPointBackward.before(todayUtcMillis + 1))
+            .setOpenAt(selectedDate?.toUtcMillis() ?: todayUtcMillis)
+            .build()
 
         val datePicker = MaterialDatePicker.Builder.datePicker()
             .setTitleText(getString(R.string.text_select_date_hint))
-            .setSelection(initialSelection)
-            .setCalendarConstraints(constraintsBuilder.build())
-//            .setTheme(R.style.ThemeOverlay_Material3_DatePicker)
+            .setSelection(selectedDate?.toUtcMillis() ?: todayUtcMillis)
+            .setCalendarConstraints(constraints)
             .build()
 
-//        datePicker.addOnPositiveButtonClickListener { selection ->
-//            selectedDateInMillis = selection
-//            onDateSelected(selection)
-//        }
+        restorePickerListener(datePicker)
+        datePicker.show(childFragmentManager, DATE_PICKER_TAG)
+    }
 
-        datePicker.addOnPositiveButtonClickListener { selectionMillis ->
-            // Конвертируем UTC миллисекунды в LocalDate (с учётом часового пояса устройства)
-            val localDate = selectionMillis.toLocalDate()
-            if (localDate != null) {
-                selectedDate = localDate
-                onDateSelected(localDate)
-            }
+    @Suppress("UNCHECKED_CAST")
+    private fun restorePickerListener(picker: MaterialDatePicker<*>) {
+        (picker as MaterialDatePicker<Long>).addOnPositiveButtonClickListener { selectionMillis ->
+            onDateSelected(
+                Instant.ofEpochMilli(selectionMillis).atZone(ZoneOffset.UTC).toLocalDate()
+            )
         }
-
-        datePicker.show(childFragmentManager, "DATE_PICKER")
     }
 
     private fun onDateSelected(date: LocalDate) {
-//        // Форматируем для отображения (день.месяц.год)
-//        val date = Date(selectedDateMillis)
-//        val displayFormatter = android.text.format.DateFormat.getDateFormat(requireContext())
-//        val displayDate = displayFormatter.format(date)
-//        binding?.editTextBirthDate?.setText(displayDate)
+        selectedDate = date
 
-        // Форматируем для отображения с учётом локали
         val displayDate = date.format(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
         )
         binding?.editTextBirthDate?.setText(displayDate)
-
-//        // Сразу рассчитываем и отображаем возраст
-//        calculateAndDisplayAge(date)
-
-        // Рассчитываем возраст
-        val age = date.calculateAge()
-        val ageValue = when (age.status) {
-            Status.SUCCESS -> age.data ?: 0
-            else -> 0
-        }
-        binding?.textChildAgeValue?.text = ageValue.toString()
-
+        binding?.textChildAgeValue?.text = (date.calculateAge().data ?: 0).toString()
         // Очищаем ошибку
         binding?.textFieldBirthDate?.error = null
         binding?.textFieldBirthDate?.isErrorEnabled = false
     }
 
-    private fun hasNavigatedToNext(): Boolean {
-        return findNavController().currentDestination?.id == R.id.navigation_paywall
-    }
+    private fun LocalDate.toUtcMillis(): Long =
+        atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог и не должен вызываться повторно в onDestroyView()
         binding = null
         super.onDestroyView()
     }

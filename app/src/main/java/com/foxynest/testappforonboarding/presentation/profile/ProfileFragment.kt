@@ -19,6 +19,7 @@ import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.domain.entities.HobbyLocalizer
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
+import com.foxynest.testappforonboarding.domain.entities.onboarding.YesNoAnswer
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.entities.user.isValidData
 import com.foxynest.testappforonboarding.other.Resource
@@ -36,7 +37,6 @@ import com.foxynest.testappforonboarding.presentation.dialogs.ChangeAuthEmailDia
 import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -94,18 +94,14 @@ class ProfileFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        // При возвращении на фрагмент ПРИНУДИТЕЛЬНО проверяем данные
-        // Это особенно важно после отмены онбординга
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Даем время на восстановление данных
-            delay(100) // Минимальная задержка для гарантии
+        // Задержка delay(100) больше не нужна: отмена опроса не трогает сохранённые ответы
 
-            // При возвращении на фрагмент проверяем данные
-            checkCurrentData()
+        // При возвращении на фрагмент проверяем данные
+        checkCurrentData()
 
-            // При возвращении на экран проверяем статус верификации
-            profileViewModel.checkEmailVerificationStatus()
-        }
+        // При возвращении на экран проверяем статус верификации
+        profileViewModel.checkEmailVerificationStatus()
+
     }
 
     // Firebase будет держать user зарегистрированным даже после того, как он закроет программу и откроет заново. Поэтому нам нужно переписать метод onStart(), чтобы проверять, is user logged in in firebase or not
@@ -363,7 +359,8 @@ class ProfileFragment : Fragment() {
 
                 Status.ERROR -> {
                     val errorType = resourceResult.data
-                    val isPasswordError = resourceResult.message?.contains("password") ?: false
+                    val isPasswordError =
+                        errorType == ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR
 
                     val isCurrentEmailNotVerified =
                         errorType == ErrorType.CURRENT_EMAIL_NOT_VERIFIED
@@ -529,7 +526,12 @@ class ProfileFragment : Fragment() {
             binding?.textGenderAnswer?.text = genderEnum.getDisplayName(requireContext())
 //            binding?.textGenderAnswer?.text = user.childGender
 
-            binding?.textGenderAnswerIsItABoy?.text = user.isItABoy
+            binding?.textGenderAnswerIsItABoy?.text =
+                when (YesNoAnswer.fromStoredValue(user.isItABoy)) {
+                    YesNoAnswer.YES -> getString(R.string.yes)
+                    YesNoAnswer.NO -> getString(R.string.no)
+                    null -> user.isItABoy
+                }
             binding?.textChildNameAnswer?.text = user.childName
             // HOBBY
             val hobbiesKeys = user.childHobbies.split(HOBBIES_DELIMITER)
@@ -706,27 +708,31 @@ class ProfileFragment : Fragment() {
     private fun setupLanguageSwitcher() {
         var isUpdatingProgrammatically = false
 
-        lifecycleScope.launch {
+        // viewLifecycleOwner, а не lifecycleScope фрагмента: фрагмент в back stack переживает свою View,
+        // и каждый onViewCreated добавлял ещё одного вечного подписчика (утечка корутин)
+        viewLifecycleOwner.lifecycleScope.launch {
             // Сначала получает null, потом вызывается метод getAppLanguageFlow и сюда прилетает последний выбранный язык перед выключением
             // Так же попадаем сюда при изменении языка в программе, чтобы переставить выбранную кнопку на нужный язык
-            profileViewModel.currentLanguageFlow.collect { lang ->
-                Log.d(
-                    TAG,
-                    "LANG Updating programmatically: collecting currentLanguageFlow, lang = $lang"
-                )
-                isUpdatingProgrammatically = true
+            profileViewModel.currentLanguageFlow
+                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+                .collect { lang ->
+                    Log.d(
+                        TAG,
+                        "LANG Updating programmatically: collecting currentLanguageFlow, lang = $lang"
+                    )
+                    isUpdatingProgrammatically = true
 //                Меняем выбранную radio button исходя из отображаемого языка
-                binding?.apply {
-                    when (lang) {
-                        LanguageEnum.RU -> rbRussian.isChecked = true
-                        LanguageEnum.EN -> rbEnglish.isChecked = true
-                        LanguageEnum.SYSTEM -> rbSystem.isChecked = true
-                        else -> rbSystem.isChecked = true
+                    binding?.apply {
+                        when (lang) {
+                            LanguageEnum.RU -> rbRussian.isChecked = true
+                            LanguageEnum.EN -> rbEnglish.isChecked = true
+                            LanguageEnum.SYSTEM -> rbSystem.isChecked = true
+                            else -> rbSystem.isChecked = true
+                        }
                     }
+                    currentLang = lang
+                    isUpdatingProgrammatically = false
                 }
-                currentLang = lang
-                isUpdatingProgrammatically = false
-            }
         }
 
         binding?.rgLanguage?.setOnCheckedChangeListener { _, checkedId ->

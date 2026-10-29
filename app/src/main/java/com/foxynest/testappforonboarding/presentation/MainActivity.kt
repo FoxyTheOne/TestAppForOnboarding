@@ -127,8 +127,12 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // Если пользователь удалил и заново установил приложение, будильник теряется, хотя данные в DataStore могут сохраниться (если не очищались). Чтобы восстановить планирование, нужно при первом запуске приложения (или при запуске после установки) проверить наличие данных о ребёнке и перепланировать уведомление.
-        mainViewModel.planningBirthdayNotificationOnStart()
+        // Будильник пропадает после принудительной остановки приложения, восстановления из резервной копии
+        // на новом телефоне и т.п. Поэтому при каждом запуске перепланируем (операция идемпотентна).
+        // Если сегодня день рождения и ещё не поздравляли – пользователь в приложении, поздравляем сразу.
+        if (savedInstanceState == null) {
+            mainViewModel.planningBirthdayNotificationOnStart()
+        }
 
         setupNotificationPermission()
         observeOnboardingState() // Подписываемся на изменения онбординга
@@ -178,17 +182,17 @@ class MainActivity : AppCompatActivity() {
             binding?.onboardingTitle?.text = title
         }
 
-        // Наблюдаем за прогрессом
-        onboardingViewModel.currentStep.observe(this) { currentStep ->
-            onboardingViewModel.totalSteps.observe(this) { totalSteps ->
-                if (totalSteps > 0) {
-                    val progress = (currentStep.toFloat() / totalSteps.toFloat()) * 100
-                    binding?.onboardingProgress?.progress = progress.toInt()
+        // Наблюдаем за прогрессом. Раньше observe(totalSteps) вызывался внутри observe(currentStep):
+        // каждый шаг добавлял нового наблюдателя, и они копились до уничтожения Activity
+        onboardingViewModel.currentStep.observe(this) { updateOnboardingProgress() }
+        onboardingViewModel.totalSteps.observe(this) { updateOnboardingProgress() }
+    }
 
-                    // Можно добавить отображение текста прогресса
-                    // binding?.progressText?.text = onboardingViewModel.getProgressText()
-                }
-            }
+    private fun updateOnboardingProgress() {
+        val currentStep = onboardingViewModel.currentStep.value ?: 0
+        val totalSteps = onboardingViewModel.totalSteps.value ?: 0
+        if (totalSteps > 0) {
+            binding?.onboardingProgress?.progress = currentStep * 100 / totalSteps
         }
     }
 
@@ -307,7 +311,9 @@ class MainActivity : AppCompatActivity() {
      */
     private fun subscribeToObservers() {
         mainViewModel.errorMessageLiveData.observe(this) { event ->
-            val toastMessage = event.getContentIfNotHandled()?.data?.toErrorMessage(resources)
+            // Раньше показывался пустой тост, если событие уже обработано
+            val toastMessage =
+                event.getContentIfNotHandled()?.data?.toErrorMessage(resources) ?: return@observe
             Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show()
         }
     }

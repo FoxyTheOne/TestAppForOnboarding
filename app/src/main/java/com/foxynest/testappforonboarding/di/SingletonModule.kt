@@ -2,7 +2,6 @@ package com.foxynest.testappforonboarding.di
 
 import android.app.AlarmManager
 import android.content.Context
-import androidx.work.WorkManager
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.AppDatastorePreferences
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import com.foxynest.testappforonboarding.data.repository.AppLanguageRepository
@@ -31,6 +30,8 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILo
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LogoutUC
+import com.foxynest.testappforonboarding.domain.use_cases.notification.IScheduleBirthdayNotificationUC
+import com.foxynest.testappforonboarding.domain.use_cases.notification.ScheduleBirthdayNotificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateFirebaseProfileUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.UpdateEmailUC
@@ -62,12 +63,6 @@ abstract class SingletonModule {
         @Provides
         @Singleton
         fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
-
-        @Provides
-        @Singleton
-        fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
-            return WorkManager.getInstance(context)
-        }
 
         @Provides
         fun provideTimeProvider(): ITimeProvider = SystemTimeProvider()
@@ -156,6 +151,12 @@ abstract class SingletonModule {
     abstract fun bindsBirthdayNotificationManager(
         birthdayNotificationManager: BirthdayNotificationRepository
     ): IBirthdayNotificationRepository
+
+    // В SingletonComponent, а не в ViewModelComponent: нужен ещё и BroadcastReceiver-у
+    @Binds
+    abstract fun bindsScheduleBirthdayNotificationInteractor(
+        scheduleBirthdayNotificationUC: ScheduleBirthdayNotificationUC
+    ): IScheduleBirthdayNotificationUC
 
     @Binds
     @Singleton

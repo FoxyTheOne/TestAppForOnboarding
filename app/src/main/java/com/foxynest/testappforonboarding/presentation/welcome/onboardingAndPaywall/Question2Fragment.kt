@@ -1,21 +1,17 @@
 package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion2Binding
+import com.foxynest.testappforonboarding.domain.entities.onboarding.YesNoAnswer
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class Question2Fragment : BaseOnboardingFragment() {
-    companion object {
-        private const val TAG = "Question2Fragment"
-    }
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentQuestion2Binding? = null
@@ -35,24 +31,12 @@ class Question2Fragment : BaseOnboardingFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Добавим логирование для отладки
-        Log.d(TAG, "Question2Fragment onViewCreated")
-        Log.d(TAG, "isOnboardingStarted: ${mainViewModel.isOnboardingStarted()}")
-        Log.d(TAG, "isOnboardingCancelled: ${mainViewModel.isOnboardingCancelled()}")
-        Log.d(TAG, "isOnboardingCompleted: ${mainViewModel.isOnboardingCompleted()}")
-        Log.d(TAG, "sourceFragment: $sourceFragment")
-
         initListeners()
     }
 
     private fun initListeners() {
-        binding?.buttonYes?.setOnClickListener {
-            saveAnswerAndGoFurther(binding?.buttonYes?.text.toString())
-        }
-
-        binding?.buttonNo?.setOnClickListener {
-            saveAnswerAndGoFurther(binding?.buttonNo?.text.toString())
-        }
+        binding?.buttonYes?.setOnClickListener { saveAnswerAndGoFurther(YesNoAnswer.YES) }
+        binding?.buttonNo?.setOnClickListener { saveAnswerAndGoFurther(YesNoAnswer.NO) }
 
         // Добавляем обработчик кнопки отмены
         binding?.buttonCancel?.setOnClickListener {
@@ -60,31 +44,17 @@ class Question2Fragment : BaseOnboardingFragment() {
         }
     }
 
-    private fun saveAnswerAndGoFurther(isItABoy: String) {
-        mainViewModel.updateIsItABoy(isItABoy)
-
-        // Передаем аргумент при навигации на Question3Fragment
-        val args = Bundle().apply {
-            putString("source_fragment", sourceFragment)
-        }
+    private fun saveAnswerAndGoFurther(answer: YesNoAnswer) {
+        mainViewModel.updateIsItABoy(answer.name)
         safeNavigate(
             R.id.navigation_question2,
             R.id.action_navigation_question2_to_navigation_question3,
-            args
+            sourceArgs()
         )
-    }
-
-    private fun hasNavigatedToNext(): Boolean {
-        return findNavController().currentDestination?.id in
-                listOf(
-                    R.id.navigation_question3,
-                    R.id.navigation_paywall
-                )
     }
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        // cancelOnboarding() уже вызывается при нажатии кнопки отмены через диалог и не должен вызываться повторно в onDestroyView()
         binding = null
         super.onDestroyView()
     }

@@ -1,35 +1,30 @@
 package com.foxynest.testappforonboarding
 
+import com.foxynest.testappforonboarding.domain.entities.user.UserFirestoreFields
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
-import com.foxynest.testappforonboarding.other.extensions.convertDateMillisToMySaveFormat
 import com.foxynest.testappforonboarding.other.extensions.toFirestoreMap
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class DataMappingTests {
     @Test
-    fun `user presentation to firestore map contains all fields`() {
+    fun `user presentation to firestore map contains profile fields`() {
         val user = UserPresentation(
             uid = "123",
             authEmail = "test@test.com",
             userName = "Test User",
-            childGender = "Мальчик",
-            childName = "Child Name"
+            childGender = "BOY",
+            childName = "Child Name",
+            childBirthDate = "2020-05-19"
         )
 
         val firestoreMap = user.toFirestoreMap()
 
-        assertEquals("test@test.com", firestoreMap["email"])
-        assertEquals("Test User", firestoreMap["username"])
-        assertEquals("Мальчик", firestoreMap["childGender"])
-    }
-
-    @Test
-    fun `date conversion works correctly`() {
-        val timestamp = System.currentTimeMillis()
-        val dateString = timestamp.convertDateMillisToMySaveFormat()
-
-        assertTrue(dateString.matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
+        assertEquals("Test User", firestoreMap[UserFirestoreFields.USERNAME])
+        assertEquals("BOY", firestoreMap[UserFirestoreFields.CHILD_GENDER])
+        assertEquals("2020-05-19", firestoreMap[UserFirestoreFields.CHILD_BIRTH_DATE])
+        // uid и почта для входа не дублируются в документе профиля
+        assertFalse(firestoreMap.values.contains("test@test.com"))
     }
 }

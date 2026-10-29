@@ -183,5 +183,15 @@
     <string name="local_onboarding_saving_error_text">Не получилось сохранить статус пройденного опроса на вашем телефоне. Повторить попытку?</string>
     <string name="local_onboarding_saving_error_toast">При следующем запуске программы опрос запустится снова</string>
 
+    <!-- Birthday notification -->
+    <string name="birthday_channel_name">Дни рождения</string>
+    <string name="birthday_channel_description">Поздравления с днём рождения ребёнка</string>
+    <string name="birthday_notification_title">🎉 С днём рождения, %1$s!</string>
+    <string name="birthday_notification_text">Поздравляем с праздником! Пусть этот день будет наполнен радостью и улыбками.</string>
+    <string name="birthday_notification_big_text">Пусть каждый день приносит новые открытия, а счастье всегда будет рядом! 🥳</string>
+
+    <!-- Logout -->
+    <string name="unsynced_data_logout_error">Часть изменений ещё не отправлена на сервер. Проверьте интернет и попробуйте снова, иначе эти изменения будут потеряны.</string>
+
     <!-- Other -->
 </resources>

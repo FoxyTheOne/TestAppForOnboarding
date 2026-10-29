@@ -5,41 +5,21 @@ import com.foxynest.testappforonboarding.domain.entities.isValidData
 import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationRepository
 import javax.inject.Inject
 
-/**
- * Domain layer, UseCase. Бизнес-логика, Kotlin. Работает только с Repository.
- *
- * Interactor ответственен за обеспечение данными отдельные экраны (для каждого экрана - отдельный Interactor).
- * При работе с model, здесь происходит преобразование local -> presentation, т.е.
- * преобразование моделей в модели нижнего уровня перед тем, как нижний уровень сможет их использовать.
- */
 class ScheduleBirthdayNotificationUC @Inject constructor(
     private val birthdayNotificationRepository: IBirthdayNotificationRepository
 ) : IScheduleBirthdayNotificationUC {
-    override suspend fun scheduleBirthdayNotification(
-        childName: String,
-        childBirthDate: String
-    ) {
-        if (BirthdayNotificationData(
-                childName = childName,
-                childBirthDate = childBirthDate
-            ).isValidData()
-        ) {
-            return birthdayNotificationRepository.scheduleBirthdayNotification(
-                childName,
-                childBirthDate
-            )
-//            birthdayNotificationRepository.schedule(childName, childBirthDate)
+    override suspend fun update(childName: String, childBirthDate: String, userIsInApp: Boolean) {
+        if (BirthdayNotificationData(childName, childBirthDate).isValidData()) {
+            birthdayNotificationRepository.update(childName, childBirthDate, userIsInApp)
         } else {
-            // Нет данных – отменяем уведомление
-            birthdayNotificationRepository.cancelBirthdayNotification()
+            // Раньше здесь была отмена уведомления: пустые данные (нет сети, профиль ещё не загружен)
+            // молча сбрасывали корректное расписание. Отмена теперь только явная – через cancel().
+            birthdayNotificationRepository.rearmFromSavedData(userIsInApp)
         }
     }
 
-    // НЕМЕДЛЕННАЯ ПРОВЕРКА (без планирования, на случай если ДР сегодня)
-//    override suspend fun checkAndNotifyRightNowIfBirthdayToday(
-//        childName: String,
-//        childBirthDate: String
-//    ) {
-//        birthdayNotificationRepository.checkAndNotifyIfBirthdayToday(childName, childBirthDate)
-//    }
+    override suspend fun rearmFromSavedData(userIsInApp: Boolean) =
+        birthdayNotificationRepository.rearmFromSavedData(userIsInApp)
+
+    override suspend fun cancel() = birthdayNotificationRepository.cancel()
 }

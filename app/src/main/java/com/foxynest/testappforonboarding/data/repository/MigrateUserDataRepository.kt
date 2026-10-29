@@ -4,81 +4,63 @@ import android.util.Log
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import com.foxynest.testappforonboarding.data.dataSource.firebase.FirebaseAuthDataSource
 import com.foxynest.testappforonboarding.domain.entities.DataMigrationHelper
+import com.foxynest.testappforonboarding.domain.entities.onboarding.YesNoAnswer
 import com.foxynest.testappforonboarding.domain.iRepository.IMigrateUserDataRepository
-import jakarta.inject.Inject
+import com.foxynest.testappforonboarding.other.Status
 import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
 class MigrateUserDataRepository @Inject constructor(
     private val localDataStore: IAppDatastorePreferences,
     private val firebaseDataSource: FirebaseAuthDataSource
 ) : IMigrateUserDataRepository {
     companion object {
-        private const val CURRENT_SCHEMA_VERSION = 1
+        private const val TAG = "Migration"
+
+        // 1 – пол и хобби хранятся ключами; 2 – ответ «да/нет» хранится ключом
+        private const val CURRENT_SCHEMA_VERSION = 2
     }
 
     override suspend fun migrateIfNeeded() {
-        val currentVersion = localDataStore.getSchemaVersion()
-        if (currentVersion >= CURRENT_SCHEMA_VERSION) {
-            // Миграция уже выполнена
-            return
-        }
+        if (localDataStore.getSchemaVersion() >= CURRENT_SCHEMA_VERSION) return
 
-//        when (currentVersion) {
-//            0 -> {
-//                // Миграция с версии 0 на 1
-//                migrateLocalData()
-//                migrateFirebaseDataIfNeeded()
-//                localDataStore.setSchemaVersion(1)
-//            }
-//            // если понадобится версия 2:
-//            // 1 -> {
-//            //     migrateToVersion2()
-//            //     localDataStore.setSchemaVersion(2)
-//            // }
-//        }
-
-        // Выполняем миграцию
+        // Все шаги миграции идемпотентны, поэтому их безопасно повторять при каждом запуске до успеха
         migrateLocalData()
-        migrateFirebaseDataIfNeeded()
+        val isFirebaseMigrated = migrateFirebaseDataIfNeeded()
 
-        // Обновляем версию
-        localDataStore.setSchemaVersion(CURRENT_SCHEMA_VERSION)
+        // Раньше версия проставлялась всегда: без сети данные в Firebase так и оставались не мигрированными
+        if (isFirebaseMigrated) {
+            localDataStore.setSchemaVersion(CURRENT_SCHEMA_VERSION)
+        }
     }
 
     private suspend fun migrateLocalData() {
         val currentAnswers = localDataStore.getOnboardingAnswersFlow().first()
-        Log.d(
-            "Migration",
-            "Before migration: gender=${currentAnswers.childGender}, hobbies=${currentAnswers.childHobbies}"
+        val migratedAnswers = currentAnswers.copy(
+            childGender = DataMigrationHelper.migrateGender(currentAnswers.childGender),
+            childHobbies = DataMigrationHelper.migrateHobbies(currentAnswers.childHobbies),
+            isItABoy = YesNoAnswer.migrate(currentAnswers.isItABoy)
         )
-        val newGender = DataMigrationHelper.migrateGender(currentAnswers.childGender)
-        val newHobbies = DataMigrationHelper.migrateHobbies(currentAnswers.childHobbies)
-
-        if (newGender != currentAnswers.childGender || newHobbies != currentAnswers.childHobbies) {
-            val migratedAnswers = currentAnswers.copy(
-                childGender = newGender,
-                childHobbies = newHobbies
-            )
+        if (migratedAnswers != currentAnswers) {
             localDataStore.saveOnboardingAnswers(migratedAnswers)
-            Log.d("Migration", "After migration: gender=$newGender, hobbies=$newHobbies")
-        } else {
-            Log.d("Migration", "No migration needed for local data")
+            Log.d(TAG, "Local data migrated")
         }
     }
 
-    private suspend fun migrateFirebaseDataIfNeeded() {
+    /** @return true – мигрировать нечего или миграция прошла успешно */
+    private suspend fun migrateFirebaseDataIfNeeded(): Boolean {
         val userResult = firebaseDataSource.getCurrentUser()
-        val user = userResult.data ?: return
-
-        val newGender = DataMigrationHelper.migrateGender(user.childGender)
-        val newHobbies = DataMigrationHelper.migrateHobbies(user.childHobbies)
+        if (userResult.status != Status.SUCCESS) return false
+        // Не залогинен: мигрировать в Firebase нечего
+        val user = userResult.data ?: return true
 
         val updatedUser = user.copy(
-            childGender = newGender,
-            childHobbies = newHobbies
+            childGender = DataMigrationHelper.migrateGender(user.childGender),
+            childHobbies = DataMigrationHelper.migrateHobbies(user.childHobbies),
+            isItABoy = YesNoAnswer.migrate(user.isItABoy)
         )
-        if (updatedUser != user) {
-            firebaseDataSource.updateProfile(updatedUser)
-        }
+        if (updatedUser == user) return true
+
+        return firebaseDataSource.updateProfile(updatedUser).status == Status.SUCCESS
     }
 }

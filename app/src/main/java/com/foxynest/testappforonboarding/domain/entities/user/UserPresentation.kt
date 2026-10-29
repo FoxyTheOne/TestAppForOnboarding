@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.domain.entities.user
 
 import android.os.Parcelable
+import com.foxynest.testappforonboarding.domain.entities.isNotBlankValue
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -20,10 +21,10 @@ data class UserPresentation(
     val childBirthDate: String = ""
 ) : Parcelable
 
-fun UserPresentation.isValidData(): Boolean {
-//    return authEmail.isNotBlank() && authEmail != "null" &&
-    return userName.isNotBlank() && userName != "null" &&
-            childName.isNotBlank() && childName != "null" &&
-            childHobbies.isNotBlank() && childHobbies != "null" &&
-            childBirthDate.isNotBlank() && childBirthDate != "null"
-}
+/** Защита от записи в Firestore профиля с пустыми полями (set + merge перезаписал бы хорошие данные пустыми). */
+fun UserPresentation.isValidData(): Boolean =
+    userName.isNotBlankValue() &&
+            childGender.isNotBlankValue() &&
+            childName.isNotBlankValue() &&
+            childHobbies.isNotBlankValue() &&
+            childBirthDate.isNotBlankValue()

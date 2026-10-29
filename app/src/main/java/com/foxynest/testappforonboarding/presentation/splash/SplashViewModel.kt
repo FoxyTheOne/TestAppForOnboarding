@@ -46,20 +46,22 @@ class SplashViewModel @Inject constructor(
             val currentUser = getCurrentUserUC.execute().data
 
             val targetDestination = when {
-                !isOnboardingCompleted -> {
-                    // Онбординг не завершён → отправляем на Welcome (или на первый экран онбординга)
-                    Log.d("Splash", "Onboarding not completed, navigate to Welcome")
-                    R.id.action_splash_to_welcome
-                }
-
+                // Проверка авторизации – первой. Раньше вошедший пользователь на новом телефоне / после переустановки
+                // (локальный флаг опроса = false) при каждом запуске попадал на Welcome
                 currentUser != null -> {
                     // Онбординг завершён, пользователь авторизован → на Home
                     Log.d("Splash", "User logged in, navigate to Home")
                     R.id.action_splash_to_home
                 }
 
+                !isOnboardingCompleted -> {
+                    // Онбординг не завершён → отправляем на Welcome (или на первый экран онбординга)
+                    Log.d("Splash", "Onboarding not completed, navigate to Welcome")
+                    R.id.action_splash_to_welcome
+                }
+
                 else -> {
-                    // Онбординг завершён, но пользователь не авторизован → всё равно на Home (локальные данные)
+                    // Онбординг завершён, но пользователь не авторизован → на Home (локальные данные)
                     Log.d("Splash", "Onboarding completed but not logged in, navigate to Home")
                     R.id.action_splash_to_home
                 }

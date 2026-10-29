@@ -75,6 +75,8 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+            // android.util.Log и прочие заглушки android.jar в JVM-тестах возвращают значения по умолчанию, а не падают
+            returnDefaultValues = true
         }
     }
 
@@ -103,7 +105,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
     implementation 'com.google.firebase:firebase-firestore:26.5.0'
-    implementation 'androidx.test.ext:junit-ktx:1.3.0'
 
     // Lifecycle
 //    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0" // В файле build.gradle модуля (app) удалите эту строчку. Она не нужна, давно устарела и вызывает внутренние конфликты в SavedState
@@ -126,19 +127,10 @@ dependencies {
 
     // Preferences DataStore (SharedPreferences like APIs)
     implementation "androidx.datastore:datastore-preferences:1.1.7"
-    // optional - RxJava2 support
-    implementation "androidx.datastore:datastore-preferences-rxjava2:1.1.7"
-    // optional - RxJava3 support
-    implementation "androidx.datastore:datastore-preferences-rxjava3:1.1.7"
 
     // 3. Hilt
     implementation "com.google.dagger:hilt-android:2.56.2"
     ksp "com.google.dagger:hilt-compiler:2.56.2"
-
-    // Показать или скрыть пароль в зависимости от переключения пользователя
-    implementation platform('androidx.compose:compose-bom:2025.08.00')
-    implementation 'androidx.compose.material3:material3'
-    implementation 'androidx.compose.material:material-icons-extended'
 
     // Firebase
     implementation 'com.google.firebase:firebase-auth:24.0.1'
@@ -159,9 +151,9 @@ dependencies {
     // Тестирование - основные тестовые библиотеки
     testImplementation 'androidx.test:core:1.5.0'
     // For local unit tests (src/test)
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1'
     // For instrumented tests on a device/emulator (src/androidTest)
-    androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    androidTestImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1'
     testImplementation 'io.mockk:mockk:1.13.8'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
 
@@ -179,30 +171,10 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test:rules:1.5.0'
 
-    // viewpager2
-    implementation "androidx.viewpager2:viewpager2:1.0.0"
-
     // Gson для конвертации в JSON
+    // ВНИМАНИЕ: перед включением minifyEnabled добавьте @SerializedName к полям сохраняемых классов
+    // (или keep-правила), иначе R8 переименует поля и уже сохранённые у пользователей данные перестанут читаться
     implementation 'com.google.code.gson:gson:2.10.1'
-
-    // Work Manager:
-    def work_version = "2.11.2"
-    // Kotlin + coroutines
-    implementation "androidx.work:work-runtime-ktx:$work_version"
-    // optional - RxJava2 support
-    implementation "androidx.work:work-rxjava2:$work_version"
-    // optional - GCMNetworkManager support
-    implementation "androidx.work:work-gcm:$work_version"
-    // optional - Test helpers
-    androidTestImplementation "androidx.work:work-testing:$work_version"
-    // optional - Multiprocess support
-    implementation "androidx.work:work-multiprocess:$work_version"
-
-    // Hilt WorkManager integration
-    implementation "androidx.hilt:hilt-work:1.2.0"
-    // Hilt compiler (use ksp or kapt depending on your project setup)
-    ksp "androidx.hilt:hilt-compiler:1.2.0"
-    implementation 'com.google.guava:guava:31.1-android' // для метода workManager.getWorkInfosForUniqueWork()
 }
 
 //kapt {

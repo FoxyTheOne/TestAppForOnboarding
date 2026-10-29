@@ -6,16 +6,16 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILo
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginValidatePasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateRepeatedPasswordUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterValidateRepeatedPasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.migrate.IMigrateUserDataUC
 import com.foxynest.testappforonboarding.domain.use_cases.migrate.MigrateUserDataUC
-import com.foxynest.testappforonboarding.domain.use_cases.notification.IScheduleBirthdayNotificationUC
-import com.foxynest.testappforonboarding.domain.use_cases.notification.ScheduleBirthdayNotificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.OnboardingUC
 import dagger.Binds
@@ -77,9 +77,8 @@ abstract class ViewModelModule {
     ): IMigrateUserDataRepository
 
 
-    // test
     @Binds
-    abstract fun bindsScheduleBirthdayNotificationInteractor(
-        scheduleBirthdayNotificationUC: ScheduleBirthdayNotificationUC
-    ): IScheduleBirthdayNotificationUC
+    abstract fun bindsRegisterInteractor(
+        registerUC: RegisterUC
+    ): IRegisterUC
 }

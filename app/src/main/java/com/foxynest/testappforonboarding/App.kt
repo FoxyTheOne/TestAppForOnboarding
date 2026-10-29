@@ -2,11 +2,8 @@ package com.foxynest.testappforonboarding
 
 import android.app.Application
 import android.os.Build
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
-import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.Configuration
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.flow.first
@@ -15,35 +12,12 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), Configuration.Provider {
+class App : Application() {
     @Inject
     lateinit var dataStore: IAppDatastorePreferences
 
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
-
-    override val workManagerConfiguration: Configuration
-        get() {
-            Log.d(
-                "App",
-                "Providing Birthday WorkManager configuration with factory: $workerFactory"
-            )
-            val configuration = Configuration.Builder()
-                .setWorkerFactory(workerFactory) // Подменяем стандартную фабрику на фабрику от Hilt
-                .build()
-            Log.d(
-                "App",
-                "Providing Birthday WorkManager with configuration: $configuration"
-            )
-            return configuration
-        }
-
     override fun onCreate() {
         super.onCreate()
-        Log.d(
-            "App",
-            "onCreate: Birthday WorkManager config provided with factory: ${workManagerConfiguration.workerFactory}"
-        )
 
         // Прогрев (убирает чёрный экран при первом переключении)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

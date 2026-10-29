@@ -8,13 +8,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
 import com.foxynest.testappforonboarding.domain.entities.Gender
 import com.foxynest.testappforonboarding.domain.entities.VisibilityEnum
-import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PAY_URL
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.MainViewModel
@@ -32,10 +30,10 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentPaywallBinding? = null
+    private var countDownTimer: CountDownTimer? = null
 
-    // 1.1. ViewModel. We bind our viewModel to the cycle of our activity, not fragment. So, we need to do this way:
-    private lateinit var mainViewModel: MainViewModel
-    private val paywallViewModel by viewModels<PaywallViewModel>()
+    // ViewModel привязана к Activity
+    private val mainViewModel: MainViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,19 +48,8 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
-        // So, we need to do this way:
-        mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-
-        paywallViewModel.saveOnboardingState(true)
+        // Сохранение завершённого опроса запускается на последнем вопросе (MainViewModel.finishOnboarding)
         showProgressBarAnimationBeforeShowingContent()
-
-        // Подтягиваем ответы из пройденного только что опросника. ПРИНУДИТЕЛЬНО обновляем Firebase после онбординга. В дальнейшем метод будет вызываться в activity при запуске программы
-        mainViewModel.getAnswersFromOnboardingSaveToFirebaseAndUse()
-
-        // Отмечаем онбординг как завершенный
-        // TODO объединить с методом saveOnboardingState()
-        mainViewModel.completeOnboarding()
 
         initListeners()
         subscribeOnLiveData()
@@ -74,7 +61,8 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
         val splashTimeOut = 3000
         binding?.progressBarHorizontal?.max = splashTimeOut
 
-        val countDownTimer: CountDownTimer =
+        countDownTimer?.cancel()
+        countDownTimer =
             object : CountDownTimer(splashTimeOut.toLong(), (splashTimeOut / 100).toLong()) {
                 override fun onTick(millisUntilFinished: Long) {
                     binding?.progressBarHorizontal?.progress =
@@ -84,9 +72,7 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
                 override fun onFinish() {
                     hideOrShowContent(VisibilityEnum.VISIBLE)
                 }
-            }
-
-        countDownTimer.start()
+            }.start()
     }
 
     private fun hideOrShowContent(visibility: VisibilityEnum) {
@@ -149,11 +135,9 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
             }
         }
 
-        // TODO Повторить бы то же самое в профиле - вдруг этот фрагмент уже будет закрыт. Но там нет связи с этой LiveData
-        // Думаю, что это не критично = ошибка этого сохранения маловероятно. К тому же, это нужно только для не зарегистрированных пользователей и там есть предупреждение о том, что данные могут быть утеряны без регистрации
-        // (потому что данные из data store всё равно могут быть стёрты при очистке кэша)
-        paywallViewModel.errorMessageLiveData.observe(viewLifecycleOwner) { myEvent ->
-            if (myEvent.getContentIfNotHandled()?.message == CommonConstants.FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL) {
+        // Раньше этот путь был недостижим: репозиторий сам ловил IOException, а ViewModel ждала исключение
+        mainViewModel.finishOnboardingErrorLiveData.observe(viewLifecycleOwner) { event ->
+            if (event.getContentIfNotHandled() != null) {
                 showRepeatSavingOnboardingStateDialog()
             }
         }
@@ -163,9 +147,8 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
         RepeatSavingOnboardingStateDialog.newInstance()
             .setListeners(
                 positiveAction = {
-                    // Пользователь подтвердил - запускаем заново сохранение
-                    paywallViewModel.saveOnboardingState(true)
-
+                    // Черновик не удалён, поэтому повтор безопасен
+                    mainViewModel.finishOnboarding()
                 },
                 negativeAction = {
                     // Пользователь отменил
@@ -181,6 +164,9 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
+        // Иначе таймер ещё 3 секунды держит ссылку на уничтоженный фрагмент
+        countDownTimer?.cancel()
+        countDownTimer = null
         super.onDestroyView()
         binding = null
     }

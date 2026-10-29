@@ -1,15 +1,18 @@
 package com.foxynest.testappforonboarding.domain.iRepository
 
-import java.util.Calendar
-
 interface IBirthdayNotificationRepository {
-//    suspend fun scheduleBirthdayNotification(childName: String, birthDate: String)
-//    suspend fun checkAndNotifyIfBirthdayToday(childName: String, birthDate: String)
-//    suspend fun cancelBirthdayNotification()
+    /**
+     * Сохраняет данные ребёнка и перепланирует уведомление. Идемпотентен – можно вызывать сколько угодно раз.
+     * @param userIsInApp true – пользователь сейчас в приложении, поздравить можно сразу (в любое время дня)
+     */
+    suspend fun update(childName: String, birthDate: String, userIsInApp: Boolean)
 
+    /**
+     * Перепланирует уведомление по ранее сохранённым данным
+     * (срабатывание будильника, перезагрузка, смена времени/часового пояса, обновление приложения, старт приложения).
+     */
+    suspend fun rearmFromSavedData(userIsInApp: Boolean)
 
-    suspend fun scheduleBirthdayNotification(childName: String, birthDay: String)
-    suspend fun scheduleNextYearBirthday(childName: String, birthDay: String)
-    suspend fun showAndScheduleNextYearIfNeeded(childName: String, birthDay: String): Boolean
-    suspend fun cancelBirthdayNotification()
+    /** Отменяет будильник и удаляет сохранённые данные (выход из аккаунта). */
+    suspend fun cancel()
 }

@@ -25,7 +25,9 @@ class GetCurrentUserPresentationUC @Inject constructor(
         // 1. Проверяем залогиненного пользователя
         val currentFirebaseUser = authRepository.getCurrentFirebaseUser()
 
-        if (currentFirebaseUser.status == Status.SUCCESS) {
+        // Для незалогиненного пользователя репозиторий возвращает SUCCESS c data = null –
+        // раньше это возвращалось как есть, и до локальных данных дело не доходило
+        if (currentFirebaseUser.status == Status.SUCCESS && currentFirebaseUser.data != null) {
             return currentFirebaseUser
         } else {
             // 2. Иначе берём из DataStore

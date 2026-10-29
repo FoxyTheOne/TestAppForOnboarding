@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// Образец правил. Перед публикацией проверьте в Firebase Console → Firestore → Rules → Rules Playground
+// (или в Firebase Emulator Suite) на реальных сценариях: регистрация, обновление профиля, миграция.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Поля профиля, которые пишет приложение
+    function allowedFields() {
+      return ['username', 'childGender', 'childIsItABoy', 'childName',
+              'childHobbies', 'childBirthDate', 'createdAt', 'updatedAt'];
+    }
+
+  // return request.auth == null значит человек не зашел в аккаунт; request.auth.uid — его id в Firebase Auth, userId — id из адреса документа (users/{userId}). Итог: к документу users/abc допускается только пользователь с uid abc
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Проверка значений полей анкеты в документе после записи
+    function hasValidValues(data) {
+      return data.username is string && data.username.size() <= 100
+        && data.childName is string && data.childName.size() <= 100
+        && data.childGender is string && data.childGender.size() <= 20
+        && data.childIsItABoy is string && data.childIsItABoy.size() <= 20
+        // Новые версии пишут массив ключей, старые документы могут хранить строку
+        && ((data.childHobbies is list && data.childHobbies.size() <= 20)
+            || (data.childHobbies is string && data.childHobbies.size() <= 2000))
+        && data.childBirthDate is string
+        && (data.childBirthDate == '' || data.childBirthDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      // request.resource.data — каким документ станет после записи. resource.data — каким он был до записи. diff(...).affectedKeys() — какие поля меняются при этом сохранении. При обновлении я проверяю только изменённые поля. Если в старом документе осталось какое-то давнее лишнее поле, сохранение из-за него не сломается.
+
+      // Новый документ: только известные поля
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(allowedFields())
+        && hasValidValues(request.resource.data);
+
+      // Изменение: проверяем только ИЗМЕНЁННЫЕ поля. Если в старом документе есть лишнее поле
+      // от прошлых версий приложения, сохранение профиля из-за него не сломается
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields())
+        && hasValidValues(request.resource.data);
+
+      // Удаление аккаунта и данных пользователем (требование Google Play для приложений с регистрацией)
+      allow delete: if isOwner(userId);
+    }
+
+    // Всё остальное закрыто. Никогда не оставляйте "allow read, write: if true" или тестовый режим с датой.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

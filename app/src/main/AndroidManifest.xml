@@ -13,7 +13,7 @@
 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Для восстановения запланированного будильника после перезагрузки -->
+    <!-- Для восстановления запланированного будильника после перезагрузки -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!--
@@ -32,17 +32,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TestAppForOnboarding"
         tools:targetApi="31">
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <!-- Удаляем инициализатор WorkManager из цепочки Startup -->
-            <meta-data
-                android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
-        </provider>
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
@@ -55,12 +44,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- Статическая регистрация ресивера для будильника и перезагрузки -->
+        <!--
+        exported="false": системные события доставляются, а чужие приложения не могут отправить нам «будильник».
+        TIME_SET / TIMEZONE_CHANGED входят в список исключений из ограничений на неявные broadcast-ы (Android 8+).
+        -->
         <receiver
-            android:name=".data.workManager.AlarmBroadcastReceiver"
-            android:exported="true">
+            android:name=".data.notification.BirthdayNotificationReceiver"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
     </application>

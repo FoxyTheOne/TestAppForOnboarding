@@ -1,10 +1,10 @@
 package com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases
 
-import com.foxynest.testappforonboarding.data.repository.AuthRepository
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.isValidData
+import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
 import com.foxynest.testappforonboarding.other.Resource
-import com.foxynest.testappforonboarding.other.extensions.isUserDataValid
 import javax.inject.Inject
 
 /**
@@ -20,10 +20,10 @@ import javax.inject.Inject
  * Typically, each use case consists of just one function which executes that use case (which validates the email for instance)
  */
 class UpdateFirebaseProfileUC @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: IAuthRepository
 ) : IUpdateFirebaseProfileUC {
     override suspend fun execute(user: UserPresentation): Resource<ErrorType> {
-        return if (user.isUserDataValid()) {
+        return if (user.isValidData()) {
             authRepository.updateFirebaseProfile(user)
         } else {
             Resource.error(

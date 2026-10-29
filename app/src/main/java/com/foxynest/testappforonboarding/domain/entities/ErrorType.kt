@@ -29,7 +29,8 @@ enum class ErrorType(val stringRes: Int) {
     FAILED_TO_SAVE_CHILD_NAME_LOCAL(R.string.failed_to_save_child_name_local),
     FAILED_TO_SAVE_IS_IT_A_BOY_LOCAL(R.string.failed_to_save_is_it_a_boy_local),
     FAILED_TO_SAVE_BIRTH_DATE_LOCAL(R.string.failed_to_save_birth_date_local),
-//    FAILED_TO_SAVE_HOBBY_LOCAL(R.string.failed_to_save_hobby_local),
+
+    //    FAILED_TO_SAVE_HOBBY_LOCAL(R.string.failed_to_save_hobby_local),
     FAILED_TO_SAVE_HOBBIES_LOCAL(R.string.failed_to_save_hobby_local),
     FAILED_TO_SAVE_ONBOARDING_STATE_LOCAL(R.string.failed_to_save_onboarding_state_local),
     FAILED_TO_CLEAR_DATA(R.string.failed_to_clear_data),
@@ -37,5 +38,6 @@ enum class ErrorType(val stringRes: Int) {
     NOT_VALID_USER_DATA_FOR_SAVING_TO_FIREBASE(R.string.not_valid_user_data_for_saving_to_firebase),
     CURRENT_EMAIL_NOT_VERIFIED(R.string.current_email_not_verified),
     EMAIL_VERIFICATION_NEEDED(R.string.email_verification_needed),
-    WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR(R.string.wrong_password_while_changing_email)
+    WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR(R.string.wrong_password_while_changing_email),
+    UNSYNCED_DATA_LOGOUT_ERROR(R.string.unsynced_data_logout_error)
 }

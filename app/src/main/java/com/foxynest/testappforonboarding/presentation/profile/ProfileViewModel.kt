@@ -43,7 +43,6 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
     companion object {
         private const val TAG = "ProfileViewModel"
-        private const val VERIFICATION_CHECK_INTERVAL = 5000L // 5 секунд TODO перенести в константы
         private const val INTENSIVE_CHECK_INTERVAL = 3000L
         private const val INTENSIVE_CHECK_DURATION = 120000L // 2 минуты
         private const val BUTTON_BLOCK_DURATION = 60000L // 60 секунд
@@ -51,7 +50,6 @@ class ProfileViewModel @Inject constructor(
 
     private var verificationCheckJob: Job? = null
     private var isChecking = false
-    private var intensiveCheckEndTime: Long = 0
     private var lastVerificationStatus: Boolean? = null
 
     private val _isEmailVerificationSent = MutableStateFlow(false)
@@ -80,8 +78,9 @@ class ProfileViewModel @Inject constructor(
 
     init {
         // Начинаем проверку при создании ViewModel
-        startVerificationCheck()
-//        checkEmailVerificationStatus()
+        // Раньше здесь запускался бесконечный опрос Firebase (reload) каждые 5 секунд – пока жива ViewModel,
+        // в том числе в фоне и для незалогиненных. Теперь: разовая проверка в onResume экрана
+        // и частая проверка только в течение 2 минут после отправки письма.
         loadCurrentLanguage()
     }
 
@@ -205,30 +204,17 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    private fun startVerificationCheck() {
-        // Останавливаем предыдущую проверку, если есть
+    private fun startIntensiveVerificationCheck() {
         stopVerificationCheck()
 
         verificationCheckJob = viewModelScope.launch {
-            while (isActive && !_isEmailVerified.value) {
+            // Фиксированное число проверок, а не сравнение с часами: не зависит от смены системного времени
+            repeat((INTENSIVE_CHECK_DURATION / INTENSIVE_CHECK_INTERVAL).toInt()) {
+                delay(INTENSIVE_CHECK_INTERVAL)
+                if (!isActive || _isEmailVerified.value) return@launch
                 checkEmailVerificationStatus()
-
-                // Определяем интервал проверки
-                val interval = if (System.currentTimeMillis() < intensiveCheckEndTime) {
-                    INTENSIVE_CHECK_INTERVAL
-                } else {
-                    VERIFICATION_CHECK_INTERVAL
-                }
-
-                delay(interval)
             }
         }
-    }
-
-    private fun startIntensiveVerificationCheck() {
-        intensiveCheckEndTime = System.currentTimeMillis() + INTENSIVE_CHECK_DURATION
-        // Перезапускаем проверку с новым интервалом
-        startVerificationCheck()
     }
 
     private fun stopVerificationCheck() {

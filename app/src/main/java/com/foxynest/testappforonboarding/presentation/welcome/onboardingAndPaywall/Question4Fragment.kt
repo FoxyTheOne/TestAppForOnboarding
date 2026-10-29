@@ -14,9 +14,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class Question4Fragment : BaseOnboardingFragment() {
-    companion object {
-        private const val TAG = "Question4Fragment"
-    }
 
     private var binding: FragmentQuestion4Binding? = null
     override val currentFragmentId: Int = R.id.navigation_question4
@@ -50,7 +47,7 @@ class Question4Fragment : BaseOnboardingFragment() {
     }
 
     private fun restoreSelectedHobbies() {
-        val savedHobbies = mainViewModel.onboardingAnswersLiveData.value?.childHobbies ?: ""
+        val savedHobbies = mainViewModel.onboardingDraftLiveData.value?.childHobbies ?: ""
         if (savedHobbies.isNotBlank()) {
             val selectedKeys = savedHobbies.split(CommonConstants.HOBBIES_DELIMITER)
             for (i in 0 until (binding?.chipGroupHobbies?.childCount ?: 0)) {
@@ -80,13 +77,13 @@ class Question4Fragment : BaseOnboardingFragment() {
                 val hobbiesString = selectedHobbies.joinToString(CommonConstants.HOBBIES_DELIMITER)
                 mainViewModel.updateChildHobbies(hobbiesString)
 
-                val args = Bundle().apply {
-                    putString("source_fragment", sourceFragment)
-                }
+                // Сохранение ответов и отправка в Firebase – в finishOnboarding() строго после этой записи
+                mainViewModel.finishOnboarding()
+
                 safeNavigate(
                     R.id.navigation_question4,
                     R.id.action_navigation_question4_to_paywallFragment,
-                    args
+                    sourceArgs()
                 )
             }
         }
@@ -116,4 +113,5 @@ class Question4Fragment : BaseOnboardingFragment() {
         binding = null
         super.onDestroyView()
     }
+
 }

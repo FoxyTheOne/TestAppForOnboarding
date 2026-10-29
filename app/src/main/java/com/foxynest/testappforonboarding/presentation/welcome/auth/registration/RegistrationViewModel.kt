@@ -6,10 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateRepeatedPasswordUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.RegisterUC
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
@@ -34,7 +34,7 @@ class RegistrationViewModel @Inject constructor(
     private val validateEmailInteractor: IRegisterValidateEmailUC,
     private val validatePasswordInteractor: IRegisterValidatePasswordUC,
     private val validateRepeatedPasswordInteractor: IRegisterValidateRepeatedPasswordUC,
-    private val registerUC: RegisterUC
+    private val registerUC: IRegisterUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "AuthViewModel"

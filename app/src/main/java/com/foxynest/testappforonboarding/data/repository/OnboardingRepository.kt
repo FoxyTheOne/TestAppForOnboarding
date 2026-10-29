@@ -10,16 +10,14 @@ import java.io.IOException
 import javax.inject.Inject
 
 /**
- * Data layer, Repository. Работает с Local и Remote data source.
- *
- * Repository - объект, предоставляющий доступ к данным с возможностью выбора источника данных в зависимости от условий.
- * Подписка на локальную базу данных Room. Раскладываем данные.
- * При работе с model, здесь происходит запрос в remote, преобразование remote -> local, сохранение результата в базу данных.
+ * Data layer, Repository. Работает с Local data source (DataStore).
  */
 class OnboardingRepository @Inject constructor(
     private val appDatastorePreferences: IAppDatastorePreferences
 ) : IOnboardingRepository {
-    // Onboarding state
+    override fun isOnboardingCompleted(): Flow<Boolean> =
+        appDatastorePreferences.isOnboardingCompleted()
+
     override suspend fun saveOnboardingState(isCompleted: Boolean): Resource<ErrorType> {
         return try {
             appDatastorePreferences.saveOnboardingState(isCompleted)
@@ -31,9 +29,6 @@ class OnboardingRepository @Inject constructor(
             )
         }
     }
-
-    override fun isOnboardingCompleted(): Flow<Boolean> =
-        appDatastorePreferences.isOnboardingCompleted()
 
     override suspend fun clearAllOnboardingData(): Resource<ErrorType> {
         return try {
@@ -47,11 +42,24 @@ class OnboardingRepository @Inject constructor(
         }
     }
 
-    // SAVE
     override suspend fun saveOnboardingAnswers(answers: OnboardingAnswers) =
         appDatastorePreferences.saveOnboardingAnswers(answers)
 
-    // GET
     override fun getOnboardingAnswersFlow(): Flow<OnboardingAnswers> =
         appDatastorePreferences.getOnboardingAnswersFlow()
+
+    override suspend fun startOnboardingDraft() =
+        appDatastorePreferences.startOnboardingDraft()
+
+    override suspend fun updateOnboardingDraft(transform: (OnboardingAnswers) -> OnboardingAnswers) =
+        appDatastorePreferences.updateOnboardingDraft(transform)
+
+    override fun getOnboardingDraftFlow(): Flow<OnboardingAnswers> =
+        appDatastorePreferences.getOnboardingDraftFlow()
+
+    override suspend fun clearOnboardingDraft() =
+        appDatastorePreferences.clearOnboardingDraft()
+
+    override suspend fun commitOnboardingDraft(isValid: (OnboardingAnswers) -> Boolean): OnboardingAnswers? =
+        appDatastorePreferences.commitOnboardingDraft(isValid)
 }

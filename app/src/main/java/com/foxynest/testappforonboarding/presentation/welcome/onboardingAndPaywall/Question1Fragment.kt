@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.Toast
-import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
 import com.foxynest.testappforonboarding.domain.entities.Gender
@@ -28,6 +27,17 @@ class Question1Fragment : BaseOnboardingFragment() {
 
     override val currentFragmentId: Int = R.id.navigation_question1
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Только при первом открытии экрана. Раньше подготовка запускалась в onViewCreated и повторялась
+        // при пересоздании Activity (смена языка, тёмной темы), перетирая бэкап уже пустыми данными
+        if (savedInstanceState == null) {
+            // Подготавливаем данные для онбординга
+            // Теперь готовимся всегда, когда заходим на первый фрагмент онбординга, независимо от предыдущего состояния
+            mainViewModel.prepareForOnboarding()
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -40,17 +50,6 @@ class Question1Fragment : BaseOnboardingFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Добавим логирование для отладки
-        Log.d(TAG, "Question1Fragment onViewCreated")
-        Log.d(TAG, "isOnboardingStarted: ${mainViewModel.isOnboardingStarted()}")
-        Log.d(TAG, "isOnboardingCancelled: ${mainViewModel.isOnboardingCancelled()}")
-        Log.d(TAG, "isOnboardingCompleted: ${mainViewModel.isOnboardingCompleted()}")
-        Log.d(TAG, "sourceFragment: $sourceFragment")
-
-        // Подготавливаем данные для онбординга
-        // Теперь готовимся всегда, когда заходим на первый фрагмент онбординга, независимо от предыдущего состояния
-        mainViewModel.prepareForOnboarding()
 
         initListeners()
     }
@@ -96,40 +95,28 @@ class Question1Fragment : BaseOnboardingFragment() {
                     else -> null
                 }
 
-                // Используем единый метод обновления
                 mainViewModel.updateOnboardingAnswers { answers ->
                     answers.copy(
                         userName = userNameAnswer,
-//                            childGender = selectedRadioButton?.text.toString(),
                         childGender = selectedGender ?: Gender.BOY.name,
-                        childName = childNameAnswer
+                        childName = childNameAnswer,
+                        // Ответ «мальчик ли это» имеет смысл только для мальчика – не оставляем старое значение
+                        isItABoy = if (selectedGender == Gender.GIRL.name) "" else answers.isItABoy
                     )
                 }
 
                 when {
-                    radioGenderAnswerBoy?.isChecked == true -> {
-                        // Передаем аргумент при навигации на Question2Fragment
-                        val args = Bundle().apply {
-                            putString("source_fragment", sourceFragment)
-                        }
-                        safeNavigate(
-                            R.id.navigation_question1,
-                            R.id.action_navigation_question1_to_question2Fragment,
-                            args
-                        )
-                    }
+                    radioGenderAnswerBoy?.isChecked == true -> safeNavigate(
+                        R.id.navigation_question1,
+                        R.id.action_navigation_question1_to_question2Fragment,
+                        sourceArgs()
+                    )
 
-                    radioGenderAnswerGirl?.isChecked == true -> {
-                        // Передаем аргумент при навигации на Question3Fragment
-                        val args = Bundle().apply {
-                            putString("source_fragment", sourceFragment)
-                        }
-                        safeNavigate(
-                            R.id.navigation_question1,
-                            R.id.action_navigation_question1_to_navigation_question3,
-                            args
-                        )
-                    }
+                    radioGenderAnswerGirl?.isChecked == true -> safeNavigate(
+                        R.id.navigation_question1,
+                        R.id.action_navigation_question1_to_navigation_question3,
+                        sourceArgs()
+                    )
                 }
 //                }
 
@@ -157,16 +144,6 @@ class Question1Fragment : BaseOnboardingFragment() {
                 }
             }
         })
-    }
-
-    private fun hasNavigatedToNext(): Boolean {
-        // Проверяем, был ли навигация к следующему фрагменту
-        return findNavController().currentDestination?.id in
-                listOf(
-                    R.id.navigation_question2,
-                    R.id.navigation_question3,
-                    R.id.navigation_paywall
-                )
     }
 
     private fun validateUserName(userNameAnswer: String?): Boolean {

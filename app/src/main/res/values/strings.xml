@@ -183,5 +183,15 @@
     <string name="local_onboarding_saving_error_text">Unable to save completed survey status on your phone. Try again?</string>
     <string name="local_onboarding_saving_error_toast">The inquirer will start again the next time you launch the app</string>
 
+    <!-- Birthday notification -->
+    <string name="birthday_channel_name">Birthdays</string>
+    <string name="birthday_channel_description">Birthday greetings for your child</string>
+    <string name="birthday_notification_title">🎉 Happy birthday, %1$s!</string>
+    <string name="birthday_notification_text">Congratulations! May this day be full of joy and smiles.</string>
+    <string name="birthday_notification_big_text">May every day bring new discoveries and may happiness always be near! 🥳</string>
+
+    <!-- Logout -->
+    <string name="unsynced_data_logout_error">Some changes have not been sent to the server yet. Check your internet connection and try again, otherwise they will be lost.</string>
+
     <!-- Other -->
 </resources>

@@ -1,49 +1,28 @@
 package com.foxynest.testappforonboarding
 
 import android.app.Application
-import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
-import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
+import android.util.Log
+import com.foxynest.testappforonboarding.presentation.language.LanguageManager
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import java.util.Locale
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltAndroidApp
 class App : Application() {
     @Inject
-    lateinit var dataStore: IAppDatastorePreferences
+    lateinit var languageManager: LanguageManager
 
     override fun onCreate() {
         super.onCreate()
-
-        // Прогрев (убирает чёрный экран при первом переключении)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val defaultLocale = Locale.getDefault()
-            AppCompatDelegate.setApplicationLocales(
-                LocaleListCompat.forLanguageTags(defaultLocale.language)
-            )
+        // Без runBlocking: главный поток не ждёт чтения с диска при каждом запуске.
+        // Сам язык применяет AppCompat (autoStoreLocales), здесь только одноразовый перенос старого выбора.
+        MainScope().launch {
+            try {
+                languageManager.migrateLegacyLanguageIfNeeded()
+            } catch (e: Exception) {
+                Log.e("App", "Language migration failed", e)
+            }
         }
-        applySavedLanguage()
-    }
-
-    // runBlocking блокирует главный поток на время чтения из DataStore, что может вызвать задержку запуска приложения (особенно если данные читаются с диска). Это не критично, но не рекомендуется.
-    // Но в данном случае нам нужно применить язык до создания activity и прочего, поэтому здесь это не критично
-    private fun applySavedLanguage() {
-        val languageCode = runBlocking {
-            dataStore.getAppLanguageFlow().first()
-        }
-        setLocale(languageCode)
-    }
-
-    private fun setLocale(languageCode: String) {
-        val localeList = when (languageCode) {
-            "ru" -> LocaleListCompat.forLanguageTags("ru")
-            "en" -> LocaleListCompat.forLanguageTags("en")
-            else -> LocaleListCompat.getEmptyLocaleList()
-        }
-        AppCompatDelegate.setApplicationLocales(localeList)
     }
 }

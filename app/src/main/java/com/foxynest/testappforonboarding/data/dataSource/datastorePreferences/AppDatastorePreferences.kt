@@ -70,6 +70,10 @@ class AppDatastorePreferences @Inject constructor(
         val BIRTHDAY_NOTIF_DATA = stringPreferencesKey("birthday_notification_data")
         val BIRTHDAY_LAST_NOTIFIED_KEY = stringPreferencesKey("birthday_last_notified_key")
         val LEGACY_LAST_NOTIFIED_YEAR = intPreferencesKey("last_notified_year")
+        val NOTIFICATION_PERMISSION_ASKED = booleanPreferencesKey("notification_permission_asked")
+
+        // Язык теперь хранит AppCompat (autoStoreLocales); флаг одноразового переноса старого выбора
+        val LANGUAGE_MIGRATED_TO_APPCOMPAT = booleanPreferencesKey("language_migrated_to_appcompat")
     }
 
     // Рекомендация документации: IOException при чтении превращаем в пустые настройки, остальные ошибки пробрасываем
@@ -100,18 +104,27 @@ class AppDatastorePreferences @Inject constructor(
         this[key] = gson.toJson(value)
     }
 
+    private fun Preferences.readAnswers(key: Preferences.Key<String>): OnboardingAnswers =
+        readJson(key, OnboardingAnswersDto()).toDomain()
+
+    private fun MutablePreferences.writeAnswers(
+        key: Preferences.Key<String>,
+        answers: OnboardingAnswers
+    ) =
+        writeJson(key, answers.toDto())
+
     // ONBOARDING ANSWERS
     override suspend fun saveOnboardingAnswers(answers: OnboardingAnswers) {
-        context.appDataStore.edit { it.writeJson(PreferencesKeys.ONBOARDING_ANSWERS, answers) }
+        context.appDataStore.edit { it.writeAnswers(PreferencesKeys.ONBOARDING_ANSWERS, answers) }
     }
 
     override fun getOnboardingAnswersFlow(): Flow<OnboardingAnswers> =
-        data.map { it.readJson(PreferencesKeys.ONBOARDING_ANSWERS, OnboardingAnswers()) }
+        data.map { it.readAnswers(PreferencesKeys.ONBOARDING_ANSWERS) }
 
     // ONBOARDING DRAFT
     override suspend fun startOnboardingDraft() {
         context.appDataStore.edit {
-            it.writeJson(
+            it.writeAnswers(
                 PreferencesKeys.ONBOARDING_DRAFT,
                 OnboardingAnswers()
             )
@@ -121,13 +134,13 @@ class AppDatastorePreferences @Inject constructor(
     // Чтение и запись внутри одного edit – атомарно, параллельные обновления разных полей не затирают друг друга
     override suspend fun updateOnboardingDraft(transform: (OnboardingAnswers) -> OnboardingAnswers) {
         context.appDataStore.edit { prefs ->
-            val current = prefs.readJson(PreferencesKeys.ONBOARDING_DRAFT, OnboardingAnswers())
-            prefs.writeJson(PreferencesKeys.ONBOARDING_DRAFT, transform(current))
+            val current = prefs.readAnswers(PreferencesKeys.ONBOARDING_DRAFT)
+            prefs.writeAnswers(PreferencesKeys.ONBOARDING_DRAFT, transform(current))
         }
     }
 
     override fun getOnboardingDraftFlow(): Flow<OnboardingAnswers> =
-        data.map { it.readJson(PreferencesKeys.ONBOARDING_DRAFT, OnboardingAnswers()) }
+        data.map { it.readAnswers(PreferencesKeys.ONBOARDING_DRAFT) }
 
     override suspend fun clearOnboardingDraft() {
         context.appDataStore.edit { it.remove(PreferencesKeys.ONBOARDING_DRAFT) }
@@ -137,10 +150,10 @@ class AppDatastorePreferences @Inject constructor(
         var committed: OnboardingAnswers? = null
         context.appDataStore.edit { prefs ->
             if (prefs[PreferencesKeys.ONBOARDING_DRAFT] == null) return@edit
-            val draft = prefs.readJson(PreferencesKeys.ONBOARDING_DRAFT, OnboardingAnswers())
+            val draft = prefs.readAnswers(PreferencesKeys.ONBOARDING_DRAFT)
             if (!isValid(draft)) return@edit
             // Одна транзакция: либо записано всё, либо ничего
-            prefs.writeJson(PreferencesKeys.ONBOARDING_ANSWERS, draft)
+            prefs.writeAnswers(PreferencesKeys.ONBOARDING_ANSWERS, draft)
             prefs[PreferencesKeys.IS_ONBOARDING_COMPLETED] = true
             prefs.remove(PreferencesKeys.ONBOARDING_DRAFT)
             committed = draft
@@ -153,13 +166,14 @@ class AppDatastorePreferences @Inject constructor(
         context.appDataStore.edit {
             it.writeJson(
                 PreferencesKeys.BIRTHDAY_NOTIF_DATA,
-                birthNotifData
+                birthNotifData.toDto()
             )
         }
     }
 
     override suspend fun getBirthdayNotificationData(): BirthdayNotificationData =
-        data.first().readJson(PreferencesKeys.BIRTHDAY_NOTIF_DATA, BirthdayNotificationData())
+        data.first().readJson(PreferencesKeys.BIRTHDAY_NOTIF_DATA, BirthdayNotificationDto())
+            .toDomain()
 
     override suspend fun clearBirthdayNotificationData() {
         context.appDataStore.edit { prefs ->
@@ -174,6 +188,13 @@ class AppDatastorePreferences @Inject constructor(
 
     override suspend fun saveBirthdayLastNotifiedKey(key: String) {
         context.appDataStore.edit { it[PreferencesKeys.BIRTHDAY_LAST_NOTIFIED_KEY] = key }
+    }
+
+    override suspend fun wasNotificationPermissionAsked(): Boolean =
+        data.first()[PreferencesKeys.NOTIFICATION_PERMISSION_ASKED] ?: false
+
+    override suspend fun markNotificationPermissionAsked() {
+        context.appDataStore.edit { it[PreferencesKeys.NOTIFICATION_PERMISSION_ASKED] = true }
     }
 
     // ONBOARDING STATE
@@ -211,6 +232,13 @@ class AppDatastorePreferences @Inject constructor(
         data.map {
             it[PreferencesKeys.APP_LANGUAGE] ?: LanguageEnum.stringFromLanguage(LanguageEnum.SYSTEM)
         }
+
+    override suspend fun isLanguageMigratedToAppCompat(): Boolean =
+        data.first()[PreferencesKeys.LANGUAGE_MIGRATED_TO_APPCOMPAT] ?: false
+
+    override suspend fun markLanguageMigratedToAppCompat() {
+        context.appDataStore.edit { it[PreferencesKeys.LANGUAGE_MIGRATED_TO_APPCOMPAT] = true }
+    }
 
     private companion object {
         const val TAG = "AppDatastorePreferences"

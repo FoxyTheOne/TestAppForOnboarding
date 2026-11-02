@@ -165,7 +165,7 @@
     <string name="not_valid_user_data_for_saving_to_firebase">Данные не валидны для сохранения - есть пустые поля</string>
     <string name="current_email_not_verified">Текущий email не верифицирован</string>
     <string name="email_verification_needed">A verification email has been sent to your new email address. Please verify it before continuing.</string>
-    <string name="verification_email_sent_explanation">Verification email sent. Your login email will be updated automatically after verification.</string>
+    <string name="verification_email_sent_explanation">Письмо отправлено. Почта для входа изменится после перехода по ссылке.</string>
     <string name="auth_email_updated_successfully_please_verify">Почта для входа успешно обновлена. Верификация выслана нам на почту</string>
     <string name="wrong_password_while_changing_email">Не верный пароль</string>
 
@@ -189,6 +189,28 @@
     <string name="birthday_notification_title">🎉 С днём рождения, %1$s!</string>
     <string name="birthday_notification_text">Поздравляем с праздником! Пусть этот день будет наполнен радостью и улыбками.</string>
     <string name="birthday_notification_big_text">Пусть каждый день приносит новые открытия, а счастье всегда будет рядом! 🥳</string>
+
+    <string name="birthday_notification_public_title">🎉 Поздравление с днём рождения</string>
+    <string name="notification_permission_title">Поздравления с днём рождения</string>
+    <string name="notification_permission_message">Разрешите уведомления, чтобы мы поздравили вас с днём рождения ребёнка. Уведомление тихое и приходит раз в год.</string>
+    <string name="notification_permission_allow">Разрешить</string>
+    <string name="notification_permission_later">Не сейчас</string>
+
+    <!-- Account -->
+    <string name="registered_verification_sent">Регистрация прошла успешно. Мы отправили на вашу почту ссылку для подтверждения – подтвердить можно в любое удобное время.</string>
+    <string name="email_change_sent_title">Подтвердите новую почту</string>
+    <string name="email_change_sent_message">Мы отправили ссылку на %1$s. После перехода по ней почта для входа изменится, и вы выйдете из аккаунта. Затем войдите снова с новой почтой и текущим паролем.</string>
+    <string name="session_ended_message">Вы вышли из аккаунта. Пожалуйста, войдите снова. Если вы меняли почту – используйте новую.</string>
+    <string name="forgot_password">Забыли пароль?</string>
+    <string name="password_reset_sent">Если аккаунт с такой почтой существует, мы отправили на неё ссылку для сброса пароля. Проверьте также папку «Спам».</string>
+    <string name="password_reset_failed_error">Не удалось отправить письмо для сброса пароля</string>
+    <string name="delete_account_button">Удалить аккаунт</string>
+    <string name="delete_account_title">Удалить аккаунт?</string>
+    <string name="delete_account_message">Аккаунт и все данные на сервере и на этом устройстве будут удалены без возможности восстановления. Введите пароль для подтверждения.</string>
+    <string name="delete_account_confirm">Удалить</string>
+    <string name="account_deleted">Аккаунт удалён</string>
+    <string name="account_deletion_failed_error">Не удалось удалить аккаунт. Проверьте интернет и попробуйте ещё раз.</string>
+    <string name="ok">ОК</string>
 
     <!-- Logout -->
     <string name="unsynced_data_logout_error">Часть изменений ещё не отправлена на сервер. Проверьте интернет и попробуйте снова, иначе эти изменения будут потеряны.</string>

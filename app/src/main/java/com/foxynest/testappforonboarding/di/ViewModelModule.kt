@@ -2,6 +2,10 @@ package com.foxynest.testappforonboarding.di
 
 import com.foxynest.testappforonboarding.data.repository.MigrateUserDataRepository
 import com.foxynest.testappforonboarding.domain.iRepository.IMigrateUserDataRepository
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.account.DeleteAccountUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.account.IDeleteAccountUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.account.ISendPasswordResetUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.account.SendPasswordResetUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidatePasswordUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginValidateEmailUC
@@ -81,4 +85,10 @@ abstract class ViewModelModule {
     abstract fun bindsRegisterInteractor(
         registerUC: RegisterUC
     ): IRegisterUC
+
+    @Binds
+    abstract fun bindsDeleteAccountUC(impl: DeleteAccountUC): IDeleteAccountUC
+
+    @Binds
+    abstract fun bindsSendPasswordResetUC(impl: SendPasswordResetUC): ISendPasswordResetUC
 }

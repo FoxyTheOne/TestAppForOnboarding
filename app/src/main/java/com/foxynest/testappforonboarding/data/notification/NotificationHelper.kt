@@ -1,4 +1,4 @@
-package com.foxynest.testappforonboarding.other.utils
+package com.foxynest.testappforonboarding.data.notification
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -15,7 +15,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
-import com.foxynest.testappforonboarding.presentation.MainActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
 import javax.inject.Inject
@@ -52,17 +51,28 @@ class NotificationHelper @Inject constructor(
             return false
         }
 
-        val intent = Intent(context, MainActivity::class.java).apply {
+        // Стартовый экран приложения берём у системы: data-слой не должен знать о классах экранов (presentation)
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
             // Без CLEAR_TASK: не уничтожаем текущий стек экранов, если приложение уже открыто
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
         }
-        val pendingIntent = PendingIntent.getActivity(
-            context, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent = intent?.let {
+            PendingIntent.getActivity(
+                context, 0, it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+
+        // Версия для экрана блокировки без имени ребёнка: его видят все, кто берёт телефон в руки
+        val publicNotification = NotificationCompat.Builder(localizedContext, BIRTHDAY_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setContentTitle(localizedContext.getString(R.string.birthday_notification_public_title))
+            .build()
 
         val notification = NotificationCompat.Builder(localizedContext, BIRTHDAY_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(publicNotification)
             .setContentTitle(
                 localizedContext.getString(
                     R.string.birthday_notification_title,

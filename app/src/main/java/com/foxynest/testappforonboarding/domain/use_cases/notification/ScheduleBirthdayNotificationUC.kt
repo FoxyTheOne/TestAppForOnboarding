@@ -22,4 +22,10 @@ class ScheduleBirthdayNotificationUC @Inject constructor(
         birthdayNotificationRepository.rearmFromSavedData(userIsInApp)
 
     override suspend fun cancel() = birthdayNotificationRepository.cancel()
+
+    override suspend fun shouldAskNotificationPermission(): Boolean =
+        !birthdayNotificationRepository.wasNotificationPermissionAsked()
+
+    override suspend fun markNotificationPermissionAsked() =
+        birthdayNotificationRepository.markNotificationPermissionAsked()
 }

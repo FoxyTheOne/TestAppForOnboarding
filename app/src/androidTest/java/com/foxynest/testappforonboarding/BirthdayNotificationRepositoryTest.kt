@@ -13,7 +13,7 @@ import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.Ap
 import com.foxynest.testappforonboarding.data.notification.BirthdayNotificationReceiver
 import com.foxynest.testappforonboarding.data.repository.BirthdayNotificationRepository
 import com.foxynest.testappforonboarding.other.timeProvider.FixedTimeProvider
-import com.foxynest.testappforonboarding.other.utils.NotificationHelper
+import com.foxynest.testappforonboarding.data.notification.NotificationHelper
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals

@@ -172,8 +172,8 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.5.0'
 
     // Gson для конвертации в JSON
-    // ВНИМАНИЕ: перед включением minifyEnabled добавьте @SerializedName к полям сохраняемых классов
-    // (или keep-правила), иначе R8 переименует поля и уже сохранённые у пользователей данные перестанут читаться
+    // Сохраняемые классы описаны в StoredModels.kt с @SerializedName и @Keep – включать minifyEnabled безопасно.
+    // Новые классы для Gson добавляйте так же, иначе R8 переименует поля и сохранённые данные перестанут читаться
     implementation 'com.google.code.gson:gson:2.10.1'
 }
 

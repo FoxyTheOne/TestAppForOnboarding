@@ -1,6 +1,5 @@
 package com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login
 
-import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.ValidationResult
 import javax.inject.Inject

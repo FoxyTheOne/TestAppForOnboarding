@@ -10,10 +10,13 @@ import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAn
 import com.foxynest.testappforonboarding.domain.entities.onboarding.isValidData
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.entities.user.isValidData
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IGetCurrentUserPresentationUC
+import com.foxynest.testappforonboarding.domain.entities.user.toUserPresentation
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.account.IDeleteAccountUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IIsUserLoggedInUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IObserveCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.notification.IScheduleBirthdayNotificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
@@ -22,11 +25,10 @@ import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -42,15 +44,18 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val onboardingUC: IOnboardingUC,
     private val updateFirebaseProfileUC: IUpdateFirebaseProfileUC,
-    private val getCurrentFirebaseUserUC: IGetCurrentFirebaseUserUC,
-    private val getCurrentUserPresentationUC: IGetCurrentUserPresentationUC,
+    observeCurrentUserUC: IObserveCurrentUserUC,
     getAuthStateFlowUC: IGetAuthStateFlowUC,
+    private val isUserLoggedInUC: IIsUserLoggedInUC,
     private val loginValidateEmailUC: ILoginValidateEmailUC,
     private val updateEmailUC: IUpdateEmailUC,
+    private val logoutUC: ILogoutUC,
+    private val deleteAccountUC: IDeleteAccountUC,
     private val scheduleBirthdayNotificationUC: IScheduleBirthdayNotificationUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "MainViewModel"
+        private const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 
     /**
@@ -61,6 +66,9 @@ class MainViewModel @Inject constructor(
     private val localDataMutex = Mutex()
     private val firebaseRepairMutex = Mutex()
 
+    // Выход/удаление аккаунта инициированы пользователем: это не «принудительный выход», и профиль не надо «чинить»
+    private var isAccountOperationInProgress = false
+
     // Подтверждённые ответы (профиль, главная, регистрация).
     // Не asLiveData(): фрагменты читают .value без подписки, а asLiveData без наблюдателей не собирает Flow
     private val _onboardingAnswersLiveData = MutableLiveData(OnboardingAnswers())
@@ -70,42 +78,42 @@ class MainViewModel @Inject constructor(
     private val _onboardingDraftLiveData = MutableLiveData(OnboardingAnswers())
     val onboardingDraftLiveData: LiveData<OnboardingAnswers> = _onboardingDraftLiveData
 
-    init {
-        viewModelScope.launch {
-            onboardingUC.getOnboardingAnswersFlow()
-                .collect { _onboardingAnswersLiveData.value = it }
-        }
-        viewModelScope.launch {
-            onboardingUC.getOnboardingDraftFlow().collect { _onboardingDraftLiveData.value = it }
-        }
-    }
+    /**
+     * Профиль из Firestore через один snapshot-листенер (раньше – get() в onStart каждого экрана).
+     * Листенер активен, пока на профиль подписан хотя бы один экран, и отключается через 5 секунд после ухода в фон.
+     */
+    val checkedUserInfo: StateFlow<Resource<UserPresentation?>> = observeCurrentUserUC.execute()
+        .onEach(::onRemoteUserChanged)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            Resource.init(null)
+        )
+
+    // Только состояние авторизации, без запроса профиля
+    val authStateFlow: StateFlow<UserPresentation?> = getAuthStateFlowUC.execute()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 
     // PROFILE
-    private val _profileUpdatedLiveData = MutableLiveData<Resource<ErrorType>>()
-    val profileUpdatedLiveData: LiveData<Resource<ErrorType>> = _profileUpdatedLiveData
+    private val _profileUpdatedEvent = MutableLiveData<MyEvent<Resource<ErrorType>>>()
+    val profileUpdatedEvent: LiveData<MyEvent<Resource<ErrorType>>> = _profileUpdatedEvent
 
-    // Изменение email в профиле по кнопке "изменить"
-    private val _authEmailUpdateState = MutableLiveData<Resource<ErrorType>>()
+    // Изменение email в профиле. Состояние, а не событие: диалог переживает пересоздание экрана и читает его заново
+    private val _authEmailUpdateState = MutableLiveData<Resource<ErrorType>>(Resource.init(null))
     val authEmailUpdateState: LiveData<Resource<ErrorType>> = _authEmailUpdateState
 
-    // Разовая проверка состояния в firebase
-    private val _checkedUserInfo =
-        MutableStateFlow<Resource<UserPresentation?>>(Resource.init(null))
-    val checkedUserInfo: StateFlow<Resource<UserPresentation?>> = _checkedUserInfo
+    private val _deleteAccountState = MutableLiveData<Resource<ErrorType>>(Resource.init(null))
+    val deleteAccountState: LiveData<Resource<ErrorType>> = _deleteAccountState
 
-    // Использовать только для проверки состояния auth. User мы получаем другим методом
-    val authStateFlow: StateFlow<UserPresentation?> = getAuthStateFlowUC.execute()
-        .map { firebaseUser ->
-            firebaseUser?.let {
-                UserPresentation(
-                    uid = it.uid,
-                    authEmail = it.email ?: "",
-                    isEmailVerified = it.isEmailVerified,
-                    userName = it.displayName ?: ""
-                )
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    private val _logoutEvent = MutableLiveData<MyEvent<Resource<ErrorType>>>()
+    val logoutEvent: LiveData<MyEvent<Resource<ErrorType>>> = _logoutEvent
+
+    // Firebase сам завершил сессию (например, почта для входа изменена по ссылке из письма)
+    private val _sessionEndedEvent = MutableLiveData<MyEvent<Unit>>()
+    val sessionEndedEvent: LiveData<MyEvent<Unit>> = _sessionEndedEvent
+
+    private val _askNotificationPermissionEvent = MutableLiveData<MyEvent<Unit>>()
+    val askNotificationPermissionEvent: LiveData<MyEvent<Unit>> = _askNotificationPermissionEvent
 
     // ERROR
     private val _errorMessageLiveData = MutableLiveData<MyEvent<Resource<ErrorType>>>()
@@ -115,9 +123,19 @@ class MainViewModel @Inject constructor(
     private val _finishOnboardingErrorLiveData = MutableLiveData<MyEvent<ErrorType>>()
     val finishOnboardingErrorLiveData: LiveData<MyEvent<ErrorType>> = _finishOnboardingErrorLiveData
 
-    // Добавляем отдельный LiveData для состояния повторного сохранения
-    private val _retrySaveState = MutableLiveData<Resource<ErrorType>>()
+    private val _retrySaveState = MutableLiveData<Resource<ErrorType>>(Resource.init(null))
     val retrySaveState: LiveData<Resource<ErrorType>> = _retrySaveState
+
+    init {
+        viewModelScope.launch {
+            onboardingUC.getOnboardingAnswersFlow()
+                .collect { _onboardingAnswersLiveData.value = it }
+        }
+        viewModelScope.launch {
+            onboardingUC.getOnboardingDraftFlow().collect { _onboardingDraftLiveData.value = it }
+        }
+        observeSessionEnd(getAuthStateFlowUC)
+    }
 
     /**
      * ONBOARDING
@@ -166,31 +184,42 @@ class MainViewModel @Inject constructor(
                 committed.childBirthDate,
                 userIsInApp = true
             )
-            saveAnswersToFirebaseIfLoggedIn(committed)?.let { _profileUpdatedLiveData.value = it }
+            // Лучший момент спросить разрешение: пользователь только что указал дату рождения
+            askNotificationPermissionIfNeeded()
+            saveAnswersToFirebaseIfLoggedIn(committed)?.let {
+                _profileUpdatedEvent.value = MyEvent(it)
+            }
         }
     }
 
     /**
-     * LOGOUT
+     * ACCOUNT
      */
-    fun clearUserDataOnLogout() = launchLocalWrite("Error clearing user data on logout") {
-        onboardingUC.clearAllOnboardingData()
-        _checkedUserInfo.value = Resource.init(null)
-        scheduleBirthdayNotificationUC.cancel()
+    fun logout() {
+        viewModelScope.launch {
+            isAccountOperationInProgress = true
+            val result = logoutUC.execute()
+            if (result.status != Status.SUCCESS) isAccountOperationInProgress = false
+            _logoutEvent.value = MyEvent(result)
+        }
     }
 
-    fun retryDataSave() {
+    fun resetDeleteAccountState() {
+        _deleteAccountState.value = Resource.init(null)
+    }
+
+    fun deleteAccount(password: String) {
         viewModelScope.launch {
-            _retrySaveState.value = Resource.loading(null)
-            val answers =
-                localDataMutex.withLock { onboardingUC.getOnboardingAnswersFlow().first() }
-            val result = saveAnswersToFirebaseIfLoggedIn(answers)
-                ?: Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
-            _retrySaveState.value = result
-            if (result.status == Status.SUCCESS) {
-                _profileUpdatedLiveData.value = result
-            }
+            _deleteAccountState.value = Resource.loading(null)
+            isAccountOperationInProgress = true
+            val result = deleteAccountUC.execute(password)
+            if (result.status != Status.SUCCESS) isAccountOperationInProgress = false
+            _deleteAccountState.value = result
         }
+    }
+
+    fun resetAuthEmailUpdateState() {
+        _authEmailUpdateState.value = Resource.init(null)
     }
 
     fun updateAuthEmail(newAuthEmail: String, password: String) {
@@ -204,50 +233,94 @@ class MainViewModel @Inject constructor(
                     updateEmailUC.updateAuthEmail(trimmedLowercaseEmail, password)
             } else {
                 _authEmailUpdateState.value =
-                    Resource.error("Не верный адрес", validationResult.errorMessage)
+                    Resource.error("Invalid email", validationResult.errorMessage)
             }
         }
+    }
+
+    fun retryDataSave() {
+        viewModelScope.launch {
+            _retrySaveState.value = Resource.loading(null)
+            val answers =
+                localDataMutex.withLock { onboardingUC.getOnboardingAnswersFlow().first() }
+            val result = saveAnswersToFirebaseIfLoggedIn(answers)
+                ?: Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
+            _retrySaveState.value = result
+        }
+    }
+
+    fun resetRetrySaveState() {
+        _retrySaveState.value = Resource.init(null)
     }
 
     /**
-     * OTHER
+     * STARTUP
      */
-    fun checkLoggedInStateGetUser() {
+    fun onAppStarted() {
         viewModelScope.launch {
-            val result = getCurrentFirebaseUserUC.execute()
-            _checkedUserInfo.value = result
-
-            val user = result.data
-            if (result.status != Status.SUCCESS || user == null) return@launch
-
-            if (user.isValidData()) {
-                // Данные могли измениться на другом устройстве – перепланируем
+            if (isUserLoggedInUC.execute()) {
+                // Для вошедшего пользователя данные придут из листенера профиля; пока – по сохранённым локально
+                scheduleBirthdayNotificationUC.rearmFromSavedData(userIsInApp = true)
+            } else {
+                val answers = onboardingUC.getOnboardingAnswersFlow().first()
                 scheduleBirthdayNotificationUC.update(
-                    user.childName,
-                    user.childBirthDate,
+                    answers.childName,
+                    answers.childBirthDate,
                     userIsInApp = true
                 )
-            } else {
-                repairFirebaseProfileFromLocalData()
             }
+
+            val hasBirthdayData =
+                isUserLoggedInUC.execute() || onboardingUC.isOnboardingCompleted().first()
+            if (hasBirthdayData) askNotificationPermissionIfNeeded()
         }
     }
 
-    fun planningBirthdayNotificationOnStart() {
-        viewModelScope.launch {
-            val user = getCurrentUserPresentationUC().data
-            // Если данных нет (например, нет сети) – UC перепланирует по ранее сохранённым, а не сбросит уведомление
-            scheduleBirthdayNotificationUC.update(
-                user?.childName.orEmpty(),
-                user?.childBirthDate.orEmpty(),
-                userIsInApp = true
-            )
-        }
+    fun markNotificationPermissionAsked() {
+        viewModelScope.launch { scheduleBirthdayNotificationUC.markNotificationPermissionAsked() }
     }
 
     /**
      * PRIVATE METHODS
      */
+    private suspend fun askNotificationPermissionIfNeeded() {
+        if (scheduleBirthdayNotificationUC.shouldAskNotificationPermission()) {
+            _askNotificationPermissionEvent.value = MyEvent(Unit)
+        }
+    }
+
+    private fun observeSessionEnd(getAuthStateFlowUC: IGetAuthStateFlowUC) {
+        viewModelScope.launch {
+            var previousUid: String? = null
+            getAuthStateFlowUC.execute().collect { user ->
+                if (previousUid != null && user == null) {
+                    if (isAccountOperationInProgress) {
+                        isAccountOperationInProgress = false
+                    } else {
+                        _sessionEndedEvent.value = MyEvent(Unit)
+                    }
+                }
+                previousUid = user?.uid
+            }
+        }
+    }
+
+    private suspend fun onRemoteUserChanged(result: Resource<UserPresentation?>) {
+        val user = result.data
+        if (result.status != Status.SUCCESS || user == null || isAccountOperationInProgress) return
+
+        if (user.isValidData()) {
+            // Данные могли измениться на другом устройстве – перепланируем
+            scheduleBirthdayNotificationUC.update(
+                user.childName,
+                user.childBirthDate,
+                userIsInApp = true
+            )
+        } else {
+            repairFirebaseProfileFromLocalData()
+        }
+    }
+
     private fun launchLocalWrite(errorLog: String, block: suspend () -> Unit) {
         viewModelScope.launch {
             try {
@@ -255,42 +328,31 @@ class MainViewModel @Inject constructor(
             } catch (e: IOException) {
                 Log.e(TAG, errorLog, e)
                 _errorMessageLiveData.value = MyEvent(
-                    Resource.error("Не удалось сохранить данные", ErrorType.DATA_NOT_SAVED_ERROR)
+                    Resource.error("Failed to save data", ErrorType.DATA_NOT_SAVED_ERROR)
                 )
             }
         }
     }
 
-    /** @return null, если пользователь не авторизован */
+    /** @return null, если пользователь не авторизован. Профиль из сети не читается – для записи нужен только вход. */
     private suspend fun saveAnswersToFirebaseIfLoggedIn(answers: OnboardingAnswers): Resource<ErrorType>? {
-        val currentFirebaseUser = getCurrentFirebaseUserUC.execute().data ?: return null
-        val updatedUser = currentFirebaseUser.copy(
-            userName = answers.userName,
-            childGender = answers.childGender,
-            isItABoy = answers.isItABoy,
-            childName = answers.childName,
-            childBirthDate = answers.childBirthDate,
-            childHobbies = answers.childHobbies
-        )
+        if (!isUserLoggedInUC.execute()) return null
         // UpdateFirebaseProfileUC сам проверяет полноту данных и не даст перезаписать профиль пустыми полями
-        return updateFirebaseProfileUC.execute(updatedUser)
+        return updateFirebaseProfileUC.execute(answers.toUserPresentation())
     }
 
     /**
      * Аккаунт создан, а документ профиля в Firestore пустой (например, связь пропала сразу после регистрации).
      * Если на устройстве есть полная анкета – досылаем её, чтобы данные не потерялись.
+     * Листенер сам пришлёт обновлённый профиль после записи.
      */
     private suspend fun repairFirebaseProfileFromLocalData() {
         if (!firebaseRepairMutex.tryLock()) return
         try {
             val localAnswers = onboardingUC.getOnboardingAnswersFlow().first()
             if (!localAnswers.isValidData()) return
-
             Log.w(TAG, "Firestore profile is incomplete, uploading local answers")
-            val result = saveAnswersToFirebaseIfLoggedIn(localAnswers) ?: return
-            if (result.status == Status.SUCCESS) {
-                _checkedUserInfo.value = getCurrentFirebaseUserUC.execute()
-            }
+            saveAnswersToFirebaseIfLoggedIn(localAnswers)
         } finally {
             firebaseRepairMutex.unlock()
         }

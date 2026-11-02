@@ -7,6 +7,7 @@ import android.content.Intent
 import android.util.Log
 import com.foxynest.testappforonboarding.data.dataSource.datastorePreferences.IAppDatastorePreferences
 import com.foxynest.testappforonboarding.data.notification.BirthdayNotificationReceiver
+import com.foxynest.testappforonboarding.data.notification.NotificationHelper
 import com.foxynest.testappforonboarding.domain.birthday.BirthdayRules
 import com.foxynest.testappforonboarding.domain.entities.BirthdayNotificationData
 import com.foxynest.testappforonboarding.domain.entities.isValidData
@@ -15,7 +16,6 @@ import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificatio
 import com.foxynest.testappforonboarding.other.extensions.parseDateToLocalDate
 import com.foxynest.testappforonboarding.other.extensions.toEpochMillis
 import com.foxynest.testappforonboarding.other.timeProvider.ITimeProvider
-import com.foxynest.testappforonboarding.other.utils.NotificationHelper
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -65,6 +65,12 @@ class BirthdayNotificationRepository @Inject constructor(
         cancelAlarm()
         appDatastorePreferences.clearBirthdayNotificationData()
     }
+
+    override suspend fun wasNotificationPermissionAsked(): Boolean =
+        appDatastorePreferences.wasNotificationPermissionAsked()
+
+    override suspend fun markNotificationPermissionAsked() =
+        appDatastorePreferences.markNotificationPermissionAsked()
 
     private suspend fun notifyIfNeededAndArm(data: BirthdayNotificationData, userIsInApp: Boolean) {
         val birthDate = data.childBirthDate.parseDateToLocalDate()

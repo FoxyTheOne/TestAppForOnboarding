@@ -21,11 +21,12 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.ActivityMainBinding
-import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
-import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.BaseDialogFragment
+import com.foxynest.testappforonboarding.presentation.common.toErrorMessage
+import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.NotificationPermissionDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.QuitDialog
 import com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.OnboardingViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -56,7 +57,13 @@ class MainActivity : AppCompatActivity() {
         R.id.navigation_useful_information
     )
 
-    private var quitDialog: BaseDialogFragment? = null
+    // Регистрируется при создании Activity – так требует Activity Result API
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (!isGranted) {
+                Toast.makeText(this, R.string.no_notification_permission, Toast.LENGTH_LONG).show()
+            }
+        }
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: ActivityMainBinding? = null
@@ -80,14 +87,9 @@ class MainActivity : AppCompatActivity() {
         // Инициализируем navController
         navController = findNavController(R.id.nav_host_fragment_activity_main)
 
-        // СНАЧАЛА настраиваем навигацию:
         setupNavigation()
         // Уберем Action bar
         supportActionBar?.hide()
-
-//        // ПОТОМ запрашиваем данные: подтягиваем ответы из пройденного ранее онбординга. Загружаем данные БЕЗ принудительного обновления Firebase
-//        mainViewModel.getAndUseAnswersFromOnboarding()
-        mainViewModel.checkLoggedInStateGetUser() // -> проверяем в каждом фрагменте отдельно (home, profile, info)
 
         /**
          * Регистрируем обработчик кнопки "Назад"
@@ -131,46 +133,16 @@ class MainActivity : AppCompatActivity() {
         // на новом телефоне и т.п. Поэтому при каждом запуске перепланируем (операция идемпотентна).
         // Если сегодня день рождения и ещё не поздравляли – пользователь в приложении, поздравляем сразу.
         if (savedInstanceState == null) {
-            mainViewModel.planningBirthdayNotificationOnStart()
+            mainViewModel.onAppStarted()
         }
 
-        setupNotificationPermission()
+        registerDialogResults()
         observeOnboardingState() // Подписываемся на изменения онбординга
         subscribeToObservers()
     }
 
     fun updateBottomNavigationSelection(destinationId: Int) {
         binding?.navView?.menu?.findItem(destinationId)?.isChecked = true
-    }
-
-    /**
-     * PERMISSIONS
-     */
-    private fun setupNotificationPermission() {
-        // Запрос на разрешение notification
-        val requestPermissionLauncherNotification =
-            registerForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
-                if (!isGranted) {
-                    Toast.makeText(
-                        this,
-                        getString(R.string.no_notification_permission),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Если нет разрешения - вызываем requestPermissionLauncher
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                requestPermissionLauncherNotification.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
     }
 
     /**
@@ -289,21 +261,40 @@ class MainActivity : AppCompatActivity() {
      * DIALOGS
      */
     private fun showQuitDialog() {
-        if (quitDialog != null && quitDialog!!.isAdded) {
-            return
+        if (supportFragmentManager.findFragmentByTag(QuitDialog.TAG) == null) {
+            QuitDialog().show(supportFragmentManager, QuitDialog.TAG)
         }
+    }
 
-        quitDialog = QuitDialog.newInstance()
-            .setListeners(
-                positiveAction = {
-                    finishAffinity()
-                },
-                negativeAction = {
-                    quitDialog = null
-                }
+    private fun registerDialogResults() {
+        // Fragment Result API: результат доходит и после пересоздания Activity
+        QuitDialog.setResultListener(supportFragmentManager, this) { confirmed ->
+            if (confirmed) finishAffinity()
+        }
+        NotificationPermissionDialog.setResultListener(supportFragmentManager, this) { confirmed ->
+            if (confirmed) notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    /**
+     * PERMISSIONS
+     * Разрешение спрашиваем не на старте, а в контексте: после того как пользователь указал дату рождения
+     * (или при запуске, если анкета уже заполнена), с объяснением зачем – и только один раз.
+     */
+    private fun showNotificationPermissionPromptIfNeeded() {
+        mainViewModel.markNotificationPermissionAsked()
+        val isRuntimePermissionRequired = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+        if (isRuntimePermissionRequired && supportFragmentManager.findFragmentByTag(
+                NotificationPermissionDialog.TAG
+            ) == null
+        ) {
+            NotificationPermissionDialog().show(
+                supportFragmentManager,
+                NotificationPermissionDialog.TAG
             )
-
-        quitDialog?.show(supportFragmentManager, QuitDialog.TAG)
+        }
     }
 
     /**
@@ -315,6 +306,19 @@ class MainActivity : AppCompatActivity() {
             val toastMessage =
                 event.getContentIfNotHandled()?.data?.toErrorMessage(resources) ?: return@observe
             Toast.makeText(this, toastMessage, Toast.LENGTH_LONG).show()
+        }
+
+        mainViewModel.askNotificationPermissionEvent.observe(this) { event ->
+            if (event.getContentIfNotHandled() != null) showNotificationPermissionPromptIfNeeded()
+        }
+
+        // Firebase завершил сессию сам: чаще всего после подтверждения новой почты для входа
+        mainViewModel.sessionEndedEvent.observe(this) { event ->
+            if (event.getContentIfNotHandled() == null) return@observe
+            MaterialAlertDialogBuilder(this)
+                .setMessage(R.string.session_ended_message)
+                .setPositiveButton(R.string.ok, null)
+                .show()
         }
     }
 

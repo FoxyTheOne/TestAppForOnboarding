@@ -44,6 +44,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- AppCompat сам сохраняет выбранный язык и применяет его до показа экрана на Android 12 и ниже -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
         <!--
         exported="false": системные события доставляются, а чужие приложения не могут отправить нам «будильник».
         TIME_SET / TIMEZONE_CHANGED входят в список исключений из ограничений на неявные broadcast-ы (Android 8+).

@@ -15,21 +15,23 @@ import com.foxynest.testappforonboarding.domain.iRepository.IOnboardingRepositor
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.GetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.ISetAppLanguageUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.ITakeLanguageForMigrationUC
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.SetAppLanguageUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.GetCurrentUserPresentationUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.IGetCurrentUserPresentationUC
+import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.TakeLanguageForMigrationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.CheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.SendEmailVerificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetAuthStateFlowUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.GetCurrentFirebaseUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetAuthStateFlowUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IIsUserLoggedInUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IObserveCurrentUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IsUserLoggedInUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.LogoutUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ObserveCurrentUserUC
 import com.foxynest.testappforonboarding.domain.use_cases.notification.IScheduleBirthdayNotificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.notification.ScheduleBirthdayNotificationUC
 import com.foxynest.testappforonboarding.domain.use_cases.updatingDataUseCases.IUpdateEmailUC
@@ -74,93 +76,70 @@ abstract class SingletonModule {
         }
     }
 
+    // Data sources & repositories
     @Binds
     @Singleton
-    abstract fun bindsDatastorePreference(
-        appDatastorePreference: AppDatastorePreferences
-    ): IAppDatastorePreferences
+    abstract fun bindsDatastorePreference(impl: AppDatastorePreferences): IAppDatastorePreferences
 
     @Binds
     @Singleton
-    abstract fun bindsAuthRepository(authRepository: AuthRepository): IAuthRepository
-
-    // Use Cases, связанные с Auth Repository:
-    @Binds
-    abstract fun bindsGetAuthStateFlowInteractor(
-        getAuthStateFlowInteractor: GetAuthStateFlowUC
-    ): IGetAuthStateFlowUC
+    abstract fun bindsAuthRepository(impl: AuthRepository): IAuthRepository
 
     @Binds
-    abstract fun bindsGetCurrentLogInStateInteractor(
-        getCurrentLogInStateInteractor: GetCurrentFirebaseUserUC
-    ): IGetCurrentFirebaseUserUC
+    @Singleton
+    abstract fun bindsOnboardingRepository(impl: OnboardingRepository): IOnboardingRepository
 
     @Binds
-    abstract fun bindsSendEmailVerificationInteractor(
-        sendEmailVerificationInteractor: SendEmailVerificationUC
-    ): ISendEmailVerificationUC
+    @Singleton
+    abstract fun bindsBirthdayNotificationRepository(
+        impl: BirthdayNotificationRepository
+    ): IBirthdayNotificationRepository
 
     @Binds
-    abstract fun bindsCheckEmailVerifiedInteractor(
-        checkEmailVerifiedInteractor: CheckEmailVerifiedUC
-    ): ICheckEmailVerifiedUC
+    abstract fun bindsAppLanguageRepository(impl: AppLanguageRepository): IAppLanguageRepository
+
+    // Auth
+    @Binds
+    abstract fun bindsGetAuthStateFlowUC(impl: GetAuthStateFlowUC): IGetAuthStateFlowUC
 
     @Binds
-    abstract fun bindsLoginUCInteractor(
-        loginUCInteractor: LoginUC
-    ): ILoginUC
+    abstract fun bindsObserveCurrentUserUC(impl: ObserveCurrentUserUC): IObserveCurrentUserUC
 
     @Binds
-    abstract fun bindsLogoutUCInteractor(
-        logoutUCInteractor: LogoutUC
-    ): ILogoutUC
+    abstract fun bindsIsUserLoggedInUC(impl: IsUserLoggedInUC): IIsUserLoggedInUC
 
     @Binds
-    abstract fun bindsUpdateProfileInteractor(
-        updateProfileInteractor: UpdateFirebaseProfileUC
-    ): IUpdateFirebaseProfileUC
+    abstract fun bindsLoginUC(impl: LoginUC): ILoginUC
 
     @Binds
-    abstract fun bindsUpdateEmailUCInteractor(
-        updateEmailUC: UpdateEmailUC
-    ): IUpdateEmailUC
+    abstract fun bindsLogoutUC(impl: LogoutUC): ILogoutUC
+
+    // Email & profile
+    @Binds
+    abstract fun bindsSendEmailVerificationUC(impl: SendEmailVerificationUC): ISendEmailVerificationUC
 
     @Binds
-    abstract fun bindsGetCurrentUserPresentationInteractor(
-        getCurrentUserPresentationUC: GetCurrentUserPresentationUC
-    ): IGetCurrentUserPresentationUC
+    abstract fun bindsCheckEmailVerifiedUC(impl: CheckEmailVerifiedUC): ICheckEmailVerifiedUC
+
+    @Binds
+    abstract fun bindsUpdateProfileUC(impl: UpdateFirebaseProfileUC): IUpdateFirebaseProfileUC
+
+    @Binds
+    abstract fun bindsUpdateEmailUC(impl: UpdateEmailUC): IUpdateEmailUC
 
     // Language
     @Binds
-    abstract fun bindsSetAppLanguageInteractor(
-        setAppLanguageUC: SetAppLanguageUC
-    ): ISetAppLanguageUC
+    abstract fun bindsSetAppLanguageUC(impl: SetAppLanguageUC): ISetAppLanguageUC
 
     @Binds
-    abstract fun bindsGetAppLanguageInteractor(
-        getAppLanguageUC: GetAppLanguageUC
-    ): IGetAppLanguageUC
+    abstract fun bindsGetAppLanguageUC(impl: GetAppLanguageUC): IGetAppLanguageUC
 
     @Binds
-    abstract fun bindsAppLanguageRepository(
-        appLanguageRepository: AppLanguageRepository
-    ): IAppLanguageRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindsBirthdayNotificationManager(
-        birthdayNotificationManager: BirthdayNotificationRepository
-    ): IBirthdayNotificationRepository
+    abstract fun bindsTakeLanguageForMigrationUC(impl: TakeLanguageForMigrationUC): ITakeLanguageForMigrationUC
 
     // В SingletonComponent, а не в ViewModelComponent: нужен ещё и BroadcastReceiver-у
     @Binds
-    abstract fun bindsScheduleBirthdayNotificationInteractor(
-        scheduleBirthdayNotificationUC: ScheduleBirthdayNotificationUC
+    abstract fun bindsScheduleBirthdayNotificationUC(
+        impl: ScheduleBirthdayNotificationUC
     ): IScheduleBirthdayNotificationUC
-
-    @Binds
-    @Singleton
-    abstract fun bindsOnboardingRepository(
-        onboardingRepository: OnboardingRepository
-    ): IOnboardingRepository
 }

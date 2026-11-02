@@ -1,8 +1,6 @@
 package com.foxynest.testappforonboarding.presentation.welcome.auth.registration
 
-import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -17,10 +15,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentRegisterBinding
-import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
+import com.foxynest.testappforonboarding.domain.entities.user.toUserPresentation
 import com.foxynest.testappforonboarding.other.Status
-import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.common.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
@@ -53,36 +51,19 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        var user = UserPresentation(
-            uid = "",
-            authEmail = "",
-            isEmailVerified = false,
-            userName = "",
-            childGender = "",
-            isItABoy = "",
-            childName = "",
-            childHobbies = "",
-            childBirthDate = ""
-        )
-        if (arguments != null) {
-            arguments?.parcelable<UserPresentation>("user_presentation")
-                ?.let { user = it }
-        }
-        registrationViewModel.setUser(user)
-
         // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
         // So, we need to do this way:
         mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
 
+        // Анкету берём из общей MainViewModel, а не из аргумента навигации:
+        // так UserPresentation в domain не обязан быть Parcelable (зависимость от Android)
+        mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner) { answers ->
+            registrationViewModel.setUser(answers.toUserPresentation())
+        }
+
         initListeners()
         observeViewModel()
         subscribeOnObservers()
-    }
-
-    // Bundle
-    private inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
-        SDK_INT >= 33 -> getParcelable(key, T::class.java)
-        else -> @Suppress("DEPRECATION") getParcelable(key) as? T
     }
 
     private fun initListeners() {
@@ -130,12 +111,10 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
                         // Вызываем сообщение
                         Toast.makeText(
                             activity,
-                            getString(R.string.registered_text),
+                            // Письмо для подтверждения почты уже отправлено (мягкая верификация)
+                            getString(R.string.registered_verification_sent),
                             Toast.LENGTH_LONG
                         ).show()
-
-                        // Обновляем состояние user в MainViewModel
-                        mainViewModel.checkLoggedInStateGetUser()
 
                         // Переходим в профиль
                         if (findNavController().currentDestination?.id == R.id.navigation_register) {
@@ -159,9 +138,9 @@ class RegistrationFragment : BaseWelcomeFragmentAbstract() {
 
     private fun updateErrorStates(state: RegistrationFormState) {
         // Обновление ошибок для полей
-        binding?.textFieldMail?.error = state.emailError
-        binding?.textFieldPassword?.error = state.passwordError
-        binding?.textFieldPassword2?.error = state.repeatedPasswordError
+        binding?.textFieldMail?.error = state.emailError.toErrorMessage(resources)
+        binding?.textFieldPassword?.error = state.passwordError.toErrorMessage(resources)
+        binding?.textFieldPassword2?.error = state.repeatedPasswordError.toErrorMessage(resources)
     }
 
     // VIEW BINDING -> 3. onDestroyView()

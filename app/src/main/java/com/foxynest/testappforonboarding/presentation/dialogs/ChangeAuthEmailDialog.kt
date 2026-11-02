@@ -3,222 +3,154 @@ package com.foxynest.testappforonboarding.presentation.dialogs
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.DialogChangeAuthEmailBinding
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.utils.EmailUtils
+import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.common.toErrorMessage
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 
+/**
+ * Смена почты для входа. Диалог сам работает с MainViewModel, поэтому переживает пересоздание экрана.
+ * После успешной отправки письма показывает, что будет дальше: вход заново с новой почтой.
+ */
 class ChangeAuthEmailDialog : DialogFragment() {
     companion object {
         const val TAG = "ChangeAuthEmailDialog"
         private const val CURRENT_EMAIL_KEY = "current_email"
+        private const val NEW_EMAIL_KEY = "new_email"
 
-        fun newInstance(currentEmail: String): ChangeAuthEmailDialog {
-            return ChangeAuthEmailDialog().apply {
-                arguments = Bundle().apply {
-                    putString(CURRENT_EMAIL_KEY, currentEmail)
-                }
-            }
+        fun newInstance(currentEmail: String) = ChangeAuthEmailDialog().apply {
+            arguments = bundleOf(CURRENT_EMAIL_KEY to currentEmail)
         }
     }
 
-    private var onSaveClickListener: ((String, String) -> Unit)? = null
-    private lateinit var binding: DialogChangeAuthEmailBinding
-    private var isLoading = false
-    private var positiveButton: Button? = null
-    private var negativeButton: Button? = null
+    private val mainViewModel: MainViewModel by activityViewModels()
+    private var binding: DialogChangeAuthEmailBinding? = null
+    private var requestedEmail: String = ""
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        binding = DialogChangeAuthEmailBinding.inflate(layoutInflater)
+        if (savedInstanceState == null) mainViewModel.resetAuthEmailUpdateState()
+        requestedEmail = savedInstanceState?.getString(NEW_EMAIL_KEY).orEmpty()
 
-        val currentEmail = arguments?.getString(CURRENT_EMAIL_KEY) ?: ""
-        binding.textInputEditTextNewEmail.setText(currentEmail)
+        val dialogBinding = DialogChangeAuthEmailBinding.inflate(layoutInflater)
+        binding = dialogBinding
+        if (savedInstanceState == null) {
+            dialogBinding.textInputEditTextNewEmail.setText(
+                arguments?.getString(CURRENT_EMAIL_KEY).orEmpty()
+            )
+        }
+        dialogBinding.textInputEditTextNewEmail.doAfterTextChanged {
+            dialogBinding.textInputLayoutNewEmail.error = null
+        }
+        dialogBinding.textInputEditTextPassword.doAfterTextChanged {
+            dialogBinding.textInputLayoutPassword.error = null
+        }
 
-        val dialog = MaterialAlertDialogBuilder(requireContext())
+        return MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.change_auth_email_title))
-            .setView(binding.root)
+            .setView(dialogBinding.root)
+            // Обработчики ставятся в onStart, чтобы кнопки не закрывали диалог при ошибке
             .setPositiveButton(getString(R.string.save), null)
             .setNegativeButton(getString(R.string.cancel), null)
             .create()
+    }
 
-        dialog.setOnShowListener { dialogInterface ->
-            val alertDialog = dialogInterface as AlertDialog
-            positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            negativeButton = alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(NEW_EMAIL_KEY, requestedEmail)
+    }
 
-            positiveButton?.setOnClickListener {
-                val newEmail = binding.textInputEditTextNewEmail.text.toString().trim()
-                val password = binding.textInputEditTextPassword.text.toString()
+    override fun onStart() {
+        super.onStart()
+        val alertDialog = dialog as? AlertDialog ?: return
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { onSaveClicked() }
+        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener {
+            mainViewModel.resetAuthEmailUpdateState()
+            dismiss()
+        }
+    }
 
-                if (validateForm(newEmail, password)) {
-                    showLoading()
-                    onSaveClickListener?.invoke(newEmail, password)
-                } else {
-                    // При ошибке валидации показываем сообщение в Toast для привлечения внимания
-                    showValidationErrorToast()
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Подписка один раз; события приходят после onStart, когда кнопки диалога уже созданы
+        mainViewModel.authEmailUpdateState.observe(this) { state ->
+            when (state.status) {
+                Status.LOADING -> setLoading(true)
+                Status.ERROR -> {
+                    setLoading(false)
+                    val message =
+                        state.data.toErrorMessage(resources) ?: getString(R.string.unexpected_error)
+                    if (state.data == ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR) {
+                        binding?.textInputLayoutPassword?.error = message
+                    } else {
+                        binding?.textInputLayoutNewEmail?.error = message
+                    }
                 }
-            }
 
-            negativeButton?.setOnClickListener {
-                if (!isLoading) {
-                    alertDialog.dismiss()
+                Status.SUCCESS -> {
+                    mainViewModel.resetAuthEmailUpdateState()
+                    showWhatHappensNext()
+                    dismiss()
                 }
+
+                Status.INIT -> setLoading(false)
             }
-
-            setupErrorClearingListeners()
-        }
-
-        return dialog
-    }
-
-    private fun showValidationErrorToast() {
-        // Показываем краткое сообщение о необходимости исправить ошибки
-        if (binding.textInputLayoutNewEmail.error != null) {
-            Toast.makeText(
-                requireContext(),
-                binding.textInputLayoutNewEmail.error,
-                Toast.LENGTH_SHORT
-            ).show()
-        } else if (binding.textInputLayoutPassword.error != null) {
-            Toast.makeText(
-                requireContext(),
-                binding.textInputLayoutPassword.error,
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
-    private fun setupErrorClearingListeners() {
-        // Очищаем ошибки только для конкретного поля при изменении
-        binding.textInputEditTextNewEmail.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                binding.textInputLayoutNewEmail.error = null
-            }
-        })
+    private fun onSaveClicked() {
+        val currentBinding = binding ?: return
+        val newEmail = currentBinding.textInputEditTextNewEmail.text.toString().trim()
+        val password = currentBinding.textInputEditTextPassword.text.toString()
 
-        binding.textInputEditTextPassword.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                binding.textInputLayoutPassword.error = null
-            }
-        })
-    }
-
-    private fun showLoading() {
-        isLoading = true
-        binding.progressBar.visibility = View.VISIBLE
-        positiveButton?.isEnabled = false
-        negativeButton?.isEnabled = false
-
-        val colorGray = ContextCompat.getColor(requireContext(), R.color.gray)
-        positiveButton?.setTextColor(colorGray)
-        negativeButton?.setTextColor(colorGray)
-
-        // Убираем клавиатуру, но сохраняем текущий фокус
-        val currentFocus = dialog?.currentFocus
-        val inputMethodManager =
-            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(
-            currentFocus?.windowToken ?: binding.textInputEditTextNewEmail.windowToken,
-            0
-        )
-    }
-
-    private fun validateForm(newEmail: String, password: String): Boolean {
-        var isValid = true
-
-        if (newEmail.isBlank()) {
-            binding.textInputLayoutNewEmail.error = getString(R.string.email_empty_error)
-            isValid = false
-        } else if (!EmailUtils.emailMatches(newEmail)) {
-            binding.textInputLayoutNewEmail.error = getString(R.string.email_format_error)
-            isValid = false
-        } else {
-            binding.textInputLayoutNewEmail.error = null
+        currentBinding.textInputLayoutNewEmail.error = when {
+            newEmail.isBlank() -> getString(R.string.email_empty_error)
+            !EmailUtils.emailMatches(newEmail) -> getString(R.string.email_format_error)
+            else -> null
         }
+        currentBinding.textInputLayoutPassword.error =
+            if (password.isBlank()) getString(R.string.password_empty_error) else null
 
-        if (password.isBlank()) {
-            binding.textInputLayoutPassword.error = getString(R.string.password_empty_error)
-            isValid = false
-        } else {
-            binding.textInputLayoutPassword.error = null
+        if (currentBinding.textInputLayoutNewEmail.error == null && currentBinding.textInputLayoutPassword.error == null) {
+            requestedEmail = newEmail
+            mainViewModel.updateAuthEmail(newEmail, password)
         }
-
-        return isValid
     }
 
-    fun showError(errorMessage: String, isPasswordError: Boolean = false) {
-        isLoading = false
-        binding.progressBar.visibility = View.GONE
-
-        if (isPasswordError) {
-            binding.textInputLayoutPassword.error = errorMessage
-        } else {
-            binding.textInputLayoutNewEmail.error = errorMessage
-        }
-
-        positiveButton?.isEnabled = true
-        negativeButton?.isEnabled = true
-
-        val colorPrimary = ContextCompat.getColor(requireContext(), R.color.purple_200)
-        positiveButton?.setTextColor(colorPrimary)
-        negativeButton?.setTextColor(colorPrimary)
-
-        // Используем Snackbar для более красивого отображения ошибки
-        val snackbar = Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG)
-        snackbar.setAction("OK") { snackbar.dismiss() }
-        snackbar.show()
+    private fun showWhatHappensNext() {
+        // Обычный AlertDialog: он только информирует, и потерять его при пересоздании экрана не страшно
+        MaterialAlertDialogBuilder(requireActivity())
+            .setTitle(R.string.email_change_sent_title)
+            .setMessage(getString(R.string.email_change_sent_message, requestedEmail))
+            .setPositiveButton(R.string.ok, null)
+            .show()
     }
 
-    fun showSuccess() {
-        isLoading = false
-        binding.progressBar.visibility = View.GONE
-        dismiss()
+    private fun setLoading(isLoading: Boolean) {
+        binding?.progressBar?.visibility = if (isLoading) View.VISIBLE else View.GONE
+        (dialog as? AlertDialog)?.let {
+            it.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled = !isLoading
+            it.getButton(AlertDialog.BUTTON_NEGATIVE)?.isEnabled = !isLoading
+        }
+        if (isLoading) {
+            val imm =
+                requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(binding?.root?.windowToken, 0)
+        }
     }
 
-    fun setOnSaveClickListener(listener: (String, String) -> Unit): ChangeAuthEmailDialog {
-        this.onSaveClickListener = listener
-        return this
-    }
-
-    fun showVerificationError(errorMessage: String, onAction: (String) -> Unit) {
-        isLoading = false
-        binding.progressBar.visibility = View.GONE
-
-        // Показываем специальное сообщение с кнопками действий
-        binding.textInputLayoutNewEmail.error = errorMessage
-
-        // Меняем текст кнопок для специального случая
-        positiveButton?.text = "Send Verification"
-        negativeButton?.text = "Cancel"
-
-        // Сохраняем оригинальные обработчики и устанавливаем новые
-        positiveButton?.setOnClickListener {
-            onAction("send_verification")
-        }
-
-        negativeButton?.setOnClickListener {
-            onAction("cancel")
-        }
-
-        positiveButton?.isEnabled = true
-        negativeButton?.isEnabled = true
-
-        val colorPrimary = ContextCompat.getColor(requireContext(), R.color.purple_200)
-        positiveButton?.setTextColor(colorPrimary)
-        negativeButton?.setTextColor(colorPrimary)
+    override fun onDestroyView() {
+        binding = null
+        super.onDestroyView()
     }
 }

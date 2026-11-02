@@ -1,48 +1,42 @@
 package com.foxynest.testappforonboarding
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.use_cases.appLanguage.IGetAppLanguageUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ICheckEmailVerifiedUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.email.ISendEmailVerificationUC
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILogoutUC
 import com.foxynest.testappforonboarding.other.Resource
-import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.presentation.profile.ProfileViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
 class ProfileViewModelTests {
     @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     private val sendEmailUC = mockk<ISendEmailVerificationUC>()
     private val checkEmailUC = mockk<ICheckEmailVerifiedUC>()
-    private val logoutUC = mockk<ILogoutUC>()
     private val getAppLanguageUC = mockk<IGetAppLanguageUC> {
         coEvery { this@mockk.invoke() } returns LanguageEnum.SYSTEM
     }
 
-    private fun createViewModel() = ProfileViewModel(
-        sendEmailUC,
-        checkEmailUC,
-        logoutUC,
-        getAppLanguageUC,
-        mockk(),
-        mockk()
-    )
+    private fun createViewModel() =
+        ProfileViewModel(sendEmailUC, checkEmailUC, getAppLanguageUC, mockk())
 
     @Test
-    fun `sendVerificationEmail disables button and sends email`() =
+    fun `sendVerificationEmail disables button and reports sent once`() =
         runTest(mainDispatcherRule.testDispatcher) {
             coEvery { sendEmailUC.execute() } returns Resource.success(null)
             coEvery { checkEmailUC.execute() } returns false
@@ -52,7 +46,9 @@ class ProfileViewModelTests {
             runCurrent()
 
             assertFalse(viewModel.isVerificationButtonEnabled.value)
-            assertTrue(viewModel.isEmailVerificationSent.value)
+            val event = viewModel.verificationEmailSentEvent.value!!
+            assertEquals(Unit, event.getContentIfNotHandled())
+            assertNull(event.getContentIfNotHandled())
         }
 
     @Test
@@ -71,14 +67,14 @@ class ProfileViewModelTests {
         }
 
     @Test
-    fun `logout calls use case and updates state`() = runTest(mainDispatcherRule.testDispatcher) {
-        coEvery { logoutUC.execute() } returns Resource.success(null)
-        val viewModel = createViewModel()
+    fun `verification status is unknown until checked`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            coEvery { checkEmailUC.execute() } returns false
+            val viewModel = createViewModel()
 
-        viewModel.logout()
-        advanceUntilIdle()
-
-        coVerify { logoutUC.execute() }
-        assertEquals(Status.SUCCESS, viewModel.logoutStateFlow.value.status)
-    }
+            assertNull(viewModel.isEmailVerified.value)
+            viewModel.checkEmailVerificationStatus()
+            runCurrent()
+            assertEquals(false, viewModel.isEmailVerified.value)
+        }
 }

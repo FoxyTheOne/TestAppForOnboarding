@@ -1,7 +1,5 @@
 package com.foxynest.testappforonboarding.presentation.welcome.auth.registration
 
-import android.content.Context
-import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
@@ -12,9 +10,7 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.register.IRegisterValidateRepeatedPasswordUC
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
-import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +26,6 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val validateEmailInteractor: IRegisterValidateEmailUC,
     private val validatePasswordInteractor: IRegisterValidatePasswordUC,
     private val validateRepeatedPasswordInteractor: IRegisterValidateRepeatedPasswordUC,
@@ -53,9 +48,6 @@ class RegistrationViewModel @Inject constructor(
     // For a toast of registration state
     private val _registrationStateFlow = MutableStateFlow<Resource<ErrorType>>(Resource.init(null))
     val registrationStateFlow: StateFlow<Resource<ErrorType>> = _registrationStateFlow
-
-    private val resources: Resources
-        get() = context.resources
 
     fun onEvent(event: RegistrationFormEvent) {
         when (event) {
@@ -89,9 +81,9 @@ class RegistrationViewModel @Inject constructor(
         )
 
         _state.value = currentState.copy(
-            emailError = emailResult.errorMessage.toErrorMessage(resources),
-            passwordError = passwordResult.errorMessage.toErrorMessage(resources),
-            repeatedPasswordError = repeatedPasswordResult.errorMessage.toErrorMessage(resources)
+            emailError = emailResult.errorMessage,
+            passwordError = passwordResult.errorMessage,
+            repeatedPasswordError = repeatedPasswordResult.errorMessage
         )
 
         // Проверяем наличие ошибок валидации
@@ -123,9 +115,9 @@ class RegistrationViewModel @Inject constructor(
             if (result.status == Status.ERROR) {
                 // Определяем какое поле нужно подсветить ошибкой
                 _state.value = _state.value.copy(
-                    emailError = result.data.toErrorMessage(resources),
-                    passwordError = result.data.toErrorMessage(resources),
-                    repeatedPasswordError = result.data.toErrorMessage(resources)
+                    emailError = result.data,
+                    passwordError = result.data,
+                    repeatedPasswordError = result.data
                 )
             }
         }

@@ -1,18 +1,18 @@
 package com.foxynest.testappforonboarding.presentation.welcome.auth.login
 
-import android.content.Context
-import android.content.res.Resources
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.account.ISendPasswordResetUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidateEmailUC
 import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILoginValidatePasswordUC
+import com.foxynest.testappforonboarding.other.MyEvent
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.Status
-import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,10 +28,10 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val loginUC: ILoginUC,
     private val loginValidateEmailUC: ILoginValidateEmailUC,
-    private val loginValidatePasswordUC: ILoginValidatePasswordUC
+    private val loginValidatePasswordUC: ILoginValidatePasswordUC,
+    private val sendPasswordResetUC: ISendPasswordResetUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "LoginViewModel"
@@ -46,9 +46,19 @@ class LoginViewModel @Inject constructor(
     private val _loginStateFlow = MutableStateFlow<Resource<ErrorType>>(Resource.init(null))
     val loginStateFlow: StateFlow<Resource<ErrorType>> = _loginStateFlow
 
-    // Computed property для resources
-    private val resources: Resources
-        get() = context.resources
+    // Сброс пароля: одноразовое событие с результатом отправки письма
+    private val _passwordResetEvent = MutableLiveData<MyEvent<Resource<ErrorType>>>()
+    val passwordResetEvent: LiveData<MyEvent<Resource<ErrorType>>> = _passwordResetEvent
+
+    fun sendPasswordReset() {
+        viewModelScope.launch {
+            val result = sendPasswordResetUC.execute(_state.value.email)
+            if (result.status == Status.ERROR) {
+                _state.value = _state.value.copy(emailError = result.data)
+            }
+            _passwordResetEvent.value = MyEvent(result)
+        }
+    }
 
     fun onEvent(event: LoginFormEvent) {
         when (event) {
@@ -76,8 +86,8 @@ class LoginViewModel @Inject constructor(
 
         // Обновляем состояние с ошибками (заменяем поля)
         _state.value = currentState.copy(
-            emailError = emailResult.errorMessage.toErrorMessage(resources),
-            passwordError = passwordResult.errorMessage.toErrorMessage(resources)
+            emailError = emailResult.errorMessage,
+            passwordError = passwordResult.errorMessage
         )
 
         // Проверяем наличие ошибок валидации
@@ -103,8 +113,8 @@ class LoginViewModel @Inject constructor(
             if (result.status == Status.ERROR) {
                 // Определяем какое поле нужно подсветить ошибкой
                 _state.value = _state.value.copy(
-                    emailError = result.data.toErrorMessage(resources),
-                    passwordError = result.data.toErrorMessage(resources)
+                    emailError = result.data,
+                    passwordError = result.data
                 )
             }
         }

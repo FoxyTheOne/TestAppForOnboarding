@@ -194,12 +194,7 @@
         tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_navigation_profile_to_registerFragment"
-            app:destination="@id/navigation_register">
-            <!-- Передаём UserPresentation на следующий фрагмент для запроса списка станций -->
-            <argument
-                android:name="user_presentation"
-                app:argType="com.foxynest.testappforonboarding.domain.entities.user.UserPresentation" />
-        </action>
+            app:destination="@id/navigation_register" />
 
         <action
             android:id="@+id/action_navigation_profile_to_loginFragment"
@@ -217,7 +212,7 @@
             android:id="@+id/action_navigation_profile_to_navigation_welcome2"
             app:destination="@id/navigation_welcome"
             app:popUpTo="@id/navigation_welcome"
-            app:popUpToInclusive="true"/>
+            app:popUpToInclusive="true" />
 
         <!-- Для онбординга с viewpager2 -->
         <action

@@ -5,4 +5,7 @@ interface IScheduleBirthdayNotificationUC {
     suspend fun update(childName: String, childBirthDate: String, userIsInApp: Boolean)
     suspend fun rearmFromSavedData(userIsInApp: Boolean)
     suspend fun cancel()
+
+    suspend fun shouldAskNotificationPermission(): Boolean
+    suspend fun markNotificationPermissionAsked()
 }

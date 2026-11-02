@@ -17,8 +17,8 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentLogInBinding
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
-import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.common.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
@@ -58,6 +58,7 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
         initListeners()
         observeViewModel()
         subscribeOnObservers()
+        observePasswordReset()
     }
 
     private fun initListeners() {
@@ -71,6 +72,10 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
 
         binding?.buttonLogin?.setOnClickListener {
             loginViewModel.onEvent(LoginFormEvent.Submit)
+        }
+
+        binding?.buttonForgotPassword?.setOnClickListener {
+            loginViewModel.sendPasswordReset()
         }
 
         binding?.buttonBack?.setOnClickListener {
@@ -116,10 +121,7 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
                             Toast.LENGTH_LONG
                         ).show()
 
-                        // Обновляем состояние user в MainViewModel
-                        mainViewModel.checkLoggedInStateGetUser()
-
-                        // Переходим в профиль
+                        // Переходим в профиль (данные профиля подтянет листенер в MainViewModel)
                         if (findNavController().currentDestination?.id == R.id.navigation_login) {
                             findNavController().navigate(R.id.action_loginFragment_to_navigation_profile)
                         }
@@ -138,10 +140,23 @@ class LoginFragment : BaseWelcomeFragmentAbstract() {
         }
     }
 
+    private fun observePasswordReset() {
+        loginViewModel.passwordResetEvent.observe(viewLifecycleOwner) { event ->
+            val result = event.getContentIfNotHandled() ?: return@observe
+            val message = when (result.status) {
+                // Нейтральный текст: не раскрываем, есть ли аккаунт с такой почтой
+                Status.SUCCESS -> getString(R.string.password_reset_sent)
+                else -> result.data.toErrorMessage(resources)
+                    ?: getString(R.string.password_reset_failed_error)
+            }
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun updateErrorStates(state: LoginFormState) {
         // Обновление ошибок для полей
-        binding?.textFieldMail?.error = state.emailError
-        binding?.textFieldPassword?.error = state.passwordError
+        binding?.textFieldMail?.error = state.emailError.toErrorMessage(resources)
+        binding?.textFieldPassword?.error = state.passwordError.toErrorMessage(resources)
     }
 
     // VIEW BINDING -> 3. onDestroyView()

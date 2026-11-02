@@ -69,9 +69,9 @@
             android:id="@+id/text_field_password"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/space_32"
+            android:layout_marginBottom="@dimen/space_small"
             android:hint="@string/auth_text_password"
-            app:layout_constraintBottom_toTopOf="@+id/buttons_login_linear_layout"
+            app:layout_constraintBottom_toTopOf="@+id/button_forgot_password"
             app:layout_constraintEnd_toEndOf="@+id/guideline_right"
             app:layout_constraintStart_toStartOf="@+id/guideline_left"
             app:layout_constraintTop_toBottomOf="@+id/text_field_mail"
@@ -87,6 +87,18 @@
                 android:singleLine="true" />
 
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Сброс пароля письмом на почту (Firebase Auth, без привязки к Google) -->
+        <Button
+            android:id="@+id/button_forgot_password"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_32"
+            android:text="@string/forgot_password"
+            app:layout_constraintBottom_toTopOf="@+id/buttons_login_linear_layout"
+            app:layout_constraintEnd_toEndOf="@+id/guideline_right"
+            app:layout_constraintTop_toBottomOf="@+id/text_field_password" />
 
         <!--    <androidx.appcompat.widget.AppCompatButton-->
         <!--        android:id="@+id/button_login"-->
@@ -120,7 +132,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="@+id/guideline_left"
             app:layout_constraintRight_toRightOf="@+id/guideline_right"
-            app:layout_constraintTop_toBottomOf="@+id/text_field_password"
+            app:layout_constraintTop_toBottomOf="@+id/button_forgot_password"
             app:layout_constraintVertical_chainStyle="packed">
 
             <androidx.appcompat.widget.AppCompatImageView

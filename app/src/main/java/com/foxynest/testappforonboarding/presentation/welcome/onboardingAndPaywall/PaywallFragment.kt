@@ -12,15 +12,13 @@ import androidx.fragment.app.activityViewModels
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentPaywallBinding
 import com.foxynest.testappforonboarding.domain.entities.Gender
-import com.foxynest.testappforonboarding.domain.entities.VisibilityEnum
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PAY_URL
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.MainViewModel
-import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
+import com.foxynest.testappforonboarding.presentation.common.VisibilityEnum
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.RepeatSavingOnboardingStateDialog
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
-
 
 @AndroidEntryPoint
 class PaywallFragment : BaseWelcomeFragmentAbstract() {
@@ -52,6 +50,7 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
         showProgressBarAnimationBeforeShowingContent()
 
         initListeners()
+        registerDialogResults()
         subscribeOnLiveData()
     }
 
@@ -144,22 +143,30 @@ class PaywallFragment : BaseWelcomeFragmentAbstract() {
     }
 
     private fun showRepeatSavingOnboardingStateDialog() {
-        RepeatSavingOnboardingStateDialog.newInstance()
-            .setListeners(
-                positiveAction = {
-                    // Черновик не удалён, поэтому повтор безопасен
-                    mainViewModel.finishOnboarding()
-                },
-                negativeAction = {
-                    // Пользователь отменил
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.local_onboarding_saving_error_toast,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+        if (childFragmentManager.findFragmentByTag(RepeatSavingOnboardingStateDialog.TAG) == null) {
+            RepeatSavingOnboardingStateDialog().show(
+                childFragmentManager,
+                RepeatSavingOnboardingStateDialog.TAG
             )
-            .show(parentFragmentManager, ConfirmOnboardingRestartDialog.TAG)
+        }
+    }
+
+    private fun registerDialogResults() {
+        RepeatSavingOnboardingStateDialog.setResultListener(
+            childFragmentManager,
+            viewLifecycleOwner
+        ) { confirmed ->
+            if (confirmed) {
+                // Черновик не удалён, поэтому повтор безопасен
+                mainViewModel.finishOnboarding()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.local_onboarding_saving_error_toast,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     // VIEW BINDING -> 3. onDestroyView()

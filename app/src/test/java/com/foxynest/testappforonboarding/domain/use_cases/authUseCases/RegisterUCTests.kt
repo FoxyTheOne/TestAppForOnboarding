@@ -41,7 +41,7 @@ class RegisterUCTests {
 
     @Test
     fun `email validation`() {
-        assertTrue(EmailUtils.emailMatchesForTest("test@example.com"))
-        assertFalse(EmailUtils.emailMatchesForTest("invalid-email"))
+        assertTrue(EmailUtils.emailMatches("test@example.com"))
+        assertFalse(EmailUtils.emailMatches("invalid-email"))
     }
 }

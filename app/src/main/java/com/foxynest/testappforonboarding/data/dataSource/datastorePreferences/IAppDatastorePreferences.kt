@@ -34,8 +34,12 @@ interface IAppDatastorePreferences {
     suspend fun clearBirthdayNotificationData()
     suspend fun getBirthdayLastNotifiedKey(): String?
     suspend fun saveBirthdayLastNotifiedKey(key: String)
+    suspend fun wasNotificationPermissionAsked(): Boolean
+    suspend fun markNotificationPermissionAsked()
 
     // Переключение языка в приложении
     suspend fun saveAppLanguage(languageCode: LanguageEnum) // "system", "ru", "en"
     fun getAppLanguageFlow(): Flow<String> // всегда возвращает валидный язык, по умолчанию "system"
+    suspend fun isLanguageMigratedToAppCompat(): Boolean
+    suspend fun markLanguageMigratedToAppCompat()
 }

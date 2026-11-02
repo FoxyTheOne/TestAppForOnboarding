@@ -6,9 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion4Binding
-import com.foxynest.testappforonboarding.domain.entities.HobbyLocalizer
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
+import com.foxynest.testappforonboarding.presentation.common.HobbyDisplay
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -39,7 +39,7 @@ class Question4Fragment : BaseOnboardingFragment() {
         hobbyKeys.forEach { key ->
             val chip =
                 layoutInflater.inflate(R.layout.item_chip, binding?.chipGroupHobbies, false) as Chip
-            chip.text = HobbyLocalizer.getDisplayName(requireContext(), key)
+            chip.text = HobbyDisplay.displayName(requireContext(), key)
             chip.tag = key
             chip.isCheckable = true
             binding?.chipGroupHobbies?.addView(chip)

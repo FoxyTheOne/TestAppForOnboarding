@@ -15,4 +15,8 @@ interface IBirthdayNotificationRepository {
 
     /** Отменяет будильник и удаляет сохранённые данные (выход из аккаунта). */
     suspend fun cancel()
+
+    /** Спрашивали ли разрешение на уведомления в контексте поздравлений (спрашиваем один раз, без навязчивости). */
+    suspend fun wasNotificationPermissionAsked(): Boolean
+    suspend fun markNotificationPermissionAsked()
 }

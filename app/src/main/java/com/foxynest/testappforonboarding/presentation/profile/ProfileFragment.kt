@@ -1,59 +1,52 @@
 package com.foxynest.testappforonboarding.presentation.profile
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentProfileBinding
-import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.Gender
-import com.foxynest.testappforonboarding.domain.entities.HobbyLocalizer
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
-import com.foxynest.testappforonboarding.domain.entities.onboarding.YesNoAnswer
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.domain.entities.user.isValidData
-import com.foxynest.testappforonboarding.other.Resource
+import com.foxynest.testappforonboarding.domain.entities.user.toUserPresentation
 import com.foxynest.testappforonboarding.other.Status
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.HOBBIES_DELIMITER
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.PROFILE_DESTINATION
 import com.foxynest.testappforonboarding.other.extensions.calculateAge
-import com.foxynest.testappforonboarding.other.extensions.createUserFromLocalDataInFragment
 import com.foxynest.testappforonboarding.other.extensions.parseDateToLocalDate
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
-import com.foxynest.testappforonboarding.other.extensions.toErrorMessage
 import com.foxynest.testappforonboarding.presentation.MainActivity
 import com.foxynest.testappforonboarding.presentation.MainViewModel
+import com.foxynest.testappforonboarding.presentation.common.HobbyDisplay
+import com.foxynest.testappforonboarding.presentation.common.displayName
+import com.foxynest.testappforonboarding.presentation.common.toErrorMessage
+import com.foxynest.testappforonboarding.presentation.common.yesNoDisplayName
 import com.foxynest.testappforonboarding.presentation.dialogs.ChangeAuthEmailDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.DataSaveErrorDialog
+import com.foxynest.testappforonboarding.presentation.dialogs.DeleteAccountDialog
 import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.ConfirmOnboardingRestartDialog
+import com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall.BaseOnboardingFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
-    companion object {
-        private const val TAG = "ProfileFragment"
-    }
-
-    //    private var localFieldsObserver: Observer<Any>? = null
-    private var dataSaveErrorDialog: DataSaveErrorDialog? = null
-    private var changeAuthEmailDialog: ChangeAuthEmailDialog? = null
 
     // VIEW BINDING -> 1. Объявляем переменную. This property is only valid between onCreateView and onDestroyView
     private var binding: FragmentProfileBinding? = null
 
-    // 1.1. ViewModel. We bind our viewModel to the cycle of our activity, not fragment. So, we need to do this way:
-    private lateinit var mainViewModel: MainViewModel
+    // MainViewModel привязана к Activity: общая для всех экранов
+    private val mainViewModel: MainViewModel by activityViewModels()
     private val profileViewModel by viewModels<ProfileViewModel>()
 
     // Переменная для метода setupLanguageSwitcher() при выборе radiobutton для избежания вечного цикла
@@ -74,12 +67,8 @@ class ProfileFragment : Fragment() {
 
         setupLanguageSwitcher()
 
-        // 1.2. ViewModel. We bind our viewModel to the lifecycle of our activity, not fragment. We pass our activity as an owner of the lifecycle.
-        // So, we need to do this way:
-        mainViewModel = ViewModelProvider(requireActivity())[MainViewModel::class.java]
-
         // Принудительно обновляем выделение в BottomNavigationView
-        updateBottomNavigation()
+        (activity as? MainActivity)?.updateBottomNavigationSelection(R.id.navigation_profile)
 
         // СНАЧАЛА подписываемся на observers
         subscribeOnObservers()
@@ -87,622 +76,223 @@ class ProfileFragment : Fragment() {
         // ПОТОМ инициализируем listeners
         initListeners()
 
-        // И принудительно проверяем текущие данные
-        checkCurrentData()
+        renderCurrentUser()
     }
 
     override fun onResume() {
         super.onResume()
 
-        // Задержка delay(100) больше не нужна: отмена опроса не трогает сохранённые ответы
-
-        // При возвращении на фрагмент проверяем данные
-        checkCurrentData()
-
-        // При возвращении на экран проверяем статус верификации
+        // Разовая проверка: пользователь мог подтвердить почту, пока приложение было в фоне
         profileViewModel.checkEmailVerificationStatus()
-
-    }
-
-    // Firebase будет держать user зарегистрированным даже после того, как он закроет программу и откроет заново. Поэтому нам нужно переписать метод onStart(), чтобы проверять, is user logged in in firebase or not
-    override fun onStart() {
-        super.onStart()
-        mainViewModel.checkLoggedInStateGetUser()
     }
 
     private fun initListeners() {
-        binding?.textGenderAnswerIsItABoy?.text = getString(R.string.no)
-
         binding?.buttonVerifyEmail?.setOnClickListener {
             profileViewModel.sendVerificationEmail()
         }
 
         binding?.buttonLogIn?.setOnClickListener {
-            val direction = ProfileFragmentDirections.actionNavigationProfileToLoginFragment(
-                PROFILE_DESTINATION
+            safeNavigate(
+                R.id.navigation_profile,
+                ProfileFragmentDirections.actionNavigationProfileToLoginFragment(PROFILE_DESTINATION)
             )
-            safeNavigate(R.id.navigation_profile, direction)
         }
 
         binding?.buttonRegisterAndLogin?.setOnClickListener {
-            // Открываем по клику другой фрагмент, передаём туда user
-            val user =
-                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
-
-            val direction =
-                ProfileFragmentDirections.actionNavigationProfileToRegisterFragment(user)
-            safeNavigate(R.id.navigation_profile, direction)
+            // Анкету экран регистрации возьмёт из MainViewModel
+            safeNavigate(
+                R.id.navigation_profile,
+                R.id.action_navigation_profile_to_registerFragment
+            )
         }
 
-//            // Для тестирования, вызов вокера по кнопке - убрать, когда заработает TODO
-//        binding?.buttonRegisterAndLogin?.setOnLongClickListener {
-//            val request = OneTimeWorkRequestBuilder<BirthdayNotificationWorker>()
-//                .setInitialDelay(1, TimeUnit.SECONDS)
-//                .build()
-//            WorkManager.getInstance(requireContext()).enqueue(request)
-//            true
-//        }
-
         binding?.buttonLogOut?.setOnClickListener {
-            // 1. Выйти из аккаунта
-            profileViewModel.logout()
-            // 2. Обновить профиль - обновляется в logoutStateFlow
+            mainViewModel.logout()
+        }
+
+        binding?.buttonDeleteAccount?.setOnClickListener {
+            if (childFragmentManager.findFragmentByTag(DeleteAccountDialog.TAG) == null) {
+                DeleteAccountDialog().show(childFragmentManager, DeleteAccountDialog.TAG)
+            }
         }
 
         binding?.buttonRefillFields?.setOnClickListener {
-            showConfirmOnboardingRestartDialog()
+            ConfirmOnboardingRestartDialog().show(
+                childFragmentManager,
+                ConfirmOnboardingRestartDialog.TAG
+            )
         }
 
         binding?.buttonChangeAuthEmail?.setOnClickListener {
-            showChangeAuthEmailDialog()
+            if (childFragmentManager.findFragmentByTag(ChangeAuthEmailDialog.TAG) == null) {
+                val currentEmail = binding?.textAuthEmailAnswer?.text?.toString().orEmpty()
+                ChangeAuthEmailDialog.newInstance(currentEmail)
+                    .show(childFragmentManager, ChangeAuthEmailDialog.TAG)
+            }
+        }
+
+        // Результат диалога приходит и после пересоздания экрана (Fragment Result API)
+        ConfirmOnboardingRestartDialog.setResultListener(
+            childFragmentManager,
+            viewLifecycleOwner
+        ) { confirmed ->
+            if (confirmed) {
+                val args = Bundle().apply {
+                    putString(
+                        BaseOnboardingFragment.SOURCE_FRAGMENT_KEY,
+                        "profile"
+                    )
+                }
+                safeNavigate(R.id.navigation_profile, R.id.navigation_question1, args)
+            }
         }
     }
 
     private fun subscribeOnObservers() {
-        // 1. Ждем загрузки данных онбординга
-//        mainViewModel.onboardingDataLoaded.observe(viewLifecycleOwner) { isLoaded ->
-//            if (isLoaded) {
-//                checkAndDisplayUserData()
-//            }
-//        }
-
-        // 2. Подписка на состояние пользователя
-        viewLifecycleOwner.lifecycleScope.launch {
-            mainViewModel.checkedUserInfo
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { resourceUser ->
-                    checkAndDisplayUserData(resourceUser.data)
-                }
+        // Профиль из Firestore (snapshot-листенер в MainViewModel)
+        collectWhileStarted {
+            mainViewModel.checkedUserInfo.collect { renderCurrentUser() }
         }
 
-        // Подписка на состояние AuthState
-        viewLifecycleOwner.lifecycleScope.launch {
-            mainViewModel.authStateFlow
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { user ->
+        // Локальная анкета – для незарегистрированного пользователя
+        mainViewModel.onboardingAnswersLiveData.observe(viewLifecycleOwner) { renderCurrentUser() }
 
-                    if (user != null) {
-                        // Пользователь авторизован:
-                        // 1. Обновляем данные профиля в UI
-                        mainViewModel.checkLoggedInStateGetUser() // Получаем user и обновляем данные в checkedUserInfo LiveData
-                        // 2. Убираем кнопки для авторизации и регистрации, text_warning, text_warning_data, показываем кнопки "log out" и "обновить поля"
-                        showLogOutButtons(true)
-                    } else {
-                        // Пользователь не авторизован:
-                        // 1. Показываем данные профиля в UI исходя из пройденного онбординга (data store)
-//                        fillFieldsInProfile(createUserFromLocalData())
-                        val localUser =
-                            mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
-                                activity
-                            )
-                        if (localUser.isValidData()) {
-                            fillFieldsInProfile(localUser)
-                        }
-                        // 2. Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data, убираем кнопки "log out" и "обновить поля"
-                        showLogOutButtons(false)
-                    }
-
-                }
+        collectWhileStarted {
+            profileViewModel.isEmailVerified.collect { updateEmailVerificationUI(it) }
         }
 
-        // 3. Проверка верификации email
-        viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.isEmailVerified
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { isVerified ->
-                    updateEmailVerificationUI(isVerified)
-                }
-        }
-
-        // НОВАЯ ПОДПИСКА: Одноразовое событие подтверждения email
         profileViewModel.emailVerifiedEvent.observe(viewLifecycleOwner) { event ->
-            event.getContentIfNotHandled()?.let { isVerified ->
-                if (isVerified) {
-                    // Показываем уведомление только один раз при изменении статуса
-                    showEmailVerifiedMessage()
-                    // Обновляем данные пользователя
-                    mainViewModel.checkLoggedInStateGetUser()
-                }
+            if (event.getContentIfNotHandled() == true) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.profile_email_verified_successfully,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
-        // 4. Кнопка верификации
-        viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.isVerificationButtonEnabled
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { isEnabled ->
-                    updateVerificationButton(isEnabled)
-                }
+        collectWhileStarted {
+            profileViewModel.isVerificationButtonEnabled.collect { updateVerificationButton(it) }
         }
 
-        // 5. Состояние отправки письма
-        viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.isEmailVerificationSent
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { isSent ->
-                    if (isSent) {
-                        Toast.makeText(
-                            requireContext(),
-                            getString(R.string.profile_email_verification_send),
-                            Toast.LENGTH_SHORT
-                        )
-                            .show()
-                    }
-                }
-        }
-
-        // 6. Выход из аккаунта
-        viewLifecycleOwner.lifecycleScope.launch {
-            profileViewModel.logoutStateFlow
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { resourceResult ->
-                    handleLogoutResult(resourceResult)
-                }
-        }
-
-        mainViewModel.profileUpdatedLiveData.observe(viewLifecycleOwner) { resourceResult ->
-            val messageToShow = resourceResult.data.toErrorMessage(resources)
-
-            when (resourceResult.status) {
-                Status.SUCCESS -> {
-                    Log.d(TAG, "Profile updated")
-                    mainViewModel.checkLoggedInStateGetUser() // To automatically update our image view and our edit text
-//                    Toast.makeText(
-//                        requireContext(),
-//                        R.string.profile_toast_data_updated,
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-                    // Закрываем диалог если открыт
-                    dataSaveErrorDialog?.dismiss()
-                    dataSaveErrorDialog = null
-                }
-
-                Status.ERROR -> {
-                    Log.d(TAG, "Error while saving data: $messageToShow")
-                    // Показываем диалог только если это первая ошибка
-                    if (dataSaveErrorDialog == null) {
-                        showDataSaveErrorDialog(messageToShow)
-                    }
-                }
-
-                else -> {
-                    Log.d(TAG, "resource.status = ${resourceResult.status} ")
-                }
+        profileViewModel.verificationEmailSentEvent.observe(viewLifecycleOwner) { event ->
+            if (event.getContentIfNotHandled() != null) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.profile_email_verification_send,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
-        // Новая подписка на состояние повторного сохранения
-        mainViewModel.retrySaveState.observe(viewLifecycleOwner) { resourceResult ->
-            val messageToShow = resourceResult.data.toErrorMessage(resources)
-
-            when (resourceResult.status) {
-                Status.LOADING -> {
-                    // Показываем индикатор загрузки в диалоге
-                    dataSaveErrorDialog?.showLoading()
-                }
-
-                Status.SUCCESS -> {
-                    Log.d(TAG, "Retry save successful")
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.profile_toast_data_updated,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    // Закрываем диалог если открыт
-                    dataSaveErrorDialog?.dismiss()
-                    dataSaveErrorDialog = null
-                }
-
-                Status.ERROR -> {
-                    Log.d(TAG, "Retry save failed: $messageToShow")
-                    // Показываем ошибку в том же диалоге
-                    dataSaveErrorDialog?.showError(messageToShow)
-                }
-
-                else -> {
-                    // ignore
-                }
+        mainViewModel.logoutEvent.observe(viewLifecycleOwner) { event ->
+            val result = event.getContentIfNotHandled() ?: return@observe
+            if (result.status == Status.SUCCESS) {
+                navigateToWelcome()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    result.data.toErrorMessage(resources),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
 
-        mainViewModel.authEmailUpdateState.observe(viewLifecycleOwner) { resourceResult ->
-            val message = resourceResult.data.toErrorMessage(resources)
+        mainViewModel.deleteAccountState.observe(viewLifecycleOwner) { state ->
+            if (state.status == Status.SUCCESS) {
+                mainViewModel.resetDeleteAccountState()
+                Toast.makeText(requireContext(), R.string.account_deleted, Toast.LENGTH_LONG).show()
+                navigateToWelcome()
+            }
+        }
 
-            Log.d(
-                "AuthEmailUpdate",
-                "Status: ${resourceResult.status}, Message: $message, ErrorType: ${resourceResult.data}"
-            )
-
-            when (resourceResult.status) {
-                Status.LOADING -> {
-                    // Прогресс уже показывается
-                }
-
-                Status.SUCCESS -> {
-                    changeAuthEmailDialog?.showSuccess()
-                    changeAuthEmailDialog = null
-
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.auth_email_updated_successfully),
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.verification_email_sent_explanation),
-                        Toast.LENGTH_LONG
-                    ).show()
-
-                    mainViewModel.checkLoggedInStateGetUser()
-                }
-
-                Status.ERROR -> {
-                    val errorType = resourceResult.data
-                    val isPasswordError =
-                        errorType == ErrorType.WRONG_PASSWORD_WHILE_CHANGING_EMAIL_ERROR
-
-                    val isCurrentEmailNotVerified =
-                        errorType == ErrorType.CURRENT_EMAIL_NOT_VERIFIED
-
-                    Log.d(
-                        "AuthEmailUpdate",
-                        "ErrorType: $errorType, IsPasswordError: $isPasswordError"
-                    )
-
-                    if (isCurrentEmailNotVerified) {
-                        // Для ошибки верификации показываем специальное сообщение с действиями
-                        changeAuthEmailDialog?.showVerificationError(
-                            message ?: "Email not verified"
-                        ) { action ->
-                            when (action) {
-                                "send_verification" -> {
-                                    // Отправляем верификацию на текущий email
-                                    profileViewModel.sendVerificationEmail()
-                                    changeAuthEmailDialog?.dismiss()
-                                    Toast.makeText(
-                                        requireContext(),
-                                        "Verification email sent to your current email address",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-
-                                "cancel" -> {
-                                    changeAuthEmailDialog?.dismiss()
-                                }
-                            }
-                        }
-                    } else {
-                        // Для других ошибок используем стандартный showError
-                        changeAuthEmailDialog?.showError(
-                            message ?: getString(R.string.unexpected_error),
-                            isPasswordError
-                        )
-                    }
-                }
-
-                else -> {}
+        mainViewModel.profileUpdatedEvent.observe(viewLifecycleOwner) { event ->
+            val result = event.getContentIfNotHandled() ?: return@observe
+            if (result.status == Status.ERROR &&
+                childFragmentManager.findFragmentByTag(DataSaveErrorDialog.TAG) == null
+            ) {
+                DataSaveErrorDialog().show(childFragmentManager, DataSaveErrorDialog.TAG)
             }
         }
     }
 
-    private fun updateBottomNavigation() {
-        activity?.let {
-            if (it is MainActivity) {
-                it.updateBottomNavigationSelection(R.id.navigation_profile)
-            }
+    private fun collectWhileStarted(block: suspend () -> Unit) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { block() }
         }
     }
 
-    private fun updateEmailVerificationUI(isVerified: Boolean) {
-        if (isVerified) {
-            binding?.buttonVerifyEmail?.visibility = View.GONE
-            binding?.textEmailNotVerified?.visibility = View.GONE
+    private fun renderCurrentUser() {
+        val remoteUser = mainViewModel.checkedUserInfo.value.data
+        if (remoteUser != null) {
+            fillFieldsInProfile(remoteUser)
+            showLogOutButtons(true)
         } else {
-            // Проверяем, есть ли у пользователя email
-            val user = mainViewModel.checkedUserInfo.value?.data
-            if (user != null && user.authEmail.isNotBlank()) {
-                binding?.buttonVerifyEmail?.visibility = View.VISIBLE
-                binding?.textEmailNotVerified?.visibility = View.VISIBLE
-            }
+            mainViewModel.onboardingAnswersLiveData.value?.toUserPresentation()
+                ?.let(::fillFieldsInProfile)
+            showLogOutButtons(false)
         }
+    }
+
+    private fun navigateToWelcome() {
+        safeNavigate(R.id.navigation_profile, R.id.action_navigation_profile_to_navigation_welcome2)
+    }
+
+    private fun updateEmailVerificationUI(isVerified: Boolean?) {
+        val hasEmail = mainViewModel.checkedUserInfo.value.data?.authEmail?.isNotBlank() == true
+        // Мягкая верификация: ненавязчивая плашка с кнопкой, пользоваться приложением можно и без подтверждения
+        val showBanner = isVerified == false && hasEmail
+        binding?.buttonVerifyEmail?.visibility = if (showBanner) View.VISIBLE else View.GONE
+        binding?.textEmailNotVerified?.visibility = if (showBanner) View.VISIBLE else View.GONE
     }
 
     private fun updateVerificationButton(isEnabled: Boolean) {
+        val context = context ?: return
         binding?.buttonVerifyEmail?.isEnabled = isEnabled
-
-        context?.let {
-            val colorGray = ContextCompat.getColor(it, R.color.gray)
-            val colorWhite = ContextCompat.getColor(it, R.color.white)
-
-            if (isEnabled) {
-                binding?.buttonVerifyEmail?.setTextColor(colorWhite) ?: "#FFFFFFFF"
-                binding?.textEmailNotVerified?.text =
-                    getString(R.string.profile_email_not_verified)
-            } else {
-                binding?.buttonVerifyEmail?.setTextColor(colorGray) ?: "#3D3C3C"
-                binding?.textEmailNotVerified?.text =
-                    getString(R.string.profile_email_verification_send)
-            }
-        }
-    }
-
-    private fun handleLogoutResult(resourceResult: Resource<ErrorType>) {
-        val messageToShow = resourceResult.data.toErrorMessage(resources)
-
-        when (resourceResult.status) {
-            Status.SUCCESS -> {
-                // Вышли из аккаунта, провряем состояние user и обновляем UI
-                mainViewModel.checkLoggedInStateGetUser()
-
-                // Очистка данных (ВКЛЮЧАЯ сброс онбординга)
-                mainViewModel.clearUserDataOnLogout()
-
-                // И возвращаемся на WelcomeFragment
-                safeNavigate(
-                    R.id.navigation_profile,
-                    R.id.action_navigation_profile_to_navigation_welcome2
-                )
-            }
-
-            Status.ERROR -> {
-                Toast.makeText(requireContext(), messageToShow, Toast.LENGTH_LONG).show()
-            }
-
-            else -> {
-                Log.d(TAG, "resource.status = ${resourceResult.status}")
-            }
-        }
-    }
-
-    private fun checkCurrentData() {
-        // Проверяем, есть ли уже данные в LiveData
-        val currentUser = mainViewModel.checkedUserInfo.value?.data
-        if (currentUser != null) {
-            fillFieldsInProfile(currentUser)
-            showLogOutButtons(true)
-        } else {
-            // Если данных нет, создаем из локальных LiveData
-            val localUser =
-                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(activity)
-            if (localUser.isValidData()) {
-                fillFieldsInProfile(localUser)
-            }
-            showLogOutButtons(false)
-        }
-    }
-
-    private fun checkAndDisplayUserData(user: UserPresentation? = null) {
-        val currentUser = user ?: mainViewModel.checkedUserInfo.value.data
-
-        if (currentUser != null) {
-            // Пользователь зарегистрирован - показываем данные из Firebase
-            fillFieldsInProfile(currentUser)
-            showLogOutButtons(true)
-
-            // Проверяем статус верификации для этого пользователя
-            profileViewModel.checkEmailVerificationStatus(true)
-        } else {
-            // Локальные данные
-            // Пользователь не зарегистрирован - принудительно обновляем из локальных данных
-            val localUser =
-                mainViewModel.onboardingAnswersLiveData.createUserFromLocalDataInFragment(
-                    activity
-                )
-            if (localUser.isValidData()) {
-                fillFieldsInProfile(localUser)
-            }
-            showLogOutButtons(false)
-        }
+        binding?.buttonVerifyEmail?.setTextColor(
+            ContextCompat.getColor(context, if (isEnabled) R.color.white else R.color.gray)
+        )
+        binding?.textEmailNotVerified?.text = getString(
+            if (isEnabled) R.string.profile_email_not_verified else R.string.profile_email_verification_send
+        )
     }
 
     private fun fillFieldsInProfile(user: UserPresentation) {
-        // Проверяем, чтобы userName не был равен "null"
-//        if (user.userName != "null") {
-        if (user.isValidData()) {
-            binding?.textUserNameAnswer?.text = user.userName
+        if (!user.isValidData()) return
+        val context = requireContext()
 
-            val genderEnum = Gender.genderFromString(user.childGender)
-            binding?.textGenderAnswer?.text = genderEnum.getDisplayName(requireContext())
-//            binding?.textGenderAnswer?.text = user.childGender
+        binding?.textUserNameAnswer?.text = user.userName
+        binding?.textGenderAnswer?.text =
+            Gender.genderFromString(user.childGender).displayName(context)
+        binding?.textGenderAnswerIsItABoy?.text = yesNoDisplayName(context, user.isItABoy)
+        binding?.textChildNameAnswer?.text = user.childName
+        binding?.textHobbyAnswer?.text = user.childHobbies
+            .split(HOBBIES_DELIMITER)
+            .joinToString("\n") { HobbyDisplay.displayName(context, it) }
 
-            binding?.textGenderAnswerIsItABoy?.text =
-                when (YesNoAnswer.fromStoredValue(user.isItABoy)) {
-                    YesNoAnswer.YES -> getString(R.string.yes)
-                    YesNoAnswer.NO -> getString(R.string.no)
-                    null -> user.isItABoy
-                }
-            binding?.textChildNameAnswer?.text = user.childName
-            // HOBBY
-            val hobbiesKeys = user.childHobbies.split(HOBBIES_DELIMITER)
-            val hobbyDisplayNames =
-                hobbiesKeys.map { HobbyLocalizer.getDisplayName(requireContext(), it) }
-            binding?.textHobbyAnswer?.text = hobbyDisplayNames.joinToString("\n")
-
-            // ВЫЧИСЛЯЕМ возраст из даты рождения
-            val age = calculateAgeFromBirthDate(user.childBirthDate)
-            binding?.textChildAgeAnswer?.text = if (age >= 0) age.toString() else ""
-
-            // ФОРМАТИРУЕМ дату для красивого отображения
-            binding?.textBirthDateAnswer?.text = profileViewModel.formatBirthDateForDisplay(
-                user.childBirthDate,
-                requireContext()
-            )
-
-            // Email для входа
-            binding?.textAuthEmailAnswer?.text = user.authEmail
-
-//            // Показываем/скрываем почту и кнопку верификации в зависимости от статуса email - делаем это на основе состояния authStateFlow
-//            if (user.authEmail.isEmpty() || user.authEmail.isBlank() || !user.isEmailVerified) {
-//                showLogOutButtons(false)
-//            } else {
-//                showLogOutButtons(true)
-//            }
-
-//            mainViewModel.scheduleBirthdayNotification(
-//                childName = user.childName,
-//                childBirthDate = user.childBirthDate
-//            )
-        }
-    }
-
-//    private fun calculateAgeFromBirthDate(birthDateString: String): Int {
-//        if (birthDateString.isBlank()) return 0
-//        var birthDate: Date? = null
-//
-//        try {
-//            // Парсим из формата хранения (yyyy-MM-dd)
-//            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-//            birthDate = formatter.parse(birthDateString)
-//        } catch (e: ParseException) {
-//            Log.d(TAG, "Ошибка форматирования даты ${e.printStackTrace()}")
-//        }
-//
-//        val resultAge = birthDate?.calculateChildAge()
-//
-//        return when (resultAge?.status) {
-//            Status.SUCCESS -> {
-//                val age: Int = resultAge.data ?: 0
-//                age
-//            }
-//
-//            Status.ERROR -> {
-//                0
-//            } // TODO toast?
-//            else -> {
-//                0
-//            } // nothing
-//        }
-//    }
-
-    private fun calculateAgeFromBirthDate(birthDateString: String): Int {
-        if (birthDateString.isBlank()) return 0
-        val birthDate = birthDateString.parseDateToLocalDate() ?: return 0
-        val age = birthDate.calculateAge()
-        return when (age.status) {
-            Status.SUCCESS -> age.data ?: 0
-            else -> 0
-        }
+        val age = user.childBirthDate.parseDateToLocalDate()?.calculateAge()?.data
+        binding?.textChildAgeAnswer?.text = age?.toString().orEmpty()
+        binding?.textBirthDateAnswer?.text =
+            profileViewModel.formatBirthDateForDisplay(user.childBirthDate, context)
+        binding?.textAuthEmailAnswer?.text = user.authEmail
     }
 
     private fun showLogOutButtons(isUserLoggedIn: Boolean) {
-        if (isUserLoggedIn) {
-            // Убираем кнопки для авторизации и регистрации, text_warning, text_warning_data
-            binding?.buttonLogIn?.visibility = View.GONE
-            binding?.buttonRegisterAndLogin?.visibility = View.GONE
-            binding?.textWarning?.visibility = View.GONE
-            binding?.textWarningData?.visibility = View.GONE
-            // Показываем кнопки "log out" и "обновить поля", button_verify_email
-            binding?.buttonLogOut?.visibility = View.VISIBLE
-            // Показываем поля с почтой
-            binding?.textAuthEmailTitle?.visibility = View.VISIBLE
-            binding?.linearAuthEmailAnswer?.visibility = View.VISIBLE
-            binding?.linearEmailVerification?.visibility = View.VISIBLE
-        } else {
-            // Показываем кнопки для авторизации и регистрации, text_warning, text_warning_data
-            binding?.buttonLogIn?.visibility = View.VISIBLE
-            binding?.buttonRegisterAndLogin?.visibility = View.VISIBLE
-            binding?.textWarning?.visibility = View.VISIBLE
-            binding?.textWarningData?.visibility = View.VISIBLE
-            // Убираем кнопки "log out" и "обновить поля", button_verify_email
-            binding?.buttonLogOut?.visibility = View.GONE
-            // Показываем поля с почтой
-            binding?.textAuthEmailTitle?.visibility = View.GONE
-            binding?.linearAuthEmailAnswer?.visibility = View.GONE
-            binding?.linearEmailVerification?.visibility = View.GONE
+        val loggedIn = if (isUserLoggedIn) View.VISIBLE else View.GONE
+        val loggedOut = if (isUserLoggedIn) View.GONE else View.VISIBLE
+        binding?.apply {
+            buttonLogIn.visibility = loggedOut
+            buttonRegisterAndLogin.visibility = loggedOut
+            textWarning.visibility = loggedOut
+            textWarningData.visibility = loggedOut
+
+            buttonLogOut.visibility = loggedIn
+            buttonDeleteAccount.visibility = loggedIn
+            textAuthEmailTitle.visibility = loggedIn
+            linearAuthEmailAnswer.visibility = loggedIn
+            linearEmailVerification.visibility = loggedIn
         }
-    }
-
-    private fun showChangeAuthEmailDialog() {
-        val currentEmail = binding?.textAuthEmailAnswer?.text?.toString() ?: ""
-
-        changeAuthEmailDialog = ChangeAuthEmailDialog.newInstance(currentEmail)
-        changeAuthEmailDialog
-            ?.setOnSaveClickListener { newEmail, password ->
-//            changeAuthEmailDialog?.showLoading()
-                mainViewModel.updateAuthEmail(newEmail, password)
-            }
-            ?.show(parentFragmentManager, ChangeAuthEmailDialog.TAG)
-    }
-
-    private fun showConfirmOnboardingRestartDialog() {
-        ConfirmOnboardingRestartDialog.newInstance()
-            .setListeners(
-                positiveAction = {
-                    // Передаем информацию о том, откуда запущен онбординг
-                    val args = Bundle().apply {
-                        putString("source_fragment", "profile")
-                    }
-                    // Пользователь подтвердил - запускаем заново онбординг, проходим его и в конце сохраняем результаты на сервер
-                    safeNavigate(
-                        R.id.navigation_profile,
-                        R.id.navigation_question1,
-                        args
-                    )
-                },
-                negativeAction = {
-                    // Пользователь отменил - ничего не делаем
-                }
-            )
-            .show(parentFragmentManager, ConfirmOnboardingRestartDialog.TAG)
-    }
-
-    private fun showDataSaveErrorDialog(errorMessage: String? = null) {
-        dataSaveErrorDialog = DataSaveErrorDialog.newInstance()
-            .setListeners(
-                retryAction = {
-                    // Пользователь хочет повторить сохранение
-                    mainViewModel.retryDataSave()
-                },
-                cancelAction = {
-                    // Пользователь отменил
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.profile_toast_data_updating_error,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    dataSaveErrorDialog = null
-                }
-            )
-
-        // Показываем диалог с первоначальным сообщением об ошибке
-        dataSaveErrorDialog?.show(parentFragmentManager, DataSaveErrorDialog.TAG)
-
-        // Устанавливаем кастомное сообщение если есть
-        if (!errorMessage.isNullOrEmpty()) {
-            // Ждем пока диалог создастся и затем обновляем сообщение
-            dataSaveErrorDialog?.dialog?.setOnShowListener {
-                dataSaveErrorDialog?.showError(errorMessage)
-            }
-        }
-    }
-
-    private fun showEmailVerifiedMessage() {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.profile_email_verified_successfully),
-            Toast.LENGTH_SHORT
-        ).show()
+        if (isUserLoggedIn) updateEmailVerificationUI(profileViewModel.isEmailVerified.value)
     }
 
     private fun setupLanguageSwitcher() {
@@ -710,49 +300,30 @@ class ProfileFragment : Fragment() {
 
         // viewLifecycleOwner, а не lifecycleScope фрагмента: фрагмент в back stack переживает свою View,
         // и каждый onViewCreated добавлял ещё одного вечного подписчика (утечка корутин)
-        viewLifecycleOwner.lifecycleScope.launch {
-            // Сначала получает null, потом вызывается метод getAppLanguageFlow и сюда прилетает последний выбранный язык перед выключением
-            // Так же попадаем сюда при изменении языка в программе, чтобы переставить выбранную кнопку на нужный язык
-            profileViewModel.currentLanguageFlow
-                .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-                .collect { lang ->
-                    Log.d(
-                        TAG,
-                        "LANG Updating programmatically: collecting currentLanguageFlow, lang = $lang"
-                    )
-                    isUpdatingProgrammatically = true
-//                Меняем выбранную radio button исходя из отображаемого языка
-                    binding?.apply {
-                        when (lang) {
-                            LanguageEnum.RU -> rbRussian.isChecked = true
-                            LanguageEnum.EN -> rbEnglish.isChecked = true
-                            LanguageEnum.SYSTEM -> rbSystem.isChecked = true
-                            else -> rbSystem.isChecked = true
-                        }
+        collectWhileStarted {
+            profileViewModel.currentLanguageFlow.collect { lang ->
+                isUpdatingProgrammatically = true
+                binding?.apply {
+                    when (lang) {
+                        LanguageEnum.RU -> rbRussian.isChecked = true
+                        LanguageEnum.EN -> rbEnglish.isChecked = true
+                        else -> rbSystem.isChecked = true
                     }
-                    currentLang = lang
-                    isUpdatingProgrammatically = false
                 }
+                currentLang = lang
+                isUpdatingProgrammatically = false
+            }
         }
-
         binding?.rgLanguage?.setOnCheckedChangeListener { _, checkedId ->
             if (isUpdatingProgrammatically) return@setOnCheckedChangeListener
-
-            Log.d(TAG, "LANG Radio button clicked. CurrentLang = $currentLang")
             val newLang = when (checkedId) {
                 R.id.rbSystem -> LanguageEnum.SYSTEM
                 R.id.rbRussian -> LanguageEnum.RU
                 R.id.rbEnglish -> LanguageEnum.EN
                 else -> return@setOnCheckedChangeListener
             }
-            Log.d(TAG, "LANG newLang = $newLang")
-
-            // Проверяем, что язык действительно изменился, чтобы избежать цикла
-//            val currentLang = profileViewModel.currentLanguageFlow.value
             if (newLang != currentLang) {
-                Log.d(TAG, "LANG Changing language to newLang = $newLang")
                 profileViewModel.changeLanguage(newLang)
-                Log.d(TAG, "LANG Changing currentLang to newLang = $newLang")
                 currentLang = newLang
             }
         }
@@ -760,8 +331,6 @@ class ProfileFragment : Fragment() {
 
     // VIEW BINDING -> 3. onDestroyView()
     override fun onDestroyView() {
-        changeAuthEmailDialog?.dismiss()
-        changeAuthEmailDialog = null
         binding = null
         super.onDestroyView()
     }

@@ -5,9 +5,6 @@ import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
 import com.foxynest.testappforonboarding.other.constants.CommonConstants.USERS_COLLECTION
-import com.foxynest.testappforonboarding.other.extensions.toFirestoreMapWithCreationTimestamp
-import com.foxynest.testappforonboarding.other.extensions.toFirestoreMapWithUpdatedAtTimestamp
-import com.foxynest.testappforonboarding.other.extensions.toUserPresentation
 import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
@@ -20,13 +17,18 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
-import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -35,8 +37,6 @@ import javax.inject.Inject
  * Lowercase the email but not the password!!
  *
  * Все ошибки Firebase превращаются в ErrorType здесь, по типу исключения.
- * Раньше репозиторий дополнительно искал подстроки в тексте ошибки ("email-already-in-use"),
- * которых в тексте нет, и затирал правильный тип ошибки общим REGISTER_FAILED / LOGIN_FAILED.
  */
 class FirebaseAuthDataSource @Inject constructor(
     private val auth: FirebaseAuth,
@@ -54,6 +54,18 @@ class FirebaseAuthDataSource @Inject constructor(
         private const val PENDING_WRITES_TIMEOUT_MILLIS = 5_000L
     }
 
+    private fun userDocument(uid: String): DocumentReference =
+        firestore.collection(USERS_COLLECTION).document(uid)
+
+    private fun FirebaseUser.toAuthOnlyUser() = UserPresentation(
+        uid = uid,
+        authEmail = email.orEmpty(),
+        isEmailVerified = isEmailVerified,
+        userName = displayName.orEmpty()
+    )
+
+    // REGISTRATION / LOGIN / LOGOUT
+
     suspend fun register(
         authEmail: String,
         password: String,
@@ -67,15 +79,22 @@ class FirebaseAuthDataSource @Inject constructor(
 
         // Аккаунт уже создан и пользователь вошёл. Ошибка записи профиля НЕ должна превращаться в «регистрация
         // не удалась»: повторная попытка дала бы «email уже занят». Незаписанный профиль досылается из
-        // MainViewModel.repairFirebaseProfileFromLocalData при следующей загрузке профиля.
+        // MainViewModel при следующей загрузке профиля.
         try {
-            firestore.collection(USERS_COLLECTION)
-                .document(firebaseUser.uid)
-                .set(user.toFirestoreMapWithCreationTimestamp())
+            userDocument(firebaseUser.uid)
+                .set(UserFirestoreMapper.toFirestoreMapForCreate(user))
                 .awaitWrite()
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Log.e(TAG, "Account created, but profile was not saved to Firestore", e)
+        }
+
+        // Мягкая верификация: письмо уходит сразу, но пользоваться приложением можно и без подтверждения
+        try {
+            firebaseUser.sendEmailVerification().await()
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.w(TAG, "Verification email was not sent after registration", e)
         }
         return Resource.success(null)
     }
@@ -92,12 +111,7 @@ class FirebaseAuthDataSource @Inject constructor(
     suspend fun logout(): Resource<ErrorType> {
         return try {
             // Неотправленные изменения после выхода будут отклонены правилами безопасности (auth == null) и потеряны
-            // Task<Void>.await() возвращает null, поэтому явно возвращаем true: null = таймаут
-            val isSynced = withTimeoutOrNull(PENDING_WRITES_TIMEOUT_MILLIS) {
-                firestore.waitForPendingWrites().await()
-                true
-            } ?: false
-            if (!isSynced) {
+            if (!awaitPendingWrites()) {
                 return Resource.error(
                     "Pending writes are not synced",
                     ErrorType.UNSYNCED_DATA_LOGOUT_ERROR
@@ -112,58 +126,138 @@ class FirebaseAuthDataSource @Inject constructor(
     }
 
     /**
-     * SUCCESS + null – пользователь не авторизован.
-     * ERROR + базовые данные – авторизован, но профиль из Firestore прочитать не удалось.
-     * Такие данные НЕЛЬЗЯ записывать обратно в Firestore: поля анкеты в них пустые.
+     * Удаление аккаунта: повторный вход (Firebase требует «свежий» вход) → документ профиля → пользователь Auth.
+     * Документ удаляется первым: после удаления пользователя правила безопасности уже не пустят к документу.
      */
-    suspend fun getCurrentUser(): Resource<UserPresentation?> {
-        val firebaseUser = auth.currentUser ?: return Resource.success(null)
+    suspend fun deleteAccount(password: String): Resource<ErrorType> {
+        val user = auth.currentUser
+            ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
+        val email = user.email
+            ?: return Resource.error("User has no email", ErrorType.NOT_AUTHENTICATED_ERROR)
         return try {
-            val document = firestore
-                .collection(USERS_COLLECTION)
-                .document(firebaseUser.uid)
-                .get()
-                .await()
-            Resource.success(document.toUserPresentation(firebaseUser))
+            user.reauthenticate(EmailAuthProvider.getCredential(email, password)).await()
+            userDocument(user.uid).delete().await()
+            user.delete().await()
+            Resource.success(null)
         } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            Resource.error(
-                e.message ?: "Current user failure", UserPresentation(
-                    uid = firebaseUser.uid,
-                    authEmail = firebaseUser.email ?: "",
-                    isEmailVerified = firebaseUser.isEmailVerified,
-                    userName = firebaseUser.displayName ?: ""
-                )
+            Log.e(TAG, "Account deletion failed", e)
+            e.toErrorResource(
+                "Account deletion failed",
+                ErrorType.ACCOUNT_DELETION_FAILED_ERROR,
+                invalidCredentials = ErrorType.WRONG_PASSWORD_ERROR
             )
         }
     }
 
-    // Используется для реактивного отслеживания изменений. Возвращает Flow, который эмитит события при изменении состояния аутентификации (вход, выход, обновление токена)
-    fun getAuthState(): Flow<FirebaseUser?> = callbackFlow {
-        val authStateListener = FirebaseAuth.AuthStateListener { auth ->
-            trySend(auth.currentUser)
-        }
-        auth.addAuthStateListener(authStateListener)
-        awaitClose {
-            auth.removeAuthStateListener(authStateListener)
+    /**
+     * При включённой защите от перебора email (по умолчанию в новых проектах) Firebase не сообщает,
+     * существует ли аккаунт – письмо просто не придёт. Поэтому UI показывает нейтральное сообщение.
+     */
+    suspend fun sendPasswordResetEmail(email: String): Resource<ErrorType> {
+        return try {
+            auth.sendPasswordResetEmail(email.lowercase().trim()).await()
+            Resource.success(null)
+        } catch (e: Exception) {
+            e.toErrorResource("Password reset failed", ErrorType.PASSWORD_RESET_FAILED_ERROR)
         }
     }
+
+    // CURRENT USER
+
+    fun isLoggedIn(): Boolean = auth.currentUser != null
+
+    // Реактивное отслеживание входа/выхода (в том числе принудительного – например, после смены почты)
+    fun observeAuthUser(): Flow<UserPresentation?> = authStateFlow().map { it?.toAuthOnlyUser() }
+
+    /**
+     * Профиль через snapshot-листенер вместо разовых get() на каждом экране:
+     * одно чтение при подписке и по одному на каждое реальное изменение (в том числе с другого устройства).
+     *
+     * SUCCESS + null – не авторизован.
+     * LOADING + данные Auth – документа нет в локальном кэше, ответ сервера ещё не пришёл.
+     * ERROR + данные Auth – документ прочитать не удалось.
+     * Данные Auth без полей анкеты НЕЛЬЗЯ записывать обратно в Firestore.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeCurrentUser(): Flow<Resource<UserPresentation?>> = authStateFlow()
+        // Слушатель Auth срабатывает и при обновлении токена (раз в час) – не переподписываемся без смены пользователя
+        .distinctUntilChangedBy { it?.uid }
+        .flatMapLatest { firebaseUser ->
+            if (firebaseUser == null) flowOf(Resource.success(null)) else profileFlow(firebaseUser)
+        }
+
+    private fun profileFlow(firebaseUser: FirebaseUser): Flow<Resource<UserPresentation?>> =
+        callbackFlow {
+            val registration =
+                userDocument(firebaseUser.uid).addSnapshotListener { snapshot, error ->
+                    val authUser = firebaseUser.toAuthOnlyUser()
+                    when {
+                        error != null || snapshot == null ->
+                            trySend(
+                                Resource.error(
+                                    error?.message ?: "Profile loading failed",
+                                    authUser
+                                )
+                            )
+
+                        // Документа нет только в кэше (новое устройство без сети) – это ещё не значит, что его нет на сервере
+                        !snapshot.exists() && snapshot.metadata.isFromCache ->
+                            trySend(Resource.loading(authUser))
+
+                        else -> trySend(
+                            Resource.success(
+                                UserFirestoreMapper.fromDocument(
+                                    snapshot,
+                                    uid = firebaseUser.uid,
+                                    // Берём актуальные значения: почта и статус подтверждения могли измениться
+                                    authEmail = auth.currentUser?.email ?: authUser.authEmail,
+                                    isEmailVerified = auth.currentUser?.isEmailVerified
+                                        ?: authUser.isEmailVerified
+                                )
+                            )
+                        )
+                    }
+                }
+            awaitClose { registration.remove() }
+        }
+
+    /** Разовое чтение (миграция данных). */
+    suspend fun getCurrentUser(): Resource<UserPresentation?> {
+        val firebaseUser = auth.currentUser ?: return Resource.success(null)
+        return try {
+            val document = userDocument(firebaseUser.uid).get().await()
+            Resource.success(
+                UserFirestoreMapper.fromDocument(
+                    document,
+                    firebaseUser.uid,
+                    firebaseUser.email.orEmpty(),
+                    firebaseUser.isEmailVerified
+                )
+            )
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Resource.error(e.message ?: "Current user failure", firebaseUser.toAuthOnlyUser())
+        }
+    }
+
+    private fun authStateFlow(): Flow<FirebaseUser?> = callbackFlow {
+        val authStateListener = FirebaseAuth.AuthStateListener { trySend(it.currentUser) }
+        auth.addAuthStateListener(authStateListener)
+        awaitClose { auth.removeAuthStateListener(authStateListener) }
+    }
+
+    // PROFILE
 
     suspend fun updateProfile(user: UserPresentation): Resource<ErrorType> {
         val currentUser = auth.currentUser
             ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
         return try {
             // Сначала основное – Firestore. set + merge обновляет только переданные поля и создаёт документ, если его нет
-            firestore.collection(USERS_COLLECTION)
-                .document(currentUser.uid)
-                .set(
-                    user.toFirestoreMapWithUpdatedAtTimestamp(FieldValue.serverTimestamp()),
-                    SetOptions.merge()
-                )
+            userDocument(currentUser.uid)
+                .set(UserFirestoreMapper.toFirestoreMapForUpdate(user), SetOptions.merge())
                 .awaitWrite()
 
-            // displayName в Auth – вторично. Раньше этот сетевой вызов шёл первым, и без сети
-            // падало всё сохранение, хотя Firestore смог бы поставить запись в очередь
+            // displayName в Auth – вторично, его ошибка не должна отменять сохранение профиля
             if (currentUser.displayName != user.userName) {
                 try {
                     currentUser.updateProfile(
@@ -176,10 +270,11 @@ class FirebaseAuthDataSource @Inject constructor(
             }
             Resource.success(null)
         } catch (e: Exception) {
-            if (e is CancellationException) throw e
             e.toErrorResource("Profile update failed", ErrorType.DATA_NOT_SAVED_ERROR)
         }
     }
+
+    // EMAIL
 
     suspend fun sendEmailVerification(): Resource<ErrorType> {
         val currentUser = auth.currentUser
@@ -210,8 +305,7 @@ class FirebaseAuthDataSource @Inject constructor(
     /**
      * verifyBeforeUpdateEmail НЕ требует подтверждённой текущей почты – нужен только недавний вход (reauthenticate).
      * Письмо уходит на НОВЫЙ адрес, почта для входа меняется после перехода по ссылке.
-     * Раньше здесь была собственная проверка isEmailVerified, из-за которой пользователь с опечаткой в почте
-     * не мог её исправить никогда.
+     * После смены почты Firebase отзывает сессии, и пользователь должен войти заново уже с новой почтой.
      */
     suspend fun updateAuthEmail(newEmail: String, password: String): Resource<ErrorType> {
         val user = auth.currentUser
@@ -232,6 +326,15 @@ class FirebaseAuthDataSource @Inject constructor(
             )
         }
     }
+
+    // HELPERS
+
+    /** Task<Void>.await() возвращает null, поэтому явно возвращаем true: null = таймаут */
+    private suspend fun awaitPendingWrites(): Boolean =
+        withTimeoutOrNull(PENDING_WRITES_TIMEOUT_MILLIS) {
+            firestore.waitForPendingWrites().await()
+            true
+        } ?: false
 
     private suspend fun Task<Void>.awaitWrite() {
         val isAcknowledged = withTimeoutOrNull(FIRESTORE_WRITE_TIMEOUT_MILLIS) {

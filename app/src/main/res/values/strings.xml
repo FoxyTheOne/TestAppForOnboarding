@@ -190,6 +190,28 @@
     <string name="birthday_notification_text">Congratulations! May this day be full of joy and smiles.</string>
     <string name="birthday_notification_big_text">May every day bring new discoveries and may happiness always be near! 🥳</string>
 
+    <string name="birthday_notification_public_title">🎉 Birthday greeting</string>
+    <string name="notification_permission_title">Birthday greetings</string>
+    <string name="notification_permission_message">Allow notifications so that we can congratulate you on your child\'s birthday. Notifications are quiet and appear once a year.</string>
+    <string name="notification_permission_allow">Allow</string>
+    <string name="notification_permission_later">Not now</string>
+
+    <!-- Account -->
+    <string name="registered_verification_sent">Registration successful. We have sent a confirmation link to your email – you can confirm it whenever convenient.</string>
+    <string name="email_change_sent_title">Confirm the new email</string>
+    <string name="email_change_sent_message">We have sent a link to %1$s. After you open it, your login email will change and you will be signed out. Then log in again using the new email and your current password.</string>
+    <string name="session_ended_message">You have been signed out. Please log in again. If you have changed your email, use the new one.</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="password_reset_sent">If an account with this email exists, we have sent a password reset link to it. Check the Spam folder too.</string>
+    <string name="password_reset_failed_error">Failed to send the password reset email</string>
+    <string name="delete_account_button">Delete account</string>
+    <string name="delete_account_title">Delete account?</string>
+    <string name="delete_account_message">Your account and all data on the server and on this device will be permanently deleted. Enter your password to confirm.</string>
+    <string name="delete_account_confirm">Delete</string>
+    <string name="account_deleted">Account deleted</string>
+    <string name="account_deletion_failed_error">Failed to delete the account. Check your internet connection and try again.</string>
+    <string name="ok">OK</string>
+
     <!-- Logout -->
     <string name="unsynced_data_logout_error">Some changes have not been sent to the server yet. Check your internet connection and try again, otherwise they will be lost.</string>
 

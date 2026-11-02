@@ -10,7 +10,7 @@ class EmailValidationTests {
     fun `email validation returns true for valid email`() {
         assertTrue(
             "Валидный email должен проходить проверку",
-            EmailUtils.emailMatchesForTest("test@example.com")
+            EmailUtils.emailMatches("test@example.com")
         )
     }
 
@@ -18,7 +18,7 @@ class EmailValidationTests {
     fun `email validation returns false for invalid email`() {
         assertFalse(
             "Email без домена должен не проходить проверку",
-            EmailUtils.emailMatchesForTest("invalid-email")
+            EmailUtils.emailMatches("invalid-email")
         )
     }
 
@@ -26,7 +26,7 @@ class EmailValidationTests {
     fun `email without at symbol should return false`() {
         assertFalse(
             "Email без @ должен не проходить проверку",
-            EmailUtils.emailMatchesForTest("test.example.com")
+            EmailUtils.emailMatches("test.example.com")
         )
     }
 
@@ -34,7 +34,7 @@ class EmailValidationTests {
     fun `email validation returns false for empty string`() {
         assertFalse(
             "Пустая строка должна не проходить проверку",
-            EmailUtils.emailMatchesForTest("")
+            EmailUtils.emailMatches("")
         )
     }
 }

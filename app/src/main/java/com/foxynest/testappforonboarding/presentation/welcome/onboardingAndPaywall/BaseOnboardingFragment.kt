@@ -1,6 +1,7 @@
 package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.foxynest.testappforonboarding.R
@@ -28,21 +29,25 @@ abstract class BaseOnboardingFragment : Fragment() {
         putString(SOURCE_FRAGMENT_KEY, sourceFragment)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // Результат диалога приходит и после пересоздания экрана (Fragment Result API)
+        CancelOnboardingDialog.setResultListener(
+            childFragmentManager,
+            viewLifecycleOwner
+        ) { confirmed ->
+            if (confirmed) {
+                mainViewModel.cancelOnboarding()
+                navigateBackToPrevious()
+            }
+        }
+    }
+
     // Общий метод для отображения диалога подтверждения отмены
     protected fun showCancelConfirmationDialog() {
-        CancelOnboardingDialog.newInstance()
-            .setListeners(
-                positiveAction = {
-                    mainViewModel.cancelOnboarding()
-
-                    // Возвращаемся на предыдущий фрагмент
-                    navigateBackToPrevious()
-                },
-                negativeAction = {
-                    // Пользователь передумал - ничего не делаем
-                }
-            )
-            .show(parentFragmentManager, "CancelOnboardingDialog")
+        if (childFragmentManager.findFragmentByTag(CancelOnboardingDialog.TAG) == null) {
+            CancelOnboardingDialog().show(childFragmentManager, CancelOnboardingDialog.TAG)
+        }
     }
 
     // Общий метод для навигации назад

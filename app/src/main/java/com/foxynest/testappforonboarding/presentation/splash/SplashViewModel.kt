@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foxynest.testappforonboarding.R
-import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IGetCurrentFirebaseUserUC
+import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.IIsUserLoggedInUC
 import com.foxynest.testappforonboarding.domain.use_cases.migrate.IMigrateUserDataUC
 import com.foxynest.testappforonboarding.domain.use_cases.onboardingUseCases.IOnboardingUC
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class SplashViewModel @Inject constructor(
     private val migrateUserDataUC: IMigrateUserDataUC,
     private val onboardingUC: IOnboardingUC,
-    private val getCurrentUserUC: IGetCurrentFirebaseUserUC
+    private val isUserLoggedInUC: IIsUserLoggedInUC
 ) : ViewModel() {
     companion object {
         private const val TAG = "SplashViewModel"
@@ -43,12 +43,13 @@ class SplashViewModel @Inject constructor(
             val isOnboardingCompleted = onboardingUC.isOnboardingCompleted().first()
 
             // 3. Проверяем, авторизован ли пользователь
-            val currentUser = getCurrentUserUC.execute().data
+            // Только локальное состояние входа: раньше здесь был запрос профиля в Firestore при каждом запуске
+            val isLoggedIn = isUserLoggedInUC.execute()
 
             val targetDestination = when {
                 // Проверка авторизации – первой. Раньше вошедший пользователь на новом телефоне / после переустановки
                 // (локальный флаг опроса = false) при каждом запуске попадал на Welcome
-                currentUser != null -> {
+                isLoggedIn -> {
                     // Онбординг завершён, пользователь авторизован → на Home
                     Log.d("Splash", "User logged in, navigate to Home")
                     R.id.action_splash_to_home

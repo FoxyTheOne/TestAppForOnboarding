@@ -1,7 +1,8 @@
-rules_version = '2';
+// Правила безопасности Firestore. Вставляются в Firebase Console → Firestore Database → вкладка «Правила» (Rules).
+// Как читать, проверять и что менять при изменениях в программе – docs/FIRESTORE_RULES.md
+// Лимиты длины должны совпадать с приложением (res/values/integers.xml).
 
-// Образец правил. Перед публикацией проверьте в Firebase Console → Firestore → Rules → Rules Playground
-// (или в Firebase Emulator Suite) на реальных сценариях: регистрация, обновление профиля, миграция.
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {

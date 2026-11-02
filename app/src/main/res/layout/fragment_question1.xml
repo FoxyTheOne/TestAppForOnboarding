@@ -61,6 +61,7 @@
                 android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
                 android:imeOptions="actionNext"
                 android:inputType="textPersonName"
+                android:maxLength="@integer/max_name_length"
                 android:maxLines="1"
                 android:singleLine="true" />
 
@@ -177,6 +178,7 @@
                 android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
                 android:imeOptions="actionDone"
                 android:inputType="textPersonName"
+                android:maxLength="@integer/max_name_length"
                 android:maxLines="1"
                 android:singleLine="true" />
 

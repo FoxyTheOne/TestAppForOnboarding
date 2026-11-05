@@ -22,8 +22,6 @@ object DataMigrationHelper {
         "хореография" to "choreography",
     )
 
-    private val validHobbyKeys = hobbyMapping.values.toSet()
-
     fun migrateGender(oldGender: String): String = genderMapping[oldGender] ?: oldGender
 
     fun migrateHobbies(oldHobbies: String): String {
@@ -31,11 +29,5 @@ object DataMigrationHelper {
         val parts = oldHobbies.split(CommonConstants.HOBBIES_DELIMITER)
         val newParts = parts.map { hobbyMapping[it] ?: it }
         return newParts.joinToString(CommonConstants.HOBBIES_DELIMITER)
-    }
-
-    fun needsHobbyMigration(hobbiesString: String): Boolean {
-        if (hobbiesString.isBlank()) return false
-        val parts = hobbiesString.split(CommonConstants.HOBBIES_DELIMITER)
-        return parts.any { it !in validHobbyKeys }
     }
 }

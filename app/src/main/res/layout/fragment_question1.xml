@@ -58,10 +58,8 @@
                 android:id="@+id/edit_text_field_user_name_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
                 android:imeOptions="actionNext"
-                android:inputType="textPersonName"
-                android:maxLength="@integer/max_name_length"
+                android:inputType="textPersonName|textCapWords"
                 android:maxLines="1"
                 android:singleLine="true" />
 
@@ -175,10 +173,8 @@
                 android:id="@+id/edit_text_field_child_name_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:digits="qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMЁёйцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
                 android:imeOptions="actionDone"
-                android:inputType="textPersonName"
-                android:maxLength="@integer/max_name_length"
+                android:inputType="textPersonName|textCapWords"
                 android:maxLines="1"
                 android:singleLine="true" />
 

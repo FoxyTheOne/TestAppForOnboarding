@@ -1,20 +1,24 @@
 package com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywall
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.annotation.StringRes
+import androidx.core.widget.doAfterTextChanged
 import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.databinding.FragmentQuestion1Binding
+import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.Gender
+import com.foxynest.testappforonboarding.domain.entities.PersonNameRules
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
+import com.foxynest.testappforonboarding.presentation.common.applyPersonNameRules
+import com.foxynest.testappforonboarding.presentation.common.toErrorMessage
+import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
-
 
 @AndroidEntryPoint
 class Question1Fragment : BaseOnboardingFragment() {
@@ -67,28 +71,27 @@ class Question1Fragment : BaseOnboardingFragment() {
             showCancelConfirmationDialog()
         }
 
+        // Какие символы можно вводить и максимальная длина – правила из domain (PersonNameRules)
+        binding?.editTextFieldUserNameAnswer?.applyPersonNameRules()
+        binding?.editTextFieldChildNameAnswer?.applyPersonNameRules()
+
         binding?.buttonNext?.setOnClickListener {
-            val userNameAnswer =
-                binding?.textFieldUserNameAnswer?.editText?.text?.toString()?.trim() ?: ""
             val checkedRadioButtonId = binding?.radioGroupQuestion1?.checkedRadioButtonId
             val radioGenderAnswerBoy = binding?.genderAnswerBoy
             val radioGenderAnswerGirl = binding?.genderAnswerGirl
-            val childNameAnswer =
-                binding?.textFieldChildNameAnswer?.editText?.text?.toString()?.trim() ?: ""
 
-            val areFieldsValid = validateAllFields(
-                userNameAnswer,
-                checkedRadioButtonId,
-                radioGenderAnswerBoy,
-                radioGenderAnswerGirl,
-                childNameAnswer
+            // Проверяем все поля сразу (а не до первой ошибки), чтобы подсветить каждое неправильное
+            val userNameAnswer = validateName(
+                binding?.textFieldUserNameAnswer,
+                R.string.error_user_name_not_selected
             )
+            val childNameAnswer = validateName(
+                binding?.textFieldChildNameAnswer,
+                R.string.error_child_name_not_selected
+            )
+            val isGenderSelected = validateGender(radioGenderAnswerBoy, radioGenderAnswerGirl)
 
-            if (areFieldsValid) {
-                // Если checkedRadioButtonId будет null, то валидация не будет успешна и сюда не зайдет. Но для метода findViewById() это нужно указать явно
-//                checkedRadioButtonId?.let {
-//                    val selectedRadioButton: RadioButton? = binding?.root?.findViewById(it)
-
+            if (userNameAnswer != null && childNameAnswer != null && isGenderSelected) {
                 val selectedGender = when (checkedRadioButtonId) {
                     R.id.gender_answer_boy -> Gender.BOY.name
                     R.id.gender_answer_girl -> Gender.GIRL.name
@@ -118,97 +121,45 @@ class Question1Fragment : BaseOnboardingFragment() {
                         sourceArgs()
                     )
                 }
-//                }
-
             }
         }
 
-        binding?.editTextFieldUserNameAnswer?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                s?.let { editable ->
-                    val text = editable.toString()
-                    validateUserName(text)
-                }
-            }
-        })
-
-        binding?.editTextFieldChildNameAnswer?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                s?.let { editable ->
-                    val text = editable.toString()
-                    validateChildName(text)
-                }
-            }
-        })
-    }
-
-    private fun validateUserName(userNameAnswer: String?): Boolean {
-        var isValid = true
-        if (userNameAnswer.isNullOrBlank()) {
-            binding?.textFieldUserNameAnswer?.error =
-                getString(R.string.error_user_name_not_selected)
-            isValid = false
-        } else {
+        // Пока человек печатает, ошибку только убираем, а не показываем новую:
+        // иначе «Анна-» посреди набора «Анна-Мария» сразу подсвечивалось бы красным
+        binding?.editTextFieldUserNameAnswer?.doAfterTextChanged {
             binding?.textFieldUserNameAnswer?.error = null
         }
-        return isValid
-    }
-
-    private fun validateChildName(childNameAnswer: String?): Boolean {
-        var isValid = true
-        if (childNameAnswer.isNullOrBlank()) {
-            binding?.textFieldChildNameAnswer?.error =
-                getString(R.string.error_child_name_not_selected)
-            isValid = false
-        } else {
+        binding?.editTextFieldChildNameAnswer?.doAfterTextChanged {
             binding?.textFieldChildNameAnswer?.error = null
         }
-        return isValid
+
     }
 
-    private fun validateAllFields(
-        userNameAnswer: String?,
-        checkedRadioButtonId: Int?,
-        radioGenderAnswerBoy: RadioButton?,
-        radioGenderAnswerGirl: RadioButton?,
-        childNameAnswer: String?
-    ): Boolean {
-        var isValid = true
-
-        // Каждая функция в отдельном if для того, чтобы проверилась каждая из функций и если нужно, подписало причину error под текстовым полем
-        if (!validateUserName(userNameAnswer)) {
-            isValid = false
+    /**
+     * Проверяет имя по правилам из domain и показывает ошибку под полем.
+     * @return нормализованное имя («  Анна   Мария » → «Анна Мария») или null, если имя не подходит
+     */
+    private fun validateName(field: TextInputLayout?, @StringRes emptyError: Int): String? {
+        val name = PersonNameRules.normalize(field?.editText?.text?.toString().orEmpty())
+        val error = PersonNameRules.validate(name)
+        field?.error = when (error) {
+            null -> null
+            ErrorType.FIELD_EMPTY_ERROR -> getString(emptyError)
+            else -> error.toErrorMessage(resources)
         }
+        return if (error == null) name else null
+    }
 
-        // Проверка RadioButton
-        if (checkedRadioButtonId == null) {
+    private fun validateGender(boy: RadioButton?, girl: RadioButton?): Boolean {
+        val isSelected = boy?.isChecked == true || girl?.isChecked == true
+        if (!isSelected) {
             Toast.makeText(
                 context,
                 getString(R.string.error_gender_not_selected),
                 Toast.LENGTH_SHORT
-            )
-                .show()
-            isValid = false
+            ).show()
         }
-        if (radioGenderAnswerBoy?.isChecked == false && radioGenderAnswerGirl?.isChecked == false) {
-            Toast.makeText(
-                context,
-                getString(R.string.error_gender_not_selected),
-                Toast.LENGTH_SHORT
-            )
-                .show()
-            isValid = false
-        }
-
-        if (!validateChildName(childNameAnswer)) {
-            isValid = false
-        }
-
-        return isValid
+        return isSelected
     }
 
     // VIEW BINDING -> 3. onDestroyView()

@@ -61,6 +61,7 @@
     <string name="error_child_name_not_selected">Please enter the child\'s name</string>
     <string name="error_email_not_selected">Please enter your email</string>
     <string name="error_user_name_not_selected">Please enter your name</string>
+    <string name="error_name_invalid">Use letters, and a space, hyphen or apostrophe between them (up to 100 characters)</string>
     <string name="error_birth_date_not_selected">Please select your date of birth</string>
     <string name="error_birth_date_not_valid">Check your date of birth</string>
     <string name="error_hobby_not_selected">Please enter your hobby</string>

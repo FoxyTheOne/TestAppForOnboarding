@@ -1,6 +1,6 @@
 // Правила безопасности Firestore. Вставляются в Firebase Console → Firestore Database → вкладка «Правила» (Rules).
 // Как читать, проверять и что менять при изменениях в программе – docs/FIRESTORE_RULES.md
-// Лимиты длины должны совпадать с приложением (res/values/integers.xml).
+// Лимиты длины должны совпадать с приложением (PersonNameRules.MAX_LENGTH в domain/entities/PersonNameRules.kt).
 
 rules_version = '2';
 

@@ -44,6 +44,7 @@ private fun ErrorType.messageRes(): Int = when (this) {
     ErrorType.UNSYNCED_DATA_LOGOUT_ERROR -> R.string.unsynced_data_logout_error
     ErrorType.ACCOUNT_DELETION_FAILED_ERROR -> R.string.account_deletion_failed_error
     ErrorType.PASSWORD_RESET_FAILED_ERROR -> R.string.password_reset_failed_error
+    ErrorType.NAME_INVALID_ERROR -> R.string.error_name_invalid
 }
 
 fun ErrorType?.toErrorMessage(resources: Resources): String? = when (this) {

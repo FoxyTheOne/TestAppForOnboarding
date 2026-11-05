@@ -61,6 +61,7 @@
     <string name="error_child_name_not_selected">Пожалуйста, введите имя ребенка</string>
     <string name="error_email_not_selected">Пожалуйста, введите email</string>
     <string name="error_user_name_not_selected">Пожалуйста, введите ваше имя</string>
+    <string name="error_name_invalid">Используйте буквы, а между ними – пробел, дефис или апостроф (до 100 символов)</string>
     <string name="error_birth_date_not_selected">Пожалуйста, выберите дату рождения</string>
     <string name="error_birth_date_not_valid">Проверьте дату рождения</string>
     <string name="error_hobby_not_selected">Пожалуйста, введите хобби</string>

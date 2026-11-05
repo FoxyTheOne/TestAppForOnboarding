@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!--
-    Максимальная длина имени пользователя и имени ребёнка.
-    ДОЛЖНА СОВПАДАТЬ с лимитом в firestore.rules (username.size() <= 100, childName.size() <= 100):
-    иначе сервер отклонит сохранение профиля. Подробнее – docs/FIRESTORE_RULES.md
-    -->
-    <integer name="max_name_length">100</integer>
-</resources>

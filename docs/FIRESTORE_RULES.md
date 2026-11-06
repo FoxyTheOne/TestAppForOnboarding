@@ -175,8 +175,8 @@ match /notes/{noteId} {
 
 ## 6. Как проверить и опубликовать
 
-1. Firebase Console → проект **exampleappforonboarding** → **Firestore Database** → вкладка *
-   *Правила (Rules)**.
+1. Firebase Console → проект **exampleappforonboarding** → **Firestore Database** → вкладка
+   **Правила (Rules)**.
 2. **Скопируйте текущие правила себе** (на случай отката). История публикаций тоже есть в консоли.
 3. Вставьте содержимое `firestore.rules`. Пока не публикуйте.
 4. Нажмите **Rules Playground** и проверьте сценарии:

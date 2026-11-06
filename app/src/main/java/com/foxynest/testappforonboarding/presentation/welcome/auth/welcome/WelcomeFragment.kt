@@ -11,6 +11,7 @@ import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
+/** Приветствие при первом запуске: «Пройти опрос» или «Войти» (если аккаунт уже есть). */
 @AndroidEntryPoint
 class WelcomeFragment : BaseWelcomeFragmentAbstract() {
     companion object {

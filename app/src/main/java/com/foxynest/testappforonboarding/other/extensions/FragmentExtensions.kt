@@ -5,6 +5,11 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
 
+/**
+ * Переход на другой экран, только если мы всё ещё на экране [currentId].
+ * Защищает от падения при двойном быстром нажатии: второй navigate() из уже другого экрана
+ * бросил бы IllegalArgumentException («action не найден»).
+ */
 fun Fragment.safeNavigate(currentId: Int, direction: NavDirections) {
     if (findNavController().currentDestination?.id == currentId) {
         findNavController().navigate(direction)

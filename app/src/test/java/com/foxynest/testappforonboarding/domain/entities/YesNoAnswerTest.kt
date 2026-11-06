@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
+/** Старые ответы «Да»/«Yes» из прежних версий переводятся в ключи YES/NO. */
 class YesNoAnswerTest {
     @Test
     fun `legacy localized values are migrated to keys`() {

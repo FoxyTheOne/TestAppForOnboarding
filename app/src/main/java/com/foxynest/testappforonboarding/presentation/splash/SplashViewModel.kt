@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Логика старта: миграция данных → куда переходить.
+ * Вошёл в аккаунт → главная; не проходил опрос → приветствие; прошёл опрос без регистрации → главная.
+ */
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val migrateUserDataUC: IMigrateUserDataUC,

@@ -13,6 +13,10 @@ import com.google.android.material.textfield.TextInputEditText
 //    }
 //}
 
+/**
+ * Поле ввода, которое прячет клавиатуру, когда теряет фокус (переход к другому элементу).
+ * Используется в XML-разметке вместо TextInputEditText: `<com.foxynest...BaseTextInputEditText ... />`.
+ */
 class BaseTextInputEditText(context: Context, attrs: AttributeSet?) : TextInputEditText(context, attrs){
 
     override fun onFocusChanged(focused: Boolean, direction: Int, previouslyFocusedRect: Rect?) {

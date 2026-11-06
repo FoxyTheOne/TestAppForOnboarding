@@ -1,5 +1,6 @@
 package com.foxynest.testappforonboarding.domain.entities
 
+/** Пол ребёнка. Хранится ключом (`BOY` / `GIRL`), текст на нужном языке – `Gender.displayName()` в DomainDisplay. */
 enum class Gender {
     BOY, GIRL;
 

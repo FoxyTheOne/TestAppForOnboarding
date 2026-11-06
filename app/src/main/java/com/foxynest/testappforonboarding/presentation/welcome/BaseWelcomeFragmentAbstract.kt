@@ -6,6 +6,9 @@ import dagger.hilt.android.AndroidEntryPoint
 /**
  * Базовый фрагмент для расширения фрагментами с онбордингом.
  * Содержит логику перехода сразу на content, если в предыдущий раз пользователь полностью прошёл онбординг - перенесла логику в HOME
+ *
+ * Сейчас класс пустой: решение «куда идти при запуске» принимает SplashViewModel.
+ * Оставлен как общий родитель для Welcome/Login/Registration/Paywall – можно убрать, если общей логики так и не появится.
  */
 @AndroidEntryPoint
 abstract class BaseWelcomeFragmentAbstract : Fragment() {

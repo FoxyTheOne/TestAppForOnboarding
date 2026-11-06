@@ -7,6 +7,11 @@ import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+/**
+ * Все сценарии из постановки задачи о поздравлении – по одному тесту на сценарий.
+ * Названия тестов – это и есть правила: если поменяется поведение, сначала меняется тест.
+ * Время «сейчас» передаётся параметром, поэтому любой день проверяется мгновенно, без эмулятора.
+ */
 class BirthdayRulesTest {
 
     private val birthDate = LocalDate.of(2006, 9, 15)

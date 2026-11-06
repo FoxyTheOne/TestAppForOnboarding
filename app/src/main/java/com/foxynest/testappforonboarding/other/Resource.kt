@@ -7,7 +7,12 @@ package com.foxynest.testappforonboarding.other
  * So in fragment we just check if the Resource got success, loading or error status status
  * and according to it do what we need to do there
  */
-// "out T" means we need numbers (T type is a number)
+// "out T" – Resource только ОТДАЁТ T наружу (data), но не принимает его в функции. Благодаря этому
+// Resource<Int> можно передать туда, где ждут Resource<Number> или Resource<Any> («ковариантность»).
+//
+// В этом проекте Resource используется в двух ролях:
+// - Resource<UserPresentation?> – данные + статус их загрузки;
+// - Resource<ErrorType> – результат операции: SUCCESS (data = null) или ERROR (data = тип ошибки для текста на экране).
 data class Resource<out T>(val status: Status, val data: T?, val message: String?) {
 
     // functions for corresponding status from enum class Status

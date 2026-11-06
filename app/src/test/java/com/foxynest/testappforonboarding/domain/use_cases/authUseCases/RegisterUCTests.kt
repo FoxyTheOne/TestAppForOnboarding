@@ -16,6 +16,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/** Регистрация: пустые поля не доходят до сервера. Сервер (репозиторий) – муляж mockk. */
 class RegisterUCTests {
     // Раньше registerUC был @Inject lateinit без Hilt – тест падал с UninitializedPropertyAccessException
     private val authRepository = mockk<IAuthRepository>()

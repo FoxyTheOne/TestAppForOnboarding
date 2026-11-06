@@ -10,6 +10,7 @@ import com.foxynest.testappforonboarding.R
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import dagger.hilt.android.AndroidEntryPoint
 
+/** Стартовый экран: пока идёт миграция данных и проверка входа, показывает заставку, потом решает, куда перейти. */
 @AndroidEntryPoint
 class SplashFragment : Fragment() {
     private val splashViewModel by viewModels<SplashViewModel>()

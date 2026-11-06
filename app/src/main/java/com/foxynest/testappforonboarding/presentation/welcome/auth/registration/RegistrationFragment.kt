@@ -25,6 +25,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+/**
+ * Экран регистрации (открывается из профиля после прохождения опроса).
+ * Анкета у пользователя уже есть на устройстве – при регистрации она сразу уходит в Firebase.
+ */
 @AndroidEntryPoint
 class RegistrationFragment : BaseWelcomeFragmentAbstract() {
     companion object {

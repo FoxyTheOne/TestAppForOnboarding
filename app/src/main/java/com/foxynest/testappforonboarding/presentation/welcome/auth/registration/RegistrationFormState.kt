@@ -4,6 +4,7 @@ import com.foxynest.testappforonboarding.domain.entities.ErrorType
 
 // Тип ошибки, а не текст: текст подбирает фрагмент по своему (локализованному) контексту
 
+/** Текущее содержимое формы регистрации и ошибки под полями. */
 data class RegistrationFormState(
     val email: String = "",
     val emailError: ErrorType? = null,

@@ -25,6 +25,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+/**
+ * Экран входа: почта + пароль, «Забыли пароль?».
+ * Открывается с приветствия или из профиля; аргумент previous_destination говорит, куда возвращаться по «Назад».
+ */
 @AndroidEntryPoint
 class LoginFragment : BaseWelcomeFragmentAbstract() {
     companion object {

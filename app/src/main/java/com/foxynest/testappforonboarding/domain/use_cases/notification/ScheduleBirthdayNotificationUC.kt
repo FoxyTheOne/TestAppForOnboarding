@@ -5,6 +5,13 @@ import com.foxynest.testappforonboarding.domain.entities.isValidData
 import com.foxynest.testappforonboarding.domain.iRepository.IBirthdayNotificationRepository
 import javax.inject.Inject
 
+/**
+ * Решает, что делать с пришедшими данными, и передаёт работу репозиторию.
+ * Главное правило здесь: «пустые данные – не повод отменять поздравление».
+ *
+ * Привязан в `SingletonModule`, а не в `ViewModelModule`: его получает ещё и BroadcastReceiver,
+ * у которого нет ViewModel.
+ */
 class ScheduleBirthdayNotificationUC @Inject constructor(
     private val birthdayNotificationRepository: IBirthdayNotificationRepository
 ) : IScheduleBirthdayNotificationUC {

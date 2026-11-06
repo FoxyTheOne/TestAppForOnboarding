@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import com.foxynest.testappforonboarding.R
 
+/** «Выйти из приложения?» по кнопке «Назад» на главных экранах. Результат слушает MainActivity. */
 class QuitDialog : BaseDialogFragment() {
     companion object {
         const val TAG = "QuitDialog"

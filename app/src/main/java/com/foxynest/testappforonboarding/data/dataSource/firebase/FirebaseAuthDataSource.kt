@@ -1,6 +1,8 @@
 package com.foxynest.testappforonboarding.data.dataSource.firebase
 
 import android.util.Log
+import com.foxynest.testappforonboarding.data.dataSource.firebase.FirebaseAuthDataSource.Companion.FIRESTORE_WRITE_TIMEOUT_MILLIS
+import com.foxynest.testappforonboarding.data.dataSource.firebase.FirebaseAuthDataSource.Companion.PENDING_WRITES_TIMEOUT_MILLIS
 import com.foxynest.testappforonboarding.domain.entities.ErrorType
 import com.foxynest.testappforonboarding.domain.entities.user.UserPresentation
 import com.foxynest.testappforonboarding.other.Resource
@@ -34,9 +36,24 @@ import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 /**
- * Lowercase the email but not the password!!
+ * Единственный класс приложения, который разговаривает с Firebase. Всё остальное приложение о Firebase не знает:
+ * если когда-нибудь бэкенд поменяется, переписывать придётся только этот файл (и маппер рядом).
  *
- * Все ошибки Firebase превращаются в ErrorType здесь, по типу исключения.
+ * Здесь две части Firebase:
+ * - **Firebase Auth** ([auth]) – аккаунты: регистрация, вход, выход, почта, пароль. Хранит email, пароль
+ *   (в виде хэша – его не видит никто, даже владелец проекта в консоли), uid и флаг «почта подтверждена».
+ * - **Cloud Firestore** ([firestore]) – база данных. У каждого пользователя один документ `users/{uid}` с анкетой.
+ *   `uid` берётся из Auth – так документ «принадлежит» аккаунту, и правила безопасности (`firestore.rules`)
+ *   пускают к нему только его владельца.
+ *
+ * Общие правила в этом файле:
+ * - email приводим к нижнему регистру и обрезаем пробелы, пароль – никогда (в пароле важен каждый символ);
+ * - все ошибки Firebase превращаются в [ErrorType] здесь, по типу исключения ([toErrorResource]) –
+ *   экраны получают понятный тип ошибки и сами подбирают текст на нужном языке;
+ * - `CancellationException` всегда пробрасываем дальше: это не ошибка, а сигнал «корутину отменили»
+ *   (например, пользователь ушёл с экрана). Если его «съесть», корутина продолжит работать впустую.
+ *
+ * Подробный разбор с картинкой «кто что хранит» – `docs/FIREBASE.md`.
  */
 class FirebaseAuthDataSource @Inject constructor(
     private val auth: FirebaseAuth,
@@ -54,9 +71,11 @@ class FirebaseAuthDataSource @Inject constructor(
         private const val PENDING_WRITES_TIMEOUT_MILLIS = 5_000L
     }
 
+    /** Ссылка на документ `users/{uid}`. Это ещё не запрос – только «адрес»; запрос делают get/set/delete/addSnapshotListener. */
     private fun userDocument(uid: String): DocumentReference =
         firestore.collection(USERS_COLLECTION).document(uid)
 
+    /** Пользователь только с данными из Auth, без анкеты (анкета лежит в Firestore). */
     private fun FirebaseUser.toAuthOnlyUser() = UserPresentation(
         uid = uid,
         authEmail = email.orEmpty(),
@@ -66,6 +85,13 @@ class FirebaseAuthDataSource @Inject constructor(
 
     // REGISTRATION / LOGIN / LOGOUT
 
+    /**
+     * Регистрация в три шага: аккаунт в Auth → документ с анкетой в Firestore → письмо для подтверждения почты.
+     * Ошибкой регистрации считается только ошибка первого шага.
+     *
+     * `.await()` – превращает Task (так Firebase возвращает результат: «позвоню, когда будет готово»)
+     * в обычный suspend-вызов: код ждёт результата, не блокируя поток, а ошибка прилетает исключением.
+     */
     suspend fun register(
         authEmail: String,
         password: String,
@@ -99,6 +125,10 @@ class FirebaseAuthDataSource @Inject constructor(
         return Resource.success(null)
     }
 
+    /**
+     * Вход. После успешного входа Firebase сам запоминает сессию на устройстве:
+     * при следующем запуске [isLoggedIn] сразу вернёт true, без сети и без повторного ввода пароля.
+     */
     suspend fun login(email: String, password: String): Resource<ErrorType> {
         return try {
             auth.signInWithEmailAndPassword(email.lowercase().trim(), password).await()
@@ -108,6 +138,11 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
+    /**
+     * Выход. Сначала ждём, пока Firestore отправит на сервер всё, что накопил без сети:
+     * после выхода сервер эти записи уже не примет (запись разрешена только вошедшему владельцу).
+     * Если за [PENDING_WRITES_TIMEOUT_MILLIS] не успели (нет интернета) – не выходим и говорим об этом пользователю.
+     */
     suspend fun logout(): Resource<ErrorType> {
         return try {
             // Неотправленные изменения после выхода будут отклонены правилами безопасности (auth == null) и потеряны
@@ -128,6 +163,11 @@ class FirebaseAuthDataSource @Inject constructor(
     /**
      * Удаление аккаунта: повторный вход (Firebase требует «свежий» вход) → документ профиля → пользователь Auth.
      * Документ удаляется первым: после удаления пользователя правила безопасности уже не пустят к документу.
+     *
+     * «Свежий вход» (reauthenticate) – защита от чужих рук: если телефон разблокирован и лежит на столе,
+     * удалить аккаунт или сменить почту без пароля нельзя. Поэтому диалог просит ввести пароль ещё раз.
+     *
+     * Удаление аккаунта внутри приложения – обязательное требование Google Play для приложений с регистрацией.
      */
     suspend fun deleteAccount(password: String): Resource<ErrorType> {
         val user = auth.currentUser
@@ -150,8 +190,12 @@ class FirebaseAuthDataSource @Inject constructor(
     }
 
     /**
+     * Письмо со ссылкой для нового пароля. Новый пароль человек вводит на странице Firebase по ссылке из письма,
+     * приложение в этом не участвует.
+     *
      * При включённой защите от перебора email (по умолчанию в новых проектах) Firebase не сообщает,
      * существует ли аккаунт – письмо просто не придёт. Поэтому UI показывает нейтральное сообщение.
+     * Так злоумышленник не может узнать, зарегистрирован ли чей-то адрес.
      */
     suspend fun sendPasswordResetEmail(email: String): Resource<ErrorType> {
         return try {
@@ -164,6 +208,7 @@ class FirebaseAuthDataSource @Inject constructor(
 
     // CURRENT USER
 
+    /** Без сети: Firebase хранит сессию на устройстве. */
     fun isLoggedIn(): Boolean = auth.currentUser != null
 
     // Реактивное отслеживание входа/выхода (в том числе принудительного – например, после смены почты)
@@ -177,6 +222,11 @@ class FirebaseAuthDataSource @Inject constructor(
      * LOADING + данные Auth – документа нет в локальном кэше, ответ сервера ещё не пришёл.
      * ERROR + данные Auth – документ прочитать не удалось.
      * Данные Auth без полей анкеты НЕЛЬЗЯ записывать обратно в Firestore.
+     *
+     * Как это собрано из двух потоков:
+     * 1. [authStateFlow] – «кто сейчас вошёл» (FirebaseUser или null);
+     * 2. `flatMapLatest` – на каждого нового пользователя открываем [profileFlow] с его документом,
+     *    а предыдущий листенер закрываем («latest» – слушаем только последнего). После выхода – просто null.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeCurrentUser(): Flow<Resource<UserPresentation?>> = authStateFlow()
@@ -186,6 +236,15 @@ class FirebaseAuthDataSource @Inject constructor(
             if (firebaseUser == null) flowOf(Resource.success(null)) else profileFlow(firebaseUser)
         }
 
+    /**
+     * `callbackFlow` превращает «слушатель с колбэком» (так устроен Firebase) во Flow (так устроены корутины):
+     * - внутри колбэка `trySend(...)` кладёт новое значение во Flow;
+     * - `awaitClose { ... }` держит Flow открытым и выполняет блок, когда подписчик ушёл.
+     *   Там листенер обязательно снимаем, иначе он продолжит читать базу (и тратить квоту) после ухода с экрана.
+     *
+     * Snapshot-листенер Firestore сначала отдаёт данные из локального кэша (мгновенно, даже без сети),
+     * а потом – с сервера, когда они придут. `snapshot.metadata.isFromCache` говорит, откуда этот снимок.
+     */
     private fun profileFlow(firebaseUser: FirebaseUser): Flow<Resource<UserPresentation?>> =
         callbackFlow {
             val registration =
@@ -240,6 +299,7 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
+    /** Вход/выход как Flow. Слушатель Auth вызывается сразу при подписке (текущее состояние) и при каждом изменении. */
     private fun authStateFlow(): Flow<FirebaseUser?> = callbackFlow {
         val authStateListener = FirebaseAuth.AuthStateListener { trySend(it.currentUser) }
         auth.addAuthStateListener(authStateListener)
@@ -248,6 +308,13 @@ class FirebaseAuthDataSource @Inject constructor(
 
     // PROFILE
 
+    /**
+     * Сохранение анкеты в Firestore + имя пользователя в Auth (displayName).
+     *
+     * Без сети `set()` не падает: запись сохраняется в локальный кэш Firestore и уйдёт на сервер сама,
+     * когда появится интернет (даже после перезапуска приложения). Поэтому ждём подтверждения сервера
+     * не дольше [FIRESTORE_WRITE_TIMEOUT_MILLIS] и считаем запись принятой (см. [awaitWrite]).
+     */
     suspend fun updateProfile(user: UserPresentation): Resource<ErrorType> {
         val currentUser = auth.currentUser
             ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
@@ -276,6 +343,10 @@ class FirebaseAuthDataSource @Inject constructor(
 
     // EMAIL
 
+    /**
+     * Письмо «подтвердите почту». Подтверждение «мягкое»: приложением можно пользоваться и без него,
+     * но подтверждённая почта нужна, чтобы гарантированно восстановить пароль.
+     */
     suspend fun sendEmailVerification(): Resource<ErrorType> {
         val currentUser = auth.currentUser
             ?: return Resource.error("User not authenticated", ErrorType.NOT_AUTHENTICATED_ERROR)
@@ -290,6 +361,10 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
+    /**
+     * Человек подтверждает почту в браузере, а приложение об этом само не узнаёт: данные пользователя
+     * на устройстве кэшируются. `reload()` заново запрашивает их с сервера.
+     */
     suspend fun checkEmailVerified(): Boolean {
         val currentUser = auth.currentUser ?: return false
         return try {
@@ -336,6 +411,7 @@ class FirebaseAuthDataSource @Inject constructor(
             true
         } ?: false
 
+    /** Ждать подтверждения записи сервером, но не вечно: без сети запись всё равно отправится позже сама. */
     private suspend fun Task<Void>.awaitWrite() {
         val isAcknowledged = withTimeoutOrNull(FIRESTORE_WRITE_TIMEOUT_MILLIS) {
             await()
@@ -346,6 +422,12 @@ class FirebaseAuthDataSource @Inject constructor(
         }
     }
 
+    /**
+     * Исключение Firebase → [ErrorType]. Проверяем ТИП исключения, а не текст сообщения:
+     * текст Firebase может поменять в любой версии, и он на английском.
+     * @param fallback ошибка по умолчанию, если тип не распознан (своя для каждой операции)
+     * @param invalidCredentials что значит «неверные данные» в этой операции (при удалении аккаунта – «неверный пароль»)
+     */
     private fun Exception.toErrorResource(
         fallbackMessage: String,
         fallback: ErrorType,

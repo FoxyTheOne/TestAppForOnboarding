@@ -20,6 +20,10 @@ import com.foxynest.testappforonboarding.presentation.dialogs.simpleDialogs.Repe
 import com.foxynest.testappforonboarding.presentation.welcome.BaseWelcomeFragmentAbstract
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Экран после опроса: 3 секунды «анализируем ответы», затем предложение поддержать (ссылка на донат) и переход в профиль.
+ * Анкета к этому моменту уже сохраняется: finishOnboarding() вызывается на последнем вопросе.
+ */
 @AndroidEntryPoint
 class PaywallFragment : BaseWelcomeFragmentAbstract() {
     companion object {

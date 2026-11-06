@@ -8,6 +8,7 @@ import org.junit.Test
 import kotlin.math.pow
 import kotlin.random.Random
 
+/** Требования к паролю при регистрации: длина и наличие букв и цифр. */
 class RegisterValidatePasswordUCTest {
     private lateinit var validatePasswordUseCase: RegisterValidatePasswordUC
 

@@ -10,6 +10,7 @@ import com.foxynest.testappforonboarding.domain.entities.onboarding.YesNoAnswer
 import com.foxynest.testappforonboarding.other.extensions.safeNavigate
 import dagger.hilt.android.AndroidEntryPoint
 
+/** Вопрос 2 (только для мальчика): ответ «да/нет» сохраняется ключом YES/NO, а не текстом кнопки. */
 @AndroidEntryPoint
 class Question2Fragment : BaseOnboardingFragment() {
 

@@ -3,6 +3,10 @@ package com.foxynest.testappforonboarding.mainAppPartUI
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
+/**
+ * Учебный пример теста «логики без фрагмента». Проверяет функцию, объявленную в самом тесте,
+ * а не код приложения – на настоящий HomeFragment он не влияет.
+ */
 class HomeSimpleLogicTests {
     @Test
     fun `format home title for boy with name`() {

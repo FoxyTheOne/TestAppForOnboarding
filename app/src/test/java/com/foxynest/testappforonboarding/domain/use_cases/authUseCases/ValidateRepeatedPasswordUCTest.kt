@@ -5,6 +5,7 @@ import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+/** «Повторите пароль» должен совпадать с паролем. */
 class ValidateRepeatedPasswordUCTest {
     private lateinit var validateRepeatedPasswordUseCase: RegisterValidateRepeatedPasswordUC
 

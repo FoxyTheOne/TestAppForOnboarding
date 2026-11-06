@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import com.foxynest.testappforonboarding.R
 
+/** «Не удалось сохранить анкету на устройстве. Повторить?» – на экране оплаты после ошибки записи. */
 class RepeatSavingOnboardingStateDialog : BaseDialogFragment() {
     companion object {
         const val TAG = "RepeatSavingOnboardingStateDialog"

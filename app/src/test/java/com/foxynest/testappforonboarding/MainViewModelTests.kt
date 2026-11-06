@@ -28,10 +28,22 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Тесты MainViewModel без Android и без Firebase: все use case-ы заменены «муляжами» (mockk).
+ *
+ * Словарик mockk:
+ * - `mockk<X>()` – муляж интерфейса X. Вызов метода, для которого не описан ответ, – ошибка (так тест ловит лишние вызовы);
+ * - `mockk<X>(relaxed = true)` – «спокойный» муляж: на всё отвечает значением по умолчанию (0, "", Unit);
+ * - `every { ... } returns ...` – что вернуть обычной функции; `coEvery` – то же для suspend-функции;
+ * - `coAnswers { ... }` – выполнить блок вместо ответа (например, delay + запись в список вызовов);
+ * - `coVerify { ... }` – проверить, что функция вызывалась (`exactly = 0` – что НЕ вызывалась).
+ */
 class MainViewModelTests {
+    // LiveData по умолчанию требует главный поток Android. Это правило выполняет её обновления сразу, в потоке теста
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
+    // Подмена Dispatchers.Main для viewModelScope – подробно в MainDispatcherRule.kt
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 

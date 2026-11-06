@@ -6,6 +6,10 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Какие имена принимаются. Последний тест фиксирует лимит 100 – такой же, как в firestore.rules:
+ * если поменять MAX_LENGTH, тест упадёт и напомнит поменять и правила.
+ */
 class PersonNameRulesTest {
 
     private fun valid(raw: String) = PersonNameRules.validate(PersonNameRules.normalize(raw))

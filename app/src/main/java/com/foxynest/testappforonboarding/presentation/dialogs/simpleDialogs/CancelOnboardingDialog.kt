@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import com.foxynest.testappforonboarding.R
 
+/** «Прервать опрос?» Результат слушает BaseOnboardingFragment: при «да» черновик удаляется, сохранённая анкета остаётся. */
 class CancelOnboardingDialog : BaseDialogFragment() {
     companion object {
         const val TAG = "CancelOnboardingDialog"

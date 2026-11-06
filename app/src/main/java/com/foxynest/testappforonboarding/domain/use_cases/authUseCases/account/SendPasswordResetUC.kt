@@ -6,6 +6,10 @@ import com.foxynest.testappforonboarding.domain.use_cases.authUseCases.login.ILo
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
 
+/**
+ * «Забыли пароль?»: проверяем формат почты у себя, и только потом просим Firebase отправить письмо.
+ * Почту приводим к нижнему регистру – так же, как при регистрации.
+ */
 class SendPasswordResetUC @Inject constructor(
     private val authRepository: IAuthRepository,
     private val validateEmailUC: ILoginValidateEmailUC

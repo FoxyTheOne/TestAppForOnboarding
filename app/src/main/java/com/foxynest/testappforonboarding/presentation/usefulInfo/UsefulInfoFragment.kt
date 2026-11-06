@@ -12,6 +12,7 @@ import com.foxynest.testappforonboarding.databinding.FragmentUsefulInfoBinding
 import com.foxynest.testappforonboarding.presentation.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+/** Экран «Полезная информация» – пока заготовка, содержимое не определено (см. TODO ниже). */
 @AndroidEntryPoint
 class UsefulInfoFragment : Fragment() {
     private var localFieldsObserver: Observer<Any>? = null

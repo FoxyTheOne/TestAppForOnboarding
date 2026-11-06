@@ -2,6 +2,12 @@ package com.foxynest.testappforonboarding.domain.entities
 
 import com.foxynest.testappforonboarding.other.constants.CommonConstants
 
+/**
+ * Перевод старых значений анкеты в ключи. Раньше пол и хобби хранились текстом на русском («Мальчик», «шахматы»),
+ * и при смене языка в профиле показывался русский текст. Теперь хранятся ключи (`BOY`, `chess`),
+ * а текст подбирается по языку при показе (`presentation/common/DomainDisplay.kt`).
+ * Вызывается из `MigrateUserDataRepository`. Уже переведённые значения остаются как есть.
+ */
 object DataMigrationHelper {
     private val genderMapping = mapOf(
         "Мальчик" to "BOY",

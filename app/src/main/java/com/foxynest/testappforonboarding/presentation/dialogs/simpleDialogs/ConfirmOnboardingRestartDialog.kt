@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import com.foxynest.testappforonboarding.R
 
+/** «Заполнить анкету заново?» из профиля. Старые ответы остаются, пока новый опрос не завершён. */
 class ConfirmOnboardingRestartDialog : BaseDialogFragment() {
     companion object {
         const val TAG = "ConfirmOnboardingRestartDialog"

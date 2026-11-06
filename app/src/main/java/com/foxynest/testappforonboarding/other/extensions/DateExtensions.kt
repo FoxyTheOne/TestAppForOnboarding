@@ -8,6 +8,12 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+/*
+ * Даты хранятся строкой "yyyy-MM-dd" (ISO 8601) – в DataStore и в Firestore.
+ * Этот формат не зависит от языка телефона и правильно сортируется как строка.
+ * Для показа пользователю дата форматируется отдельно, по его языку (ProfileViewModel.formatBirthDateForDisplay).
+ */
+
 /**
  * Парсит строку в формате "yyyy-MM-dd" в LocalDate.
  * Возвращает null при ошибке.
@@ -46,6 +52,8 @@ fun LocalDate.calculateAge(now: LocalDate = LocalDate.now()): Resource<Int> {
 
 /**
  * Преобразует LocalDateTime в миллисекунды для AlarmManager.
+ * «9:00» без часового пояса – не момент времени; ZoneId.systemDefault() превращает его в «9:00 по часам телефона».
+ * Если человек сменит часовой пояс, ресивер получит TIMEZONE_CHANGED и пересчитает будильник.
  */
 fun LocalDateTime.toEpochMillis(): Long =
     this.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()

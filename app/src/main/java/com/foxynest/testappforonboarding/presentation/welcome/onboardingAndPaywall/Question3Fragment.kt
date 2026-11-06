@@ -21,6 +21,10 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
+/**
+ * Вопрос 3: дата рождения через MaterialDatePicker (будущие даты выбрать нельзя).
+ * Главная тонкость – часовые пояса, см. комментарий в showDatePicker().
+ */
 @AndroidEntryPoint
 class Question3Fragment : BaseOnboardingFragment() {
     companion object {

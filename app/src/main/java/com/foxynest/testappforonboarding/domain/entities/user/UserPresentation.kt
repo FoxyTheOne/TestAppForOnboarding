@@ -4,7 +4,11 @@ import com.foxynest.testappforonboarding.domain.entities.isNotBlankValue
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 
 /**
+ * Пользователь целиком: данные аккаунта (из Firebase Auth) + анкета (из Firestore или с устройства).
  * Модель domain-слоя: чистый Kotlin, без Android (раньше была Parcelable ради аргумента навигации).
+ *
+ * Для незарегистрированного пользователя uid и authEmail пустые, а анкета берётся из DataStore
+ * через [toUserPresentation] – так экраны профиля и главной работают с одной моделью в обоих случаях.
  */
 data class UserPresentation(
     val uid: String = "",

@@ -6,6 +6,7 @@ import com.foxynest.testappforonboarding.other.Resource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
+/** Подписка на профиль: Auth + анкета из Firestore. Обновляется сама при изменении документа, в том числе с другого устройства. */
 class ObserveCurrentUserUC @Inject constructor(
     private val authRepository: IAuthRepository
 ) : IObserveCurrentUserUC {

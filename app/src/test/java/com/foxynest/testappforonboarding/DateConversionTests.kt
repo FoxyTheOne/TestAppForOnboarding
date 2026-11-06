@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.LocalDate
 
+/** Формат хранения даты yyyy-MM-dd и подсчёт возраста полными годами. */
 class DateConversionTests {
     @Test
     fun `save format round trip`() {

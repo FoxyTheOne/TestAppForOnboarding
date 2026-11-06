@@ -39,6 +39,16 @@ import com.foxynest.testappforonboarding.presentation.welcome.onboardingAndPaywa
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+/**
+ * Профиль: ответы анкеты, язык, почта и всё про аккаунт (вход, регистрация, выход, удаление, смена почты, подтверждение почты).
+ *
+ * Две ViewModel:
+ * - MainViewModel (`activityViewModels`) – общая для всех экранов: профиль, выход, удаление аккаунта;
+ * - ProfileViewModel (`viewModels`) – только этого экрана: язык и подтверждение почты.
+ *
+ * Подписки на StateFlow – через `repeatOnLifecycle(STARTED)` ([collectWhileStarted]): пока экран не виден,
+ * сбор останавливается, и snapshot-листенер Firestore в MainViewModel может отключиться.
+ */
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
 

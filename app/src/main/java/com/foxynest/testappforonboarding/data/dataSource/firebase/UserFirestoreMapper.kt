@@ -7,6 +7,10 @@ import com.google.firebase.firestore.FieldValue
 
 /**
  * Преобразование профиля в документ Firestore и обратно. Живёт в data-слое: только он знает о Firestore.
+ *
+ * Документ Firestore – это набор пар «имя поля → значение» (как Map), поэтому пишем Map,
+ * а читаем по именам полей из [UserFirestoreFields]. Имена полей – часть «контракта» с правилами безопасности:
+ * поле, которого нет в `allowedFields()` в `firestore.rules`, сервер не примет.
  */
 object UserFirestoreMapper {
 
@@ -20,12 +24,17 @@ object UserFirestoreMapper {
         UserFirestoreFields.CHILD_BIRTH_DATE to user.childBirthDate
     )
 
+    /**
+     * `FieldValue.serverTimestamp()` – не время телефона, а «метка»: сервер сам подставит своё время при записи.
+     * Часы на телефоне могут быть сбиты, серверным – можно доверять.
+     */
     fun toFirestoreMapForCreate(user: UserPresentation): Map<String, Any> =
         toFirestoreMap(user) + (UserFirestoreFields.CREATED_AT to FieldValue.serverTimestamp())
 
     fun toFirestoreMapForUpdate(user: UserPresentation): Map<String, Any> =
         toFirestoreMap(user) + (UserFirestoreFields.UPDATED_AT to FieldValue.serverTimestamp())
 
+    /** uid, почта и «подтверждена ли» приходят из Auth – в документе Firestore их нет. */
     fun fromDocument(
         document: DocumentSnapshot,
         uid: String,
@@ -43,6 +52,7 @@ object UserFirestoreMapper {
         childBirthDate = document.stringField(UserFirestoreFields.CHILD_BIRTH_DATE)
     )
 
+    /** «chess, books» → ["chess", "books"]. `internal` – виден в тестах этого модуля, но не снаружи. */
     internal fun hobbiesToList(hobbies: String): List<String> =
         hobbies.split(HOBBIES_DELIMITER).map { it.trim() }.filter { it.isNotEmpty() }
 

@@ -43,6 +43,16 @@ private val Context.appDataStore by preferencesDataStore(
     }
 )
 
+/**
+ * Хранилище на устройстве: DataStore Preferences – пары «ключ → значение» в файле, замена SharedPreferences.
+ *
+ * Главное отличие от SharedPreferences:
+ * - чтение – через Flow (подписка на изменения), запись – suspend-функция, ничего не блокирует главный поток;
+ * - `edit { }` – транзакция: всё, что внутри блока, записывается целиком или не записывается вовсе.
+ *
+ * Сложные объекты (анкета, данные для поздравления) лежат одной строкой JSON, её превращает в объект Gson.
+ * Формат JSON описан в `StoredModels.kt` – менять имена полей там нельзя без миграции.
+ */
 @Singleton
 class AppDatastorePreferences @Inject constructor(
     @ApplicationContext private val context: Context
@@ -69,6 +79,7 @@ class AppDatastorePreferences @Inject constructor(
         // Birthday notification
         val BIRTHDAY_NOTIF_DATA = stringPreferencesKey("birthday_notification_data")
         val BIRTHDAY_LAST_NOTIFIED_KEY = stringPreferencesKey("birthday_last_notified_key")
+        // Ключ старой версии напоминания. Не используется, только удаляется вместе с остальными данными поздравления
         val LEGACY_LAST_NOTIFIED_YEAR = intPreferencesKey("last_notified_year")
         val NOTIFICATION_PERMISSION_ASKED = booleanPreferencesKey("notification_permission_asked")
 
@@ -86,6 +97,10 @@ class AppDatastorePreferences @Inject constructor(
         }
     }
 
+    /**
+     * Прочитать JSON по ключу и превратить в объект. Испорченный JSON не роняет приложение – вернётся [default].
+     * `reified T` – позволяет внутри функции узнать настоящий класс T (`T::class.java`), это нужно Gson.
+     */
     private inline fun <reified T> Preferences.readJson(
         key: Preferences.Key<String>,
         default: T

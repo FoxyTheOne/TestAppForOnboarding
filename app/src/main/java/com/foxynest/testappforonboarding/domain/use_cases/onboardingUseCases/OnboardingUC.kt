@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 /**
- * Domain layer, UseCase. Бизнес-логика, Kotlin. Работает только с Repository.
+ * Всё про анкету на устройстве: черновик, подтверждённые ответы, флаг «опрос пройден».
+ * Единственная «логика» здесь – [commitOnboardingDraft]: черновик переносится, только если анкета заполнена полностью.
  */
 class OnboardingUC @Inject constructor(
     private val onboardingRepository: IOnboardingRepository

@@ -8,6 +8,11 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Класс приложения: создаётся первым, раньше любого экрана, и живёт, пока жив процесс.
+ * `@HiltAndroidApp` – отсюда Hilt начинает строить граф зависимостей. Без этой аннотации `@Inject` нигде не работает.
+ * Подключён в манифесте: `android:name=".App"`.
+ */
 @HiltAndroidApp
 class App : Application() {
     @Inject

@@ -20,6 +20,7 @@ class AppLanguageRepository @Inject constructor(
     override suspend fun saveAppLanguage(languageCode: LanguageEnum) =
         appDatastorePreferences.saveAppLanguage(languageCode)
 
+    /** Отдаёт старый выбор языка ровно один раз: сразу помечает «перенесено», чтобы не применять его при каждом запуске. */
     override suspend fun takeLanguageForAppCompatMigration(): LanguageEnum? {
         if (appDatastorePreferences.isLanguageMigratedToAppCompat()) return null
         val saved = getAppLanguageFlow()

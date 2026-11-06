@@ -3,8 +3,13 @@ package com.foxynest.testappforonboarding.domain.entities.onboarding
 import com.foxynest.testappforonboarding.domain.entities.isNotBlankValue
 
 /**
- * Хранится в DataStore как JSON (Gson). Имена полей = ключи в JSON:
- * переименование поля без миграции «потеряет» уже сохранённые у пользователей данные.
+ * Ответы анкеты – domain-модель, чистый Kotlin.
+ *
+ * В DataStore хранится не она, а `OnboardingAnswersDto` (StoredModels.kt) с зафиксированными ключами JSON,
+ * поэтому поля здесь можно переименовывать свободно – достаточно поправить маппинг в StoredModels.kt.
+ *
+ * Пол, «да/нет» и хобби – ключи (`BOY`, `YES`, `chess, books`), а не текст на каком-то языке.
+ * Дата рождения – строка `yyyy-MM-dd`.
  */
 data class OnboardingAnswers(
     val userName: String = "",

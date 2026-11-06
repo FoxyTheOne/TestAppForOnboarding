@@ -51,7 +51,18 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Файл с инструкциями для Hilt
+ * Файл с инструкциями для Hilt: «когда кто-то просит X – дай вот это».
+ *
+ * `@InstallIn(SingletonComponent::class)` – эти объекты живут столько же, сколько приложение,
+ * и доступны везде: в ViewModel, Activity, BroadcastReceiver.
+ *
+ * Два способа объяснить Hilt, что подставлять:
+ * - `@Provides` (в companion object) – «вот функция, которая создаёт объект». Нужен для чужих классов,
+ *   которые мы не можем пометить `@Inject` (FirebaseAuth, AlarmManager).
+ * - `@Binds` – «когда просят интерфейс, отдай эту реализацию». Короче и быстрее, чем @Provides,
+ *   работает для своих классов с `@Inject constructor`. Так domain просит IAuthRepository, а получает AuthRepository.
+ *
+ * `@Singleton` – создать один раз и всем отдавать тот же объект. Без него Hilt создаёт новый объект на каждый запрос.
  */
 @Module
 @InstallIn(SingletonComponent::class)

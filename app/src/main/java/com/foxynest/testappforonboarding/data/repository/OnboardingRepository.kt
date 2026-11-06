@@ -11,6 +11,12 @@ import javax.inject.Inject
 
 /**
  * Data layer, Repository. Работает с Local data source (DataStore).
+ *
+ * Анкета на устройстве хранится в двух вариантах:
+ * - **подтверждённые ответы** – то, что видно в профиле и уходит в Firebase;
+ * - **черновик** – ответы текущего прохождения опроса. Подтверждённые ответы не меняются, пока опрос не завершён:
+ *   отмена посреди опроса или закрытие приложения не портят уже сохранённую анкету.
+ *   В конце черновик одной операцией переносится в подтверждённые ([commitOnboardingDraft]).
  */
 class OnboardingRepository @Inject constructor(
     private val appDatastorePreferences: IAppDatastorePreferences

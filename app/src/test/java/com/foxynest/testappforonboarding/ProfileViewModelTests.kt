@@ -19,6 +19,10 @@ import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * Подтверждение почты в профиле: кнопка блокируется после отправки, частая проверка статуса не бесконечна.
+ * Благодаря виртуальному времени (MainDispatcherRule) «10 минут ожидания» проходят мгновенно.
+ */
 class ProfileViewModelTests {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()

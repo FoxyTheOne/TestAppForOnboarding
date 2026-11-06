@@ -27,6 +27,11 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 
+/**
+ * Привязки, которые нужны только ViewModel-ям. `ViewModelComponent` – объекты отсюда создаются заново
+ * для каждой ViewModel и живут столько же, сколько она. Use case-ы без состояния можно держать здесь –
+ * если какой-то понадобится ещё и вне ViewModel (например, в BroadcastReceiver), его надо перенести в SingletonModule.
+ */
 @Module
 @InstallIn(ViewModelComponent::class)
 abstract class ViewModelModule {

@@ -29,6 +29,17 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Единственная Activity приложения. Экраны – фрагменты внутри неё (Navigation Component, граф в res/navigation).
+ *
+ * Что делает сама Activity:
+ * - нижнее меню и его скрытие на экранах опроса/входа;
+ * - заголовок и прогресс опроса;
+ * - кнопка «Назад»: в опросе запрещена, на главных экранах – вопрос «выйти?»;
+ * - разрешение на уведомления (по сигналу из MainViewModel) и сообщение «сессия завершена».
+ *
+ * `@AndroidEntryPoint` – разрешает Hilt внедрять зависимости сюда и во фрагменты этой Activity.
+ */
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     companion object {

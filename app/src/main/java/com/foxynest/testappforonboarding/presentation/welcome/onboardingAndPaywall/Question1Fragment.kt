@@ -20,6 +20,10 @@ import com.foxynest.testappforonboarding.presentation.common.toErrorMessage
 import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Вопрос 1: имя родителя, имя ребёнка, пол. Здесь же начинается опрос – создаётся черновик (prepareForOnboarding).
+ * Мальчик → вопрос 2, девочка → сразу вопрос 3.
+ */
 @AndroidEntryPoint
 class Question1Fragment : BaseOnboardingFragment() {
     companion object {

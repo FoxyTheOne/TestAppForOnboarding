@@ -26,6 +26,13 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import javax.inject.Inject
 
+/**
+ * ViewModel экрана профиля: язык интерфейса и подтверждение почты.
+ *
+ * Подтверждение почты «мягкое»: плашка с кнопкой, пользоваться приложением можно и без подтверждения.
+ * Проверка статуса: разово при каждом открытии экрана (onResume) и часто – только 2 минуты после отправки письма
+ * (человек как раз идёт в почту по ссылке). Бесконечная частая проверка тратила бы батарею и запросы к Firebase.
+ */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val sendEmailVerificationUC: ISendEmailVerificationUC,

@@ -5,6 +5,10 @@ import com.foxynest.testappforonboarding.domain.iRepository.IAuthRepository
 import com.foxynest.testappforonboarding.other.Resource
 import javax.inject.Inject
 
+/**
+ * Смена почты для входа. Нужен текущий пароль (Firebase требует свежий вход).
+ * Письмо уходит на новый адрес; почта сменится, когда человек перейдёт по ссылке, после чего нужно войти заново.
+ */
 class UpdateEmailUC @Inject constructor(
     private val authRepository: IAuthRepository
 ) : IUpdateEmailUC {

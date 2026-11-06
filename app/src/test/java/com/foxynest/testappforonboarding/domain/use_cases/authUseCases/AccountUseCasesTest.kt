@@ -16,6 +16,11 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * Выход, удаление аккаунта, сброс пароля: главное – локальные данные стираются ТОЛЬКО после успеха на сервере,
+ * а при ошибке (неверный пароль, нет сети) всё остаётся как было.
+ * `runTest` – запуск suspend-кода в тесте (с виртуальным временем).
+ */
 class AccountUseCasesTest {
     private val authRepository = mockk<IAuthRepository>()
     private val onboardingRepository = mockk<IOnboardingRepository>(relaxed = true)

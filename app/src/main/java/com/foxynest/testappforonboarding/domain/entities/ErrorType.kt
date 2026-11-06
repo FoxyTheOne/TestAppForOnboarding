@@ -1,8 +1,15 @@
 package com.foxynest.testappforonboarding.domain.entities
 
 /**
- * Тип ошибки domain-слоя. Текст для пользователя подбирается в presentation (ErrorTypeMessages.kt),
+ * Тип ошибки domain-слоя. Текст для пользователя подбирается в presentation (`presentation/common/DomainDisplay.kt`),
  * чтобы domain не зависел от Android-ресурсов.
+ *
+ * Почему тип, а не готовый текст: текст зависит от языка, а язык знает только экран (его Context).
+ * Если ViewModel сама возьмёт строку из ресурсов приложения, на Android 12 и ниже текст может прийти
+ * на системном языке вместо выбранного в приложении.
+ *
+ * Новая ошибка: добавить сюда + строку в `values/strings.xml` и `values-ru/strings.xml` + ветку в DomainDisplay
+ * (компилятор сам напомнит: `when` там без `else`).
  */
 enum class ErrorType {
     EMAIL_EMPTY_ERROR,

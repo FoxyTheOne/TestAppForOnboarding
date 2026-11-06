@@ -37,6 +37,19 @@ import java.io.IOException
 import javax.inject.Inject
 
 /**
+ * Общая ViewModel приложения: привязана к MainActivity, поэтому все фрагменты получают ОДИН и тот же объект
+ * (`by activityViewModels()`). Через неё экраны делят анкету, профиль и события аккаунта.
+ *
+ * Что здесь:
+ * - анкета: черновик опроса и подтверждённые ответы (локально, DataStore);
+ * - профиль из Firestore ([checkedUserInfo]) и состояние входа ([authStateFlow]);
+ * - выход, удаление аккаунта, смена почты, повтор сохранения в Firebase;
+ * - планирование поздравления и момент, когда спросить разрешение на уведомления.
+ *
+ * Два вида данных для экранов (см. MyEvent):
+ * - состояние (`...State`, `checkedUserInfo`) – экран показывает его снова после пересоздания;
+ * - событие (`...Event`, MyEvent) – срабатывает один раз (тост, переход, диалог).
+ *
  * При изменениях в Data Store (добавление, изменение полей) нужна миграция (MigrateUserDataRepository)!
  * Убедиться, что данные пользователей не пропадут (как зарегистрированных, так и нет).
  */
@@ -81,6 +94,14 @@ class MainViewModel @Inject constructor(
     /**
      * Профиль из Firestore через один snapshot-листенер (раньше – get() в onStart каждого экрана).
      * Листенер активен, пока на профиль подписан хотя бы один экран, и отключается через 5 секунд после ухода в фон.
+     *
+     * `stateIn` превращает Flow в StateFlow – «Flow с текущим значением» (`.value` можно прочитать в любой момент):
+     * - `SharingStarted.WhileSubscribed(5000)` – работать, пока есть подписчики, и ещё 5 секунд после последнего.
+     *   5 секунд – чтобы при повороте экрана (подписчик уходит и сразу возвращается) не переподключаться к базе;
+     * - `Resource.init(null)` – значение до первого ответа.
+     *
+     * `onEach(::onRemoteUserChanged)` – на каждое изменение профиля перепланируем поздравление
+     * (дату могли поменять на другом устройстве) или досылаем анкету, если документ на сервере неполный.
      */
     val checkedUserInfo: StateFlow<Resource<UserPresentation?>> = observeCurrentUserUC.execute()
         .onEach(::onRemoteUserChanged)
@@ -289,6 +310,11 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * «Был пользователь – стал null» без нажатия «Выйти» значит, что сессию завершил Firebase
+     * (почту для входа сменили по ссылке из письма, пароль сменили на другом устройстве, аккаунт удалили в консоли).
+     * Тогда показываем пояснение, а не молча выкидываем человека из аккаунта.
+     */
     private fun observeSessionEnd(getAuthStateFlowUC: IGetAuthStateFlowUC) {
         viewModelScope.launch {
             var previousUid: String? = null
@@ -321,6 +347,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /** Запись в DataStore строго по очереди (через [localDataMutex]); ошибка диска → тост вместо падения. */
     private fun launchLocalWrite(errorLog: String, block: suspend () -> Unit) {
         viewModelScope.launch {
             try {

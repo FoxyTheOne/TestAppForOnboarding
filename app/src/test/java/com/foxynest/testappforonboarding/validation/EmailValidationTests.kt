@@ -5,6 +5,7 @@ import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
+/** Проверка формата почты (EmailUtils – тот же код, что работает в приложении). */
 class EmailValidationTests {
     @Test
     fun `email validation returns true for valid email`() {

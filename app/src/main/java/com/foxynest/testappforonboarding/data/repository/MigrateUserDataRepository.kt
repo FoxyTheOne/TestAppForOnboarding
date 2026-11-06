@@ -10,6 +10,17 @@ import com.foxynest.testappforonboarding.other.Status
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
+/**
+ * Миграция – перевод уже сохранённых данных в новый формат, когда формат хранения меняется.
+ * Пример: раньше пол хранился как «Мальчик» (текст на русском), теперь как ключ `BOY`.
+ * Без миграции у тех, кто установил приложение раньше, профиль показывался бы неправильно.
+ *
+ * Как устроено: в DataStore лежит номер версии схемы данных. При запуске (SplashViewModel) сравниваем его
+ * с [CURRENT_SCHEMA_VERSION]; если меньше – переводим данные и в DataStore, и в Firestore, потом записываем новый номер.
+ *
+ * Если формат данных снова изменится: увеличить [CURRENT_SCHEMA_VERSION] и добавить шаг перевода.
+ * Шаги должны быть идемпотентными: повторный перевод уже переведённых данных ничего не меняет.
+ */
 class MigrateUserDataRepository @Inject constructor(
     private val localDataStore: IAppDatastorePreferences,
     private val firebaseDataSource: FirebaseAuthDataSource

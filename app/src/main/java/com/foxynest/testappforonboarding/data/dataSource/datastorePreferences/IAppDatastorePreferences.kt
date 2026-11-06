@@ -5,6 +5,12 @@ import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAnswers
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Всё, что приложение хранит на устройстве (в DataStore). Реализация – [AppDatastorePreferences].
+ *
+ * Функции с `Flow` – «подписка»: значение приходит сразу и потом при каждом изменении.
+ * `suspend`-функции – разовое чтение или запись (работа с диском, поэтому не на главном потоке).
+ */
 interface IAppDatastorePreferences {
     // Migration
     suspend fun getSchemaVersion(): Int

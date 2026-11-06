@@ -1,5 +1,9 @@
 package com.foxynest.testappforonboarding.domain.entities.language
 
+/**
+ * Язык интерфейса, выбранный в профиле. SYSTEM – как в настройках телефона.
+ * В DataStore хранится строкой ("system" / "en" / "ru"), переводы туда и обратно – в companion object.
+ */
 enum class LanguageEnum {
     SYSTEM, EN, RU;
 

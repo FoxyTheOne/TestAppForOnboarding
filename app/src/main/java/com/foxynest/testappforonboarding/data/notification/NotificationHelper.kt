@@ -14,11 +14,21 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.foxynest.testappforonboarding.R
+import com.foxynest.testappforonboarding.data.notification.NotificationHelper.Companion.BIRTHDAY_NOTIFICATION_ID
 import com.foxynest.testappforonboarding.domain.entities.language.LanguageEnum
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
 import javax.inject.Inject
 
+/**
+ * Показ уведомления «С днём рождения». Только отображение: когда показывать, решает `BirthdayNotificationRepository`.
+ *
+ * Что нужно знать про уведомления в Android:
+ * - **Канал** (NotificationChannel, Android 8+) – «категория» уведомлений приложения. Пользователь может отключить
+ *   или настроить каждый канал отдельно в настройках телефона. Важность (звук, всплывание) задаётся каналом.
+ * - **Разрешение** POST_NOTIFICATIONS нужно с Android 13. Без него `notify()` молча ничего не покажет.
+ * - **id уведомления** ([BIRTHDAY_NOTIFICATION_ID]) – повторный показ с тем же id заменяет старое, а не добавляет второе.
+ */
 class NotificationHelper @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
@@ -40,7 +50,7 @@ class NotificationHelper @Inject constructor(
             return false
         }
 
-        // Воркер/ресивер работает с Application context. На Android 12 и ниже он НЕ знает о языке,
+        // Ресивер работает с Application context. На Android 12 и ниже он НЕ знает о языке,
         // выбранном через AppCompatDelegate, поэтому создаём контекст с нужной локалью сами.
         val localizedContext = context.withAppLanguage(language)
         createChannel(localizedContext, notificationManager)
@@ -56,6 +66,7 @@ class NotificationHelper @Inject constructor(
             // Без CLEAR_TASK: не уничтожаем текущий стек экранов, если приложение уже открыто
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
         }
+        // Что произойдёт при нажатии на уведомление: откроется приложение
         val pendingIntent = intent?.let {
             PendingIntent.getActivity(
                 context, 0, it,
@@ -120,6 +131,7 @@ class NotificationHelper @Inject constructor(
         manager.createNotificationChannel(channel)
     }
 
+    /** Копия контекста с нужным языком: getString() у неё возвращает строки из values-ru / values. */
     private fun Context.withAppLanguage(language: LanguageEnum): Context {
         val locale = when (language) {
             LanguageEnum.RU -> Locale("ru")

@@ -4,6 +4,11 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import com.foxynest.testappforonboarding.R
 
+/**
+ * Объяснение перед системным запросом разрешения на уведомления: «чтобы поздравить с днём рождения».
+ * Системное окно можно показать лишь пару раз – после двух отказов Android перестаёт его показывать,
+ * поэтому сначала объясняем зачем, и только при «да» вызываем системный запрос (MainActivity).
+ */
 class NotificationPermissionDialog : BaseDialogFragment() {
     companion object {
         const val TAG = "NotificationPermissionDialog"

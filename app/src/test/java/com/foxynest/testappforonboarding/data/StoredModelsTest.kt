@@ -10,6 +10,10 @@ import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * Защита от «обновил приложение – пропали данные»: новая версия должна читать JSON, сохранённый старой.
+ * Если тест падает после изменения StoredModels.kt – поменяли формат хранения, нужна миграция.
+ */
 class StoredModelsTest {
     private val gson = Gson()
 

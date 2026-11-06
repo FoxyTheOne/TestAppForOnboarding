@@ -9,6 +9,12 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 /**
+ * Реализация [IAuthRepository]: пока просто передаёт вызовы в [FirebaseAuthDataSource].
+ *
+ * Зачем тогда отдельный класс: репозиторий – место, где в будущем можно объединять источники данных
+ * (например, «сначала локальный кэш, потом сеть»), не трогая domain и экраны. Data source отвечает
+ * только за «как поговорить с Firebase».
+ *
  * Преобразование ошибок Firebase в ErrorType – в одном месте, FirebaseAuthDataSource.
  * UI показывает текст по ErrorType (локализованные строки), а не message.
  */

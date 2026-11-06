@@ -19,6 +19,10 @@ import com.foxynest.testappforonboarding.presentation.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+/**
+ * Главный экран: приветствие с именем ребёнка.
+ * Данные берёт из MainViewModel: для вошедшего – профиль из Firestore, иначе – анкету с устройства.
+ */
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
 

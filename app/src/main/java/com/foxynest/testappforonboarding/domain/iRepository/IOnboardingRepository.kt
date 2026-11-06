@@ -5,6 +5,10 @@ import com.foxynest.testappforonboarding.domain.entities.onboarding.OnboardingAn
 import com.foxynest.testappforonboarding.other.Resource
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * Анкета на устройстве: подтверждённые ответы, черновик текущего прохождения и флаг «опрос пройден».
+ * Зачем два варианта ответов – см. `OnboardingRepository`.
+ */
 interface IOnboardingRepository {
     fun isOnboardingCompleted(): Flow<Boolean>
     suspend fun saveOnboardingState(isCompleted: Boolean): Resource<ErrorType>

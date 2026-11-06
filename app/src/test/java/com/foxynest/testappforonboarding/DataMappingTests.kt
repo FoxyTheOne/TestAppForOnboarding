@@ -7,6 +7,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
+/** Профиль → документ Firestore: правильные имена полей и хобби массивом (как ждут правила безопасности). */
 class DataMappingTests {
     @Test
     fun `user presentation to firestore map contains profile fields`() {

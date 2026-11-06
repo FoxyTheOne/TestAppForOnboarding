@@ -23,6 +23,9 @@ import javax.inject.Inject
  * A view model uses those usecases and map the results to compose state.
  * So it will call the validated email use cse when it checks - was the validation actually successful?
  * If yes than it will change the state we have here correspondingly so that it is correctly displayed in the ui with the error message or that the error message is hidden if there is no error
+ *
+ * Коротко: то же, что LoginViewModel, но проверки строже (длина и состав пароля, повтор пароля),
+ * а вместе с аккаунтом создаётся и документ профиля – анкету передаёт фрагмент через [setUser].
  */
 @HiltViewModel
 class RegistrationViewModel @Inject constructor(

@@ -12,6 +12,10 @@ import com.foxynest.testappforonboarding.presentation.common.HobbyDisplay
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Вопрос 4: хобби (чипы). Список ключей – res/values/arrays.xml → hobbies_array, текст – HobbyDisplay.
+ * «Готово» сохраняет хобби и завершает опрос (finishOnboarding).
+ */
 @AndroidEntryPoint
 class Question4Fragment : BaseOnboardingFragment() {
 
